@@ -6,6 +6,7 @@
 log_Component COMP_CLONE = {LOG_DEBUG, "CLONE"};
 log_Component COMP_AUTH = {LOG_DEBUG, "AUTH"};
 
+
 void gk_repository_init(gk_repository_t *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
         return;
@@ -44,7 +45,28 @@ int gk_session_credential_callback(git_credential **out,
                                    const char *username_from_url,
                                    unsigned int allowed_types,
                                    void *payload) {
-    log_info(COMP_AUTH, "credential callback called for url [%s], username [%s], allowed_types [%d]", url, username_from_url, allowed_types);
+
+    int allowed_userpass_plaintext = allowed_types & GIT_CREDENTIAL_USERPASS_PLAINTEXT;
+    int allowed_ssh_key = allowed_types & GIT_CREDENTIAL_SSH_KEY;
+    int allowed_ssh_custom = allowed_types & GIT_CREDENTIAL_SSH_CUSTOM;
+    int allowed_default = allowed_types & GIT_CREDENTIAL_DEFAULT;
+    int allowed_ssh_interactive = allowed_types & GIT_CREDENTIAL_SSH_INTERACTIVE;
+    int allowed_username = allowed_types & GIT_CREDENTIAL_USERNAME;
+    int allowed_ssh_memory = allowed_types & GIT_CREDENTIAL_SSH_MEMORY;
+    
+    
+    log_info(COMP_AUTH, "credential callback called for url [%s], username [%s], allowed_types [%d = userpass_plaintext:%s, ssh_key: %s, ssh_custom: %s, default: %s, ssh_interactive: %s, username: %s, ssh_memory: %s]",
+             url,
+             username_from_url,
+             allowed_types,
+             allowed_userpass_plaintext > 0 ? "on" : "off",
+             allowed_ssh_key > 0 ? "on" : "off",
+             allowed_ssh_custom > 0 ? "on" : "off",
+             allowed_default > 0 ? "on" : "off",
+             allowed_ssh_interactive > 0 ? "on" : "off",
+             allowed_username > 0 ? "on" : "off",
+             allowed_ssh_memory > 0 ? "on" : "off");
+    
     if (payload == NULL) {
         log_error(COMP_AUTH, "Expected authed-session payload but found NULL");
         return -1;
