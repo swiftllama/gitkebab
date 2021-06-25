@@ -4,6 +4,7 @@
 #include "results.h"
 
 log_Component COMP_CLONE = {LOG_DEBUG, "CLONE"};
+log_Component COMP_AUTH = {LOG_DEBUG, "AUTH"};
 
 void gk_repository_init(gk_repository_t *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
@@ -43,16 +44,18 @@ int gk_session_credential_callback(git_credential **out,
                                    const char *username_from_url,
                                    unsigned int allowed_types,
                                    void *payload) {
+    log_info(COMP_AUTH, "credential callback called for url [%s], username [%s], allowed_types [%d]", url, username_from_url, allowed_types);
     if (payload == NULL) {
-        printf("ERROR: Expected authed-session payload but found NULL");
+        log_error(COMP_AUTH, "Expected authed-session payload but found NULL");
         return -1;
     }
     gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
     if (authed_session->credential == NULL) {
-        printf("ERROR: authed session has NULL credential, cannot auth");
+        log_error(COMP_AUTH, "authed session has NULL credential, cannot auth");
         return -1;
     }
     *out = authed_session->credential;
+    log_info(COMP_AUTH, "Successfully set credential");
     return 0;
 }
 
@@ -79,16 +82,14 @@ static void gk_session_checkout_progress_callback(const char *path, size_t cur, 
 void gk_session_clone(gk_session_t *session, git_credential *credential) {
     printf("DBG B1\n");
     if ((session == NULL)) {
-        printf("DBG B2\n");
+        log_warn(COMP_CLONE, "Cannot clone in a NULL session");
         return;
     }
     else if (session->repository == NULL) {
-        printf("DBG B4\n");
+        log_warn(COMP_CLONE, "Cannot clone a session whose respository is NULL");
         gk_session_set_last_result(session, gk_result(-1, "Cannot clone, session repository is NULL"));
         return;
     }
-
-    printf("DBG B5\n");
 
     gk_authenticated_session_t authed_session;
     gk_authenticated_session_init(&authed_session, session, credential);
@@ -99,7 +100,6 @@ void gk_session_clone(gk_session_t *session, git_credential *credential) {
 
     int error;
 
-    printf("DBG B6\n");
     /* Set up options */
     checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
     checkout_opts.progress_cb = gk_session_checkout_progress_callback;
@@ -110,22 +110,25 @@ void gk_session_clone(gk_session_t *session, git_credential *credential) {
     clone_opts.fetch_opts.callbacks.credentials = &gk_session_credential_callback;
     clone_opts.fetch_opts.callbacks.payload = &authed_session;
 
-    printf("DBG B7: %s\n", session->repository->remote_url);
-    printf("DBG B8: %s\n", session->repository->local_path);
     /* Do the clone */
-    log_info(COMP_CLONE, "Cloning repo\n  URL:%s\n  local path:%s\n", session->repository->remote_url, session->repository->local_path);
+    log_info(COMP_CLONE, "Cloning repo");
+    log_info(COMP_CLONE, "  - URL:        %s", session->repository->remote_url);
+    log_info(COMP_CLONE, "  - Local path: %s", session->repository->local_path);
     error = git_clone(&cloned_repo, session->repository->remote_url, session->repository->local_path, &clone_opts);
 
     if (error != 0) {
         const git_error *err = git_error_last();
         if (err) {
+            log_error(COMP_CLONE, "Clone failed: %s", err->message);
             gk_session_set_last_result(session, gk_result(err->klass, err->message));
         }
         else {
+            log_error(COMP_CLONE, "Clone failed with git error code %d", error);
             gk_session_set_last_result(session, gk_result(error, ""));
         }
     }
     else {
+        log_info(COMP_CLONE, "Clone succeeded");
         gk_session_set_last_result(session, gk_result_success());   
     }
     if (cloned_repo) {
