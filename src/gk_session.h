@@ -41,7 +41,7 @@ typedef struct {
 } gk_repository_t;
 
 typedef struct {
-    gk_session_progress_t *progress_callback;
+    gk_session_progress_callback_t *progress_callback;
 } gk_session_callbacks_t;
 
 typedef struct {
