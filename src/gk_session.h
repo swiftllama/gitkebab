@@ -5,14 +5,13 @@
 
 #include "gk_results.h"
 #include "gk_credentials.h"
-#include "git2.h"
+#include <stdlib.h>
 
 typedef struct {
     int network_percent;
     int index_percent;
     size_t kbytes_received;
     int deltas_resolved_percent;
-    git_indexer_progress indexer_proress;
 } gk_fetch_progress_t;
     
 typedef struct {

@@ -4,6 +4,7 @@
 #include "gk_session.h"
 #include "gk_results.h"
 #include "gk_logging.h"
+#include "git2.h"
 
 void gk_repository_init(gk_repository_t *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
