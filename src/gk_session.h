@@ -7,8 +7,6 @@
 #include "git2.h"
 #include "log.h"
 
-extern log_Component COMP_CLONE;
-
 typedef struct {
     int network_percent;
     int index_percent;
@@ -46,27 +44,28 @@ typedef struct {
 
 typedef struct {
     gk_repository_t *repository;
-    gk_result_t last_result;
+    gk_result_t *last_result;
     gk_session_callbacks_t callbacks;
 } gk_session_t;
 
 typedef struct {
     gk_session_t *session;
-    git_credential *credential;
+    gk_session_credential_t *credential;
 } gk_authenticated_session_t;
+
 
 
     
 #define PROGRESS_EVENT_TYPE_FETCH 0;
 #define PROGRESS_EVENT_TYPE_CHECKOUT 1;
 
-void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, gk_session_t *session, git_credential *credential);
+void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, gk_session_t *session, gk_session_credential_t *credential);
                                    
 void gk_repository_init(gk_repository_t *repository, const char *local_path, const char *remote_url, const char *usr);
 
 void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_session_progress_callback_t *progress_callback);
 void gk_session_set_last_result(gk_session_t *session, gk_result_t last_result);
 
-void gk_session_clone(gk_session_t *session, git_credential *credential);
+gk_result_t *gk_session_clone(gk_session_t *session, gk_session_credential_t *credential);
 
 #endif // __GITKEBAB_SESSION_H__
