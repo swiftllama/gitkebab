@@ -6,7 +6,14 @@ project(gitkebab C)
 include_directories(external/libgit2/include)
 link_directories(external/libgit2/lib)
 
-add_executable(testmain src/main.c src/gitkebab.c src/results.c src/gk_session.c src/log.c src/log.h)
+add_executable(testmain
+  src/main.c
+  src/gitkebab.c
+  src/gk_credentials.c
+  src/gk_log_components.c
+  src/gk_results.c
+  src/gk_session.c
+  src/rxi_log.c)
 
 #target_link_libraries(testmain git2 ssl crypto ssh2 pthread z pcre)
 target_link_libraries(testmain git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)

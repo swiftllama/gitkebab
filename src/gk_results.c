@@ -1,10 +1,11 @@
 
-#include "results.h"
+#include "gk_results.h"
+#include "gk_logging.h"
+
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
 
-#include "gk_logging.h"
 
 static gk_result_t *gk_result_new() {
     return (gk_result_t *)malloc(sizeof(gk_result_t));
@@ -18,7 +19,7 @@ gk_result_t *gk_result(int code, const char *message) {
     }
     result->code = code;
     result->message = message == NULL ? NULL : strdup(message);
-    result.cause = NULL;
+    result->cause = NULL;
     return result;
 }
 
@@ -48,6 +49,10 @@ void gk_result_free(gk_result_t *result) {
     }
 }
 
+int gk_result_code(gk_result_t *result) {
+    return result != NULL ? result->code : -1;
+}
+
 const char *gk_result_message(gk_result_t *result) {
-    return result != NULL ? result -> message : "";
+    return result != NULL ? result->message : "(message attribute not available on NULL result)";
 }

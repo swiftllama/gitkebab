@@ -2,6 +2,8 @@
 #ifndef __GITKEBAB_CREDENTIALS_H__
 #define __GITKEBAB_CREDENTIALS_H__
 
+#include "gk_results.h"
+
 typedef enum {
     CREDENTIAL_SSH_KEY_MEMORY,
     CREDENTIAL_SSH_KEY_FILE,
@@ -23,7 +25,7 @@ gk_result_t *gk_session_credential_ssh_key_memory_init(gk_session_credential_t *
 
 gk_result_t *gk_session_credential_ssh_key_file_init(gk_session_credential_t *credential, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase);
 
-gk_result_t *gk_session_credential_username_password_init(gk_session_credential_t *credential, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase);
+gk_result_t *gk_session_credential_username_password_init(gk_session_credential_t *credential, const char *username, const char *password);
 
 void gk_session_credential_free_members(gk_session_credential_t *credential);
 

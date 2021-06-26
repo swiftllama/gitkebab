@@ -1,8 +1,8 @@
 
 #include "stdio.h"
-#include "gk_session.h"
-#include "results.h"
 
+#include "gk_session.h"
+#include "gk_results.h"
 #include "gk_logging.h"
 
 void gk_repository_init(gk_repository_t *repository, const char *remote_url, const char *local_path, const char *usr) {
@@ -14,7 +14,7 @@ void gk_repository_init(gk_repository_t *repository, const char *remote_url, con
     repository->user = usr;
 }
 
-void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, gk_session_t *session, git_credential *credential) {
+void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, gk_session_t *session, gk_session_credential_t *credential) {
     if (authed_session == NULL) {
         return;
     }
@@ -31,9 +31,12 @@ void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_sess
     session->callbacks.progress_callback = progress_callback;
 }
 
-void gk_session_set_last_result(gk_session_t *session, gk_result_t last_result) {
+void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result) {
     gk_result_free(session->last_result);
     session->last_result = last_result;
+    if (last_result == NULL) {
+        log_error(COMP_GENERAL, "Set a NULL last error on a session, this could be the result of a memory allocation failure");
+    }
 }
 
 int gk_session_credential_callback(git_credential **out,
@@ -41,7 +44,7 @@ int gk_session_credential_callback(git_credential **out,
                                    const char *username_from_url,
                                    unsigned int allowed_types,
                                    void *payload) {
-    gk_result *result = NULL;
+    gk_result_t *result = NULL;
     
     int allowed_userpass_plaintext = allowed_types & GIT_CREDENTIAL_USERPASS_PLAINTEXT;
     int allowed_ssh_key = allowed_types & GIT_CREDENTIAL_SSH_KEY;
@@ -72,7 +75,7 @@ int gk_session_credential_callback(git_credential **out,
     gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
     if (authed_session->session == NULL) {
         log_error(COMP_AUTH, "session is NULL when trying to authenticate");
-        return -1
+        return -1;
     }
     else if (authed_session->credential == NULL) {
         result = gk_result(-1, "authed session has NULL credential, cannot auth" );
@@ -95,8 +98,8 @@ int gk_session_credential_callback(git_credential **out,
         git_credential_userpass_plaintext_new(out, authed_session->credential->username, authed_session->credential->password);
     }
     else {
-        result = gk_result(-1, "authed session has gk_credential of unknown type %d. Expected one of CREDENTIAL_SSH_KEY_MEMORY (%d), CREDENTIAL_SSH_KEY_FILE (%d) or CREDENTIAL_USERNAME_PASSWORD (%d). Cannot auth", cred_type, CREDENTIAL_SSH_KEY_MEMORY, CREDENTIAL_SSH_KEY_FILE, CREDENTIAL_USERNAME_PASSWORD);
-        log_error(COMP_AUTH, gk_result_message(result));
+        result = gk_result(-1, "authed session has gk_credential of unknown type");
+        log_error(COMP_AUTH, "authed session has gk_credential of unknown type %d. Expected one of CREDENTIAL_SSH_KEY_MEMORY (%d), CREDENTIAL_SSH_KEY_FILE (%d) or CREDENTIAL_USERNAME_PASSWORD (%d). Cannot auth");
         gk_session_set_last_result(authed_session->session, result);
         return -1;
     }
@@ -124,7 +127,7 @@ static void gk_session_checkout_progress_callback(const char *path, size_t cur, 
     printf("CHECKOUT PROGRESS\n");
 }
 
-void gk_session_clone(gk_session_t *session, git_credential *credential) {
+void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential) {
     gk_result_t *result = NULL;
     
     if ((session == NULL)) {
