@@ -52,6 +52,10 @@ void gk_session_progress_init_fetch(gk_session_progress_t *progress, size_t rece
 
     // Approximate progress->percent as a linear function of the three different percentages
     // this mostly works but is prone to sudden jumps
+    if ((total_objects == 0) && (total_deltas == 0)) {
+        snprintf(progress->description, 256, "Receiving objects");
+        progress->percent = 0;
+    }
     if (total_objects > 0) {
         if (received_objects < total_objects) {
             snprintf(progress->description, 256, "Receiving objects");
@@ -80,7 +84,7 @@ void gk_session_progress_init_checkout(gk_session_progress_t *progress, const ch
     progress->checkout.completed_steps = current_steps;
     progress->checkout.total_steps = total_steps;
     progress->checkout.checkout_percent = total_steps == 0 ? 0 : (int)(100*(float)current_steps/(float)total_steps);
-    progress->checkout.current_path = path;
+    progress->checkout.current_path = path == NULL ? "" : path;
 
     progress->percent = progress->checkout.checkout_percent;
     snprintf(progress->description, 256, "%s", path == NULL ? "" : path);
