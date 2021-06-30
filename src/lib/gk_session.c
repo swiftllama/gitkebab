@@ -108,27 +108,6 @@ int gk_session_credential_callback(git_credential **out,
     return 0;
 }
 
-static int gk_session_fetch_progress_callback(const git_indexer_progress *stats, void *payload)
-{
-    // TODO: interpret payload as authed session, update progress from stats in session
-    /*
-	progress_data *pd = (progress_data*)payload;
-	pd->fetch_progress = *stats;
-	print_progress(pd);*/
-    printf("FETCH PROGRESS\n");
-	return 0;
-}
-static void gk_session_checkout_progress_callback(const char *path, size_t cur, size_t tot, void *payload)
-{
-    // TODO: interpret payload as authed session, update progress from stats in session
-    /*
-	progress_data *pd = (progress_data*)payload;
-	pd->completed_steps = cur;
-	pd->total_steps = tot;
-	pd->path = path;
-	print_progress(pd);*/
-    printf("CHECKOUT PROGRESS\n");
-}
 
 void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential) {
     gk_result_t *result = NULL;

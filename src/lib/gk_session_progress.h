@@ -1,0 +1,40 @@
+
+#ifndef __GITKEBAB_SESSION_PROGRESS_H__
+#define __GITKEBAB_SESSION_PROGRESS_H__
+
+typedef enum gk_session_progress_event_type {
+    SESSION_PROGRESS_FETCH, SESSION_PROGRESS_CHECKOUT
+}
+    
+typedef struct {
+    int network_percent;
+    int index_percent;
+    size_t kbytes_received;
+    int deltas_resolved_percent;
+} gk_fetch_progress_t;
+    
+typedef struct {
+    size_t completed_steps;
+    size_t total_steps;
+    int checkout_percent;
+    const char* current_path;
+} gk_checkout_progress_t;
+
+typedef struct {
+    gk_fetch_progress_t fetch_progress;
+    gk_checkout_progress_t checkout_progress;
+    int progress_event_type;
+    int percent;
+    const char description[256];
+} gk_session_progress_t;
+
+typedef void gk_session_progress_callback_t(gk_session_progress_t *progress);
+
+void gk_session_fetch_progress_callback(const git_indexer_progress *stats, void *payload);
+void gk_session_checkout_progress_callback(const char *path, size_t cur, size_t tot, void *payload);
+
+void gk_session_progress_init_fetch(gk_session_progress_t &progress);
+void gk_session_progress_init_checkout(gk_session_progress_t &progress);
+
+
+#endif // __GITKEBAB_SESSION_PROGRESS_H__
