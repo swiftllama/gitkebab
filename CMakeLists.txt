@@ -5,3 +5,4 @@ project(gitkebab C)
 
 add_subdirectory(src/lib)
 add_subdirectory(src/test)
+add_subdirectory(src/example)
