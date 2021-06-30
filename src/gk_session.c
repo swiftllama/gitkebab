@@ -110,6 +110,7 @@ int gk_session_credential_callback(git_credential **out,
 
 static int gk_session_fetch_progress_callback(const git_indexer_progress *stats, void *payload)
 {
+    // TODO: interpret payload as authed session, update progress from stats in session
     /*
 	progress_data *pd = (progress_data*)payload;
 	pd->fetch_progress = *stats;
@@ -119,6 +120,7 @@ static int gk_session_fetch_progress_callback(const git_indexer_progress *stats,
 }
 static void gk_session_checkout_progress_callback(const char *path, size_t cur, size_t tot, void *payload)
 {
+    // TODO: interpret payload as authed session, update progress from stats in session
     /*
 	progress_data *pd = (progress_data*)payload;
 	pd->completed_steps = cur;
