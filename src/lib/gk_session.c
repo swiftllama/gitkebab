@@ -108,7 +108,6 @@ int gk_session_credential_callback(git_credential **out,
     return 0;
 }
 
-
 void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential) {
     gk_result_t *result = NULL;
     
@@ -137,10 +136,10 @@ void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential
     /* Set up options */
     checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
     checkout_opts.progress_cb = gk_session_checkout_progress_callback;
-    //checkout_opts.progress_payload = &pd;
+    checkout_opts.progress_payload = &authed_session;
     clone_opts.checkout_opts = checkout_opts;
     //clone_opts.fetch_opts.callbacks.sideband_progress = sideband_progress;
-    clone_opts.fetch_opts.callbacks.transfer_progress = &gk_session_fetch_progress_callback;
+    clone_opts.fetch_opts.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
     clone_opts.fetch_opts.callbacks.credentials = &gk_session_credential_callback;
     clone_opts.fetch_opts.callbacks.payload = &authed_session;
 

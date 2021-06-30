@@ -64,39 +64,25 @@ void gk_session_credential_free_members(gk_session_credential_t *credential) {
         return;
     }
 
-    log_error(COMP_GENERAL, "DBG A1");
     if (credential->ssh_private_key_bytes != NULL) {
-        log_error(COMP_GENERAL, "DBG A2");
         free((void *)credential->ssh_private_key_bytes);
     }
-    log_error(COMP_GENERAL, "DBG A3");
     if (credential->ssh_public_key_bytes != NULL) {
-        log_error(COMP_GENERAL, "DBG A4");
         free((void *)credential->ssh_public_key_bytes);
     }
-    log_error(COMP_GENERAL, "DBG A5");
     if (credential->ssh_private_key_path != NULL) {
-        log_error(COMP_GENERAL, "DBG A6");
         free((void *)credential->ssh_private_key_path);
     }
-    log_error(COMP_GENERAL, "DBG A7");
     if (credential->ssh_public_key_path != NULL) {
-        log_error(COMP_GENERAL, "DBG A8");
         free((void *)credential->ssh_public_key_path);
     }
-    log_error(COMP_GENERAL, "DBG A9");
     if (credential->ssh_private_key_passphrase != NULL) {
-        log_error(COMP_GENERAL, "DBG A10");
         free((void *)credential->ssh_private_key_passphrase);
     }
-    log_error(COMP_GENERAL, "DBG A11");
     if (credential->username != NULL) {
-        log_error(COMP_GENERAL, "DBG A12");
         free((void *)credential->username);
     }
-    log_error(COMP_GENERAL, "DBG A13");
     if (credential->password != NULL) {
-        log_error(COMP_GENERAL, "DBG A14");
         free((void *)credential->password);
     }
 }
