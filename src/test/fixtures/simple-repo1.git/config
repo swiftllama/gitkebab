@@ -1,0 +1,6 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = true
+[remote "origin"]
+	url = /home/amos/Projects/gitkebab/src/test/fixtures/simple-repo1-notbare
