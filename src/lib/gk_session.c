@@ -11,9 +11,18 @@ void gk_repository_init(gk_repository_t *repository, const char *remote_url, con
     if (repository == NULL) {
         return;
     }
-    repository->local_path = local_path;
-    repository->remote_url = remote_url;
-    repository->user = usr;
+    if (remote_url == NULL) {
+        log_warn(COMP_GENERAL, "Session initialized with NULL remote_url, will use empty string instead");
+    }
+    if (local_path == NULL) {
+        log_warn(COMP_GENERAL, "Session initialized with NULL local_url, will use empty string instead");
+    }
+    if (usr == NULL) {
+        log_warn(COMP_GENERAL, "Session initialized with NULL user, will use empty string instead");
+    }
+    repository->local_path = local_path != NULL ? local_path : "";
+    repository->remote_url = remote_url != NULL ? remote_url : "";
+    repository->user = usr != NULL ? usr : "";
 }
 
 void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, gk_session_t *session, gk_session_credential_t *credential) {
