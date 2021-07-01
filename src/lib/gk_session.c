@@ -5,6 +5,7 @@
 #include "gk_results.h"
 #include "gk_logging.h"
 #include "git2.h"
+#include "gitkebab.h"
 
 void gk_repository_init(gk_repository_t *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
@@ -119,6 +120,12 @@ void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential
     }
     else if (session->repository == NULL) {
         result = gk_result(-2, "Cannot clone, session respository is NULL");
+        log_error(COMP_CLONE, gk_result_message(result));
+        gk_session_set_last_result(session, result);
+        return;
+    }
+    if (gk_did_init() != 1) {
+        result = gk_result(-3, "Gitkebab not initialized");
         log_error(COMP_CLONE, gk_result_message(result));
         gk_session_set_last_result(session, result);
         return;
