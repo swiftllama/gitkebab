@@ -62,8 +62,8 @@ void gk_repository_init(gk_repository_t *repository, const char *local_path, con
 void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_session_progress_callback_t *progress_callback);
 void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result);
 
-void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential);
-void gk_session_open_local_repository(gk_session_t *session);
+int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential);
+int gk_session_open_local_repository(gk_session_t *session);
 
 void gk_session_free_members(gk_session_t *session);
 

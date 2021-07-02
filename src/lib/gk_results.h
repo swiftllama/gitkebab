@@ -2,6 +2,10 @@
 #ifndef __GITKEBAB_RESULTS_H__
 #define __GITKEBAB_RESULTS_H__
 
+enum GK_RESULT_CODE {
+    GK_SUCCESS, GK_FAILURE
+};
+    
 typedef struct gk_result_t gk_result_t;
 
 struct gk_result_t {
