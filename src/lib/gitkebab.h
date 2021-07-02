@@ -5,6 +5,7 @@
 #include "gk_results.h"
 #include "gk_session.h"
 #include "gk_credentials.h"
+#include "gk_status.h"
 #include "gk_logging.h"
 
 int gk_did_init();

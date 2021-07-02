@@ -1,5 +1,6 @@
 
-#define _XOPEN_SOURCE 500 
+#define _XOPEN_SOURCE 500
+#include <stdlib.h>
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
@@ -44,4 +45,33 @@ int create_directory(const char *path) {
         log_error(COMP_TEST, "Error (%d) creating directory '%s': %s", errno, path, strerror(errno));
     }
     return rc;
+}
+
+int copy_file(const char *source_path, const char *dest_path) {
+    char buffer[4096];
+    FILE *read_stream = fopen(source_path, "r");
+    FILE *write_stream = fopen(dest_path, "w");
+    while (!feof(read_stream)) {
+        size_t bytes = fread(buffer, 1, sizeof(buffer), read_stream);
+        if (bytes) {
+            fwrite(buffer, 1, bytes, write_stream);
+        }
+    }
+    fclose(read_stream);
+    fclose(write_stream);
+
+    return 0;
+}
+
+
+int copy_directory(const char *source_path, const char *dest_path) {
+    char cp_command[2048];
+    snprintf(cp_command, 2048, "cp -PR %s %s", source_path, dest_path);
+    return system(cp_command);
+}
+
+int mv(const char *source_path, const char *dest_path) {
+    char mv_command[2048];
+    snprintf(mv_command, 2048, "mv %s %s", source_path, dest_path);
+    return system(mv_command);
 }

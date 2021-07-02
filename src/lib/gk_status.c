@@ -158,3 +158,18 @@ const char *gk_session_status_summary_path_at(gk_session_t *session, size_t inde
     return path;
 }
 
+size_t gk_session_status_summary_entrycount(gk_session_t *session) {
+    gk_result_t *result = NULL;
+    if (session == NULL) {
+        log_error(COMP_STATUS, "Cannot retrieve summary entry count, session is NULL");
+        return 0;
+    }
+    git_status_list *status_list = (git_status_list *)session->lg2_status_list;
+    if (status_list == NULL) {
+        result = gk_result(-1, "Error retrieving summary entry count, status list is NULL");
+        log_error(COMP_STATUS, gk_result_message(result));
+        gk_session_set_last_result(session, result);
+        return 0;
+    }
+    return git_status_list_entrycount(status_list);
+}

@@ -12,5 +12,7 @@ const char *gk_session_status_summary_path_at(gk_session_t *session, size_t inde
 
 void gk_status_summary_reset(gk_status_summary_t *status_summary);
 
+size_t gk_session_status_summary_entrycount(gk_session_t *session);
+
 
 #endif // __GK_STATUS_H__

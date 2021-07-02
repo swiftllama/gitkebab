@@ -55,6 +55,7 @@ void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_sess
     gk_status_summary_reset(&session->status_summary);
     
     session->lg2_repository = NULL;
+    session->lg2_status_list = NULL;
 }
 
 void gk_session_open_local_repository(gk_session_t *session) {
@@ -81,6 +82,7 @@ void gk_session_open_local_repository(gk_session_t *session) {
         gk_session_set_last_result(session, result);
         return;
     }
+    session->state.local_checkout_exists = 1;
     gk_session_set_last_result(session, gk_result_success());
 }
 
