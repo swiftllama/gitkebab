@@ -17,6 +17,8 @@ add_library(gitkebab
   gk_session.h
   gk_session_progress.c
   gk_session_progress.h
+  gk_status.c
+  gk_status.h
   rxi_log.c
   rxi_log.h)
 

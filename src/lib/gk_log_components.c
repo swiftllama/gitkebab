@@ -8,3 +8,4 @@ log_Component COMP_PROGRESS = {LOG_DEBUG, "PROGRESS"};
 log_Component COMP_AUTH = {LOG_DEBUG, "AUTH"};
 log_Component COMP_GENERAL = {LOG_INFO, "GNRL"};
 log_Component COMP_TEST = {LOG_INFO, "TEST"};
+log_Component COMP_STATUS = {LOG_INFO, "STATUS"};

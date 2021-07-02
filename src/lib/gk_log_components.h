@@ -11,5 +11,6 @@ extern log_Component COMP_LIBGIT2;
 extern log_Component COMP_AUTH;
 extern log_Component COMP_GENERAL;
 extern log_Component COMP_TEST;
+extern log_Component COMP_STATUS;
 
 #endif // __GITKEBAB_LOG_COMPONENTS_H__
