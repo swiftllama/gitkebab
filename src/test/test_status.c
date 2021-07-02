@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
+#include "git2.h"
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 
@@ -79,6 +80,7 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
     (void) state; /* unused */
 
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
+    copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
@@ -103,6 +105,14 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
     assert_int_equal(session.status_summary.count_conflicted, 0);
     
     assert_int_equal(gk_session_status_summary_entrycount(&session), 3);
+
+    assert_string_equal(gk_session_status_summary_path_at(&session, 0), "file1");
+    assert_string_equal(gk_session_status_summary_path_at(&session, 1), "file2");
+    assert_string_equal(gk_session_status_summary_path_at(&session, 2), "new-file");
+
+    assert_int_equal(gk_session_status_summary_status_at(&session, 0), GIT_STATUS_WT_MODIFIED);
+    assert_int_equal(gk_session_status_summary_status_at(&session, 1), GIT_STATUS_WT_DELETED);
+    assert_int_equal(gk_session_status_summary_status_at(&session, 2), GIT_STATUS_WT_NEW);    
 }
 
 static void test_status_renamed_file(void **state) {
@@ -132,6 +142,10 @@ static void test_status_renamed_file(void **state) {
     assert_int_equal(session.status_summary.count_conflicted, 0);
     
     assert_int_equal(gk_session_status_summary_entrycount(&session), 1);
+
+    assert_string_equal(gk_session_status_summary_path_at(&session, 0), "file1");
+
+    assert_int_equal(gk_session_status_summary_status_at(&session, 0), GIT_STATUS_WT_RENAMED);
 }
 
 

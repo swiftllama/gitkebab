@@ -1,6 +1,7 @@
 
 
 include_directories(${PROJECT_SOURCE_DIR}/external/cmocka/include)
+include_directories(${PROJECT_SOURCE_DIR}/external/libgit2/include)
 link_directories(${PROJECT_SOURCE_DIR}/external/cmocka/lib)
 link_directories(${PROJECT_SOURCE_DIR}/external/libgit2/lib)
 
@@ -21,4 +22,7 @@ target_link_libraries(test_no_init cmocka gitkebab git2 ssl crypto /home/amos/Sr
 
 add_executable(test_status test_status.c gk_test_filesystem_utils.c)
 target_link_libraries(test_status cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+
+add_executable(test_index test_index.c gk_test_filesystem_utils.c)
+target_link_libraries(test_index cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
 

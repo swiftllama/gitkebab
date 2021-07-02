@@ -145,7 +145,7 @@ const char *gk_session_status_summary_path_at(gk_session_t *session, size_t inde
         return "";
     }
 
-    const char *path = "";
+    const char *path = NULL;
     if (entry->index_to_workdir != NULL) {
         if (entry->index_to_workdir->old_file.path != NULL) {
             path = entry->index_to_workdir->old_file.path;
@@ -165,6 +165,7 @@ const char *gk_session_status_summary_path_at(gk_session_t *session, size_t inde
 
     if (path == NULL) {
         log_warn(COMP_STATUS, "error finding path for status entry at index %d, all values are NULL", index);
+        return "";
     }
 
     return path;
