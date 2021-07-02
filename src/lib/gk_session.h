@@ -33,6 +33,7 @@ typedef struct {
     gk_result_t *last_result;
     gk_session_callbacks_t callbacks;
     gk_session_state_t state;
+    void *lg2_repository;
 } gk_session_t;
 
 typedef struct {
@@ -49,5 +50,8 @@ void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_sess
 void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result);
 
 void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential);
+void gk_session_open_local_repository(gk_session_t *session);
+
+void gk_session_free_members(gk_session_t *session);
 
 #endif // __GITKEBAB_SESSION_H__

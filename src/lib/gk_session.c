@@ -12,13 +12,13 @@ void gk_repository_init(gk_repository_t *repository, const char *remote_url, con
         return;
     }
     if (remote_url == NULL) {
-        log_warn(COMP_GENERAL, "Session initialized with NULL remote_url, will use empty string instead");
+        log_warn(COMP_GENERAL, "Repository initialized with NULL remote_url, will use empty string instead");
     }
     if (local_path == NULL) {
-        log_warn(COMP_GENERAL, "Session initialized with NULL local_url, will use empty string instead");
+        log_warn(COMP_GENERAL, "Repository initialized with NULL local_url, will use empty string instead");
     }
     if (usr == NULL) {
-        log_warn(COMP_GENERAL, "Session initialized with NULL user, will use empty string instead");
+        log_warn(COMP_GENERAL, "Repository initialized with NULL user, will use empty string instead");
     }
     repository->local_path = local_path != NULL ? local_path : "";
     repository->remote_url = remote_url != NULL ? remote_url : "";
@@ -32,20 +32,53 @@ void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, g
     authed_session->session = session;
     authed_session->credential = credential;
 }
-
+                                
 void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_session_progress_callback_t *progress_callback) {
     if (session == NULL) {
         return;
     }
+    if (repository == NULL) {
+        log_warn(COMP_GENERAL, "Session initialized with NULL repository");
+    }
     session->repository = repository;
     session->last_result = gk_result_success();
     session->callbacks.progress_callback = progress_callback;
+
     session->state.local_checkout_exists = 0;
     session->state.has_conflicts = 0;
     session->state.merge_in_progress = 0;
     session->state.clone_in_progress = 0;
     session->state.push_in_progress = 0;
     session->state.pull_in_progress = 0;
+
+    session->lg2_repository = NULL;
+}
+
+void gk_session_open_local_repository(gk_session_t *session) {
+    gk_result_t *result = NULL;
+    
+    if (session == NULL) {
+        log_error(COMP_GENERAL, "gk_session_open_local_repository(session) called on NULL session");
+        return;
+    }
+    if (session->repository == NULL) {
+        result = gk_result(-1, "session has NULL repository, cannot open");
+        log_error(COMP_GENERAL, gk_result_message(result));
+        gk_session_set_last_result(session, result);
+        return;
+    }
+
+    int rc = git_repository_open((git_repository *)session->lg2_repository, session->repository->local_path);
+    if (rc != 0) {
+        char message[256];
+        git_error *err = git_error_last();
+        snprintf(message, 256, "Error opening repository at local path (%d): %s", err->klass, err->message);
+        result = gk_result(-2, message);
+        log_error(COMP_GENERAL, gk_result_message(result));
+        gk_session_set_last_result(session, result);
+        return;
+    }
+    gk_session_set_last_result(session, gk_result_success());
 }
 
 void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result) {
@@ -149,7 +182,6 @@ void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential
     gk_authenticated_session_t authed_session;
     gk_authenticated_session_init(&authed_session, session, credential);
 
-    git_repository *cloned_repo = NULL;
     git_clone_options clone_opts = GIT_CLONE_OPTIONS_INIT;
     git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
 
@@ -169,7 +201,7 @@ void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        %s", session->repository->remote_url);
     log_info(COMP_CLONE, "  - Local path: %s", session->repository->local_path);
-    error = git_clone(&cloned_repo, session->repository->remote_url, session->repository->local_path, &clone_opts);
+    error = git_clone((git_repository *)session->lg2_repository, session->repository->remote_url, session->repository->local_path, &clone_opts);
 
     if (error != 0) {
         const git_error *err = git_error_last();
@@ -183,10 +215,18 @@ void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential
         }
     }
     else {
+        session->state.local_checkout_exists = 1;
         log_info(COMP_CLONE, "Clone succeeded");
-        gk_session_set_last_result(session, gk_result_success());   
+        gk_session_set_last_result(session, gk_result_success());
     }
-    if (cloned_repo) {
-        git_repository_free(cloned_repo);
+}
+
+void gk_session_free_members(gk_session_t *session) {
+    if (session == NULL) {
+        return;
+    }
+    if (session->lg2_repository != NULL) {
+        git_repository_free(session->lg2_repository);
+        session->lg2_repository = NULL;
     }
 }
