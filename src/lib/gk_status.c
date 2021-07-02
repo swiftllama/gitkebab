@@ -17,25 +17,25 @@ void gk_status_summary_reset(gk_status_summary_t *status_summary) {
     status_summary->count_conflicted = 0;
 }
 
-void gk_session_query_status_summary(gk_session_t *session) {
+int gk_session_query_status_summary(gk_session_t *session) {
     gk_result_t *result = NULL;
 
     if (session == NULL) {
         log_error(COMP_STATUS, "Cannot check status, session is NULL");
-        return;
+        return GK_FAILURE;
     }
     if (session->state.local_checkout_exists == 0) {
         result = gk_result(-1, "Cannot query status, local checkout does not exist");
         log_error(COMP_STATUS, gk_result_message(result));
         gk_session_set_last_result(session, result);
-        return;
+        return GK_FAILURE;
     }
     if (session->lg2_repository == NULL) {
         // Should never happen if local_checkout_exists == 1
         result = gk_result(-1, "Cannot query status, internal git2 repository is unexpectedely NULL");
         log_error(COMP_STATUS, gk_result_message(result));
         gk_session_set_last_result(session, result);
-        return;
+        return GK_FAILURE;
     }
     
     if (session->lg2_status_list != NULL) {
@@ -61,7 +61,7 @@ void gk_session_query_status_summary(gk_session_t *session) {
         result = gk_result(-2, message);
         log_error(COMP_STATUS, gk_result_message(result));
         gk_session_set_last_result(session, result);
-        return;
+        return GK_FAILURE;
     }
 
     session->lg2_status_list = (void *)status_list;
@@ -100,6 +100,7 @@ void gk_session_query_status_summary(gk_session_t *session) {
     }
 
     gk_session_set_last_result(session, gk_result_success());
+    return GK_SUCCESS;
 }
 
 const char *gk_session_status_summary_path_at(gk_session_t *session, size_t index) {

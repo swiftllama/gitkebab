@@ -6,7 +6,7 @@
 #include "gk_results.h"
 
 
-void gk_session_query_status_summary(gk_session_t *session);
+int gk_session_query_status_summary(gk_session_t *session);
 
 const char *gk_session_status_summary_path_at(gk_session_t *session, size_t index);
 

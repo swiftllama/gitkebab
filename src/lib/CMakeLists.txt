@@ -8,6 +8,8 @@ add_library(gitkebab
   gitkebab.h
   gk_credentials.c
   gk_credentials.h
+  gk_index.c
+  gk_index.h
   gk_log_components.c
   gk_log_components.h
   gk_logging.h
