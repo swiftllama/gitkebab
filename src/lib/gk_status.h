@@ -10,6 +10,8 @@ int gk_session_query_status_summary(gk_session_t *session);
 
 const char *gk_session_status_summary_path_at(gk_session_t *session, size_t index);
 
+int gk_session_status_summary_status_at(gk_session_t *session, size_t index);
+
 void gk_status_summary_reset(gk_status_summary_t *status_summary);
 
 size_t gk_session_status_summary_entrycount(gk_session_t *session);

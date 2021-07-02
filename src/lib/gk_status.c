@@ -103,34 +103,45 @@ int gk_session_query_status_summary(gk_session_t *session) {
     return GK_SUCCESS;
 }
 
-const char *gk_session_status_summary_path_at(gk_session_t *session, size_t index) {
+static const git_status_entry *gk_session_status_summary_entry(gk_session_t *session, const char *purpose, size_t index) {
     gk_result_t *result = NULL;
     if (session == NULL) {
-        log_error(COMP_STATUS, "Cannot retrieve path summary at index %zu, session is NULL", index);
-        return "";
+        log_error(COMP_STATUS, "Cannot retrieve %s at index %zu, session is NULL", purpose, index);
+        return NULL;
     }
     git_status_list *status_list = (git_status_list *)session->lg2_status_list;
     if (status_list == NULL) {
         char message[256];
-        snprintf(message, 256, "Error retrieving path at index %zu, status_list is NULL", index);
+        snprintf(message, 256, "Error retrieving %s at index %zu, status_list is NULL", purpose, index);
         result = gk_result(-1, message);
         log_error(COMP_STATUS, gk_result_message(result));
         gk_session_set_last_result(session, result);
-        return "";
+        return NULL;
     }
     size_t total = git_status_list_entrycount(status_list);
     if (index >= total) {
         char message[256];
-        snprintf(message, 256, "Error retrieving path at index %zu: index out of bounds (total entry count is only %zu)", index, total);
+        snprintf(message, 256, "Error retrieving %s at index %zu: index out of bounds (total entry count is only %zu)", purpose, index, total);
         result = gk_result(-1, message);
         log_error(COMP_STATUS, gk_result_message(result));
         gk_session_set_last_result(session, result);
-        return "";
+        return NULL;
     }
-
-    const git_status_entry *entry = git_status_byindex(status_list, index);
+    const git_status_entry *entry = git_status_byindex(status_list, index);    
     if (entry == NULL) {
-        log_error(COMP_STATUS, "Unexpected status list NULL entry at index %zu", index);
+        log_error(COMP_STATUS, "Cannot retrieve %s, unexpected status list NULL entry at index %zu", purpose, index);
+    }
+    return entry;
+}
+
+int gk_session_status_summary_status_at(gk_session_t *session, size_t index) {
+    const git_status_entry *entry = gk_session_status_summary_entry(session, "status", index);
+    return entry == NULL ? 0 : entry->status;
+}
+
+const char *gk_session_status_summary_path_at(gk_session_t *session, size_t index) {
+    const git_status_entry *entry = gk_session_status_summary_entry(session, "status", index);
+    if (entry == NULL) {
         return "";
     }
 
