@@ -74,27 +74,27 @@ void gk_session_query_status_summary(gk_session_t *session) {
             log_error(COMP_STATUS, "Unexpected status list NULL entry at index %d", i);
             continue;
         }
-        if ((entry->status & GIT_STATUS_INDEX_NEW ==  GIT_STATUS_INDEX_NEW) ||
-            (entry->status & GIT_STATUS_WT_NEW ==  GIT_STATUS_WT_NEW)) {
+        if (((entry->status & GIT_STATUS_INDEX_NEW) ==  GIT_STATUS_INDEX_NEW) ||
+            ((entry->status & GIT_STATUS_WT_NEW) ==  GIT_STATUS_WT_NEW)) {
             session->status_summary.count_new += 1;
         }
-        else if ((entry->status & GIT_STATUS_INDEX_MODIFIED ==  GIT_STATUS_INDEX_MODIFIED) ||
-            (entry->status & GIT_STATUS_WT_MODIFIED ==  GIT_STATUS_WT_MODIFIED)) {
+        else if (((entry->status & GIT_STATUS_INDEX_MODIFIED) ==  GIT_STATUS_INDEX_MODIFIED) ||
+                 ((entry->status & GIT_STATUS_WT_MODIFIED) ==  GIT_STATUS_WT_MODIFIED)) {
             session->status_summary.count_modified += 1;
         }
-        else if ((entry->status & GIT_STATUS_INDEX_DELETED ==  GIT_STATUS_INDEX_DELETED) ||
-            (entry->status & GIT_STATUS_WT_DELETED ==  GIT_STATUS_WT_DELETED)) {
+        else if (((entry->status & GIT_STATUS_INDEX_DELETED) ==  GIT_STATUS_INDEX_DELETED) ||
+                 ((entry->status & GIT_STATUS_WT_DELETED) ==  GIT_STATUS_WT_DELETED)) {
             session->status_summary.count_deleted += 1;
         }
-        else if ((entry->status & GIT_STATUS_INDEX_RENAMED ==  GIT_STATUS_INDEX_RENAMED) ||
-            (entry->status & GIT_STATUS_WT_RENAMED ==  GIT_STATUS_WT_RENAMED)) {
+        else if (((entry->status & GIT_STATUS_INDEX_RENAMED) ==  GIT_STATUS_INDEX_RENAMED) ||
+                 ((entry->status & GIT_STATUS_WT_RENAMED) ==  GIT_STATUS_WT_RENAMED)) {
             session->status_summary.count_renamed += 1;
         }
-        else if ((entry->status & GIT_STATUS_INDEX_TYPECHANGE ==  GIT_STATUS_INDEX_TYPECHANGE) ||
-            (entry->status & GIT_STATUS_WT_TYPECHANGE ==  GIT_STATUS_WT_TYPECHANGE)) {
+        else if (((entry->status & GIT_STATUS_INDEX_TYPECHANGE) ==  GIT_STATUS_INDEX_TYPECHANGE) ||
+                 ((entry->status & GIT_STATUS_WT_TYPECHANGE) ==  GIT_STATUS_WT_TYPECHANGE)) {
             session->status_summary.count_typechange += 1;
         }
-        else if (entry->status & GIT_STATUS_CONFLICTED == GIT_STATUS_CONFLICTED) {
+        else if ((entry->status & GIT_STATUS_CONFLICTED) == GIT_STATUS_CONFLICTED) {
             session->status_summary.count_conflicted += 1;
         }
     }

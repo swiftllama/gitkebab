@@ -78,6 +78,38 @@ static void test_status_no_changes(void **state) {
 static void test_status_new_file_modified_file_deleted_file(void **state) {
     (void) state; /* unused */
 
+    copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
+    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+    rm_rf("test-staging/simple-repo1/file2");
+    
+    gk_repository_t repo;
+    gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
+    gk_session_t session;
+
+    gk_session_init(&session, &repo, &session_progress);
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    gk_session_open_local_repository(&session);
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    gk_session_query_status_summary(&session);
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    assert_int_equal(session.status_summary.count_new, 1);
+    assert_int_equal(session.status_summary.count_modified, 1);
+    assert_int_equal(session.status_summary.count_deleted, 1);
+    assert_int_equal(session.status_summary.count_renamed, 0);
+    assert_int_equal(session.status_summary.count_typechange, 0);
+    assert_int_equal(session.status_summary.count_conflicted, 0);
+    
+    assert_int_equal(gk_session_status_summary_entrycount(&session), 3);
+}
+
+static void test_status_renamed_file(void **state) {
+    (void) state; /* unused */
+
+    copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
+    rm_rf("test-staging/simple-repo1/file1");
     
     gk_repository_t repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
@@ -95,11 +127,11 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
     assert_int_equal(session.status_summary.count_new, 0);
     assert_int_equal(session.status_summary.count_modified, 0);
     assert_int_equal(session.status_summary.count_deleted, 0);
-    assert_int_equal(session.status_summary.count_renamed, 0);
+    assert_int_equal(session.status_summary.count_renamed, 1);
     assert_int_equal(session.status_summary.count_typechange, 0);
     assert_int_equal(session.status_summary.count_conflicted, 0);
     
-    assert_int_equal(gk_session_status_summary_entrycount(&session), 0);
+    assert_int_equal(gk_session_status_summary_entrycount(&session), 1);
 }
 
 
@@ -107,6 +139,8 @@ int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_status_without_open_repo, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_status_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_status_new_file_modified_file_deleted_file, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_status_renamed_file, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {
