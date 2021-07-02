@@ -143,7 +143,7 @@ int gk_session_index_add_all(gk_session_t *session, const char* pattern) {
     return GK_SUCCESS;    
 }
 
-int gk_session_update_add_all(gk_session_t *session, const char* pattern) {
+int gk_session_index_update_all(gk_session_t *session, const char* pattern) {
     gk_result_t *result = NULL;
     
     git_index *index = index_for_session(session, "update all in index", pattern);
