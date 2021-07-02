@@ -75,6 +75,33 @@ static void test_status_no_changes(void **state) {
     assert_int_equal(gk_session_status_summary_entrycount(&session), 0);
 }
 
+static void test_status_new_file_modified_file_deleted_file(void **state) {
+    (void) state; /* unused */
+
+    
+    gk_repository_t repo;
+    gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
+    gk_session_t session;
+
+    gk_session_init(&session, &repo, &session_progress);
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    gk_session_open_local_repository(&session);
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    gk_session_query_status_summary(&session);
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    assert_int_equal(session.status_summary.count_new, 0);
+    assert_int_equal(session.status_summary.count_modified, 0);
+    assert_int_equal(session.status_summary.count_deleted, 0);
+    assert_int_equal(session.status_summary.count_renamed, 0);
+    assert_int_equal(session.status_summary.count_typechange, 0);
+    assert_int_equal(session.status_summary.count_conflicted, 0);
+    
+    assert_int_equal(gk_session_status_summary_entrycount(&session), 0);
+}
+
 
 int main(void) {
     const struct CMUnitTest tests[] = {
