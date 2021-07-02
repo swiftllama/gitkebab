@@ -47,6 +47,8 @@ static void test_clone_simple(void **state) {
     gk_session_init(&session, &repo, &session_progress);
     gk_session_clone(&session, &g_empty_credential);
 
+    assert_int_equal(session.state.local_checkout_exists, 1);
+        
     assert_int_equal(file_exists("test-staging/clone-test-1/file1"), 0);
     assert_int_equal(file_exists("test-staging/clone-test-1/file2"), 0);
     assert_int_equal(directory_exists("test-staging/clone-test-1/folder1"), 0);

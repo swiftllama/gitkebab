@@ -68,7 +68,7 @@ void gk_session_open_local_repository(gk_session_t *session) {
         return;
     }
 
-    int rc = git_repository_open((git_repository *)session->lg2_repository, session->repository->local_path);
+    int rc = git_repository_open((git_repository **)&(session->lg2_repository), session->repository->local_path);
     if (rc != 0) {
         char message[256];
         git_error *err = git_error_last();
@@ -201,7 +201,7 @@ void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        %s", session->repository->remote_url);
     log_info(COMP_CLONE, "  - Local path: %s", session->repository->local_path);
-    error = git_clone((git_repository *)session->lg2_repository, session->repository->remote_url, session->repository->local_path, &clone_opts);
+    error = git_clone((git_repository **)&(session->lg2_repository), session->repository->remote_url, session->repository->local_path, &clone_opts);
 
     if (error != 0) {
         const git_error *err = git_error_last();
@@ -221,7 +221,7 @@ void gk_session_clone(gk_session_t *session, gk_session_credential_t *credential
     }
 }
 
-void gk_session_free_members(gk_session_t *session) {
+void gk_session_close(gk_session_t *session) {
     if (session == NULL) {
         return;
     }
