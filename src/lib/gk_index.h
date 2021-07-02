@@ -4,7 +4,10 @@
 
 #include "gk_session.h"
 
-int gk_session_add_path_to_index(gk_session_t *session, const char *path);
-int gk_session_remove_path_from_index(gk_session_t *session, const char *path);
+int gk_session_index_add_path(gk_session_t *session, const char *path);
+int gk_session_index_remove_path(gk_session_t *session, const char *path);
+
+int gk_session_index_add_all(gk_session_t *session, const char* pattern);
+int gk_session_index_update_all(gk_session_t *session, const char* pattern);
 
 #endif // __GK_INDEX_H__

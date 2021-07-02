@@ -55,11 +55,11 @@ static void test_index_add_remove_individual_files(void **state) {
     gk_session_open_local_repository(&session);
     assert_int_equal(gk_result_code(session.last_result), 0);
 
-    gk_session_add_path_to_index(&session, "new-file1");
+    gk_session_index_add_path(&session, "new-file1");
     assert_int_equal(gk_result_code(session.last_result), 0);
-    gk_session_add_path_to_index(&session, "file1");
+    gk_session_index_add_path(&session, "file1");
     assert_int_equal(gk_result_code(session.last_result), 0);
-    gk_session_remove_path_from_index(&session, "file2");
+    gk_session_index_remove_path(&session, "file2");
     assert_int_equal(gk_result_code(session.last_result), 0);
     
     gk_session_query_status_summary(&session);

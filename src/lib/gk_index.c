@@ -1,4 +1,6 @@
 
+#include <string.h>
+
 #include "git2.h"
 #include "gk_index.h"
 #include "gk_results.h"
@@ -22,10 +24,10 @@ static git_index *index_for_session(gk_session_t *session, const char* purpose, 
         // should never happen if local_checkout_exists == 1
     }
     else if (path == NULL) {
-        snprintf(message, 256, "Cannot %s, path is NULL", purpose);
+        snprintf(message, 256, "Cannot %s, path/pattern is NULL", purpose);
     }
     else if (path == "") {
-        snprintf(message, 256, "Cannot %s, path is empty", purpose);
+        snprintf(message, 256, "Cannot %s, path/pattern is empty", purpose);
     }
     else {
         int rc = git_repository_index(&index, session->lg2_repository);
@@ -50,7 +52,7 @@ static git_index *index_for_session(gk_session_t *session, const char* purpose, 
 
 }
 
-int gk_session_add_path_to_index(gk_session_t *session, const char *path) {
+int gk_session_index_add_path(gk_session_t *session, const char *path) {
     gk_result_t *result = NULL;
     
     git_index *index = index_for_session(session, "add path to index", path);
@@ -80,7 +82,7 @@ int gk_session_add_path_to_index(gk_session_t *session, const char *path) {
     return GK_SUCCESS;
 }
 
-int gk_session_remove_path_from_index(gk_session_t *session, const char *path) {
+int gk_session_index_remove_path(gk_session_t *session, const char *path) {
     gk_result_t *result = NULL;
     
     git_index *index = index_for_session(session, "remove path from index", path);
@@ -108,4 +110,66 @@ int gk_session_remove_path_from_index(gk_session_t *session, const char *path) {
     }
     gk_session_set_last_result(session, gk_result_success());
     return GK_SUCCESS;
+}
+
+int gk_session_index_add_all(gk_session_t *session, const char* pattern) {
+    gk_result_t *result = NULL;
+    
+    git_index *index = index_for_session(session, "add all to index", pattern);
+    if (index == NULL) {
+        return GK_FAILURE;
+    }
+
+    char *path_pattern = strdup(pattern);
+    git_strarray paths = {&path_pattern, 1};
+    int rc = git_index_add_all(index, &paths, GIT_INDEX_ADD_DEFAULT, NULL, NULL);
+    if (path_pattern != NULL) {
+        free(path_pattern);
+    }
+    if (rc != 0) {
+        char message[512];
+        const git_error *err = git_error_last();
+        snprintf(message, 512, "Error adding all paths matching '%s' to repository index (%d): %s", pattern, err->klass, err->message);
+        result = gk_result(-3, message);
+        log_error(COMP_COMMIT, gk_result_message(result));
+        gk_session_set_last_result(session, result);        
+        if (index != NULL) {
+            git_index_free(index);
+        }            
+        return GK_FAILURE;
+    }
+
+    gk_session_set_last_result(session, gk_result_success());
+    return GK_SUCCESS;    
+}
+
+int gk_session_update_add_all(gk_session_t *session, const char* pattern) {
+    gk_result_t *result = NULL;
+    
+    git_index *index = index_for_session(session, "update all in index", pattern);
+    if (index == NULL) {
+        return GK_FAILURE;
+    }
+
+    char *path_pattern = strdup(pattern);
+    git_strarray paths = {&path_pattern, 1};
+    int rc = git_index_update_all(index, &paths, NULL, NULL);
+    if (path_pattern != NULL) {
+        free(path_pattern);
+    }
+    if (rc != 0) {
+        char message[512];
+        const git_error *err = git_error_last();
+        snprintf(message, 512, "Error updating all paths matching '%s' in the repository index (%d): %s", pattern, err->klass, err->message);
+        result = gk_result(-3, message);
+        log_error(COMP_COMMIT, gk_result_message(result));
+        gk_session_set_last_result(session, result);        
+        if (index != NULL) {
+            git_index_free(index);
+        }            
+        return GK_FAILURE;
+    }
+
+    gk_session_set_last_result(session, gk_result_success());
+    return GK_SUCCESS;    
 }
