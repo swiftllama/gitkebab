@@ -34,6 +34,20 @@ static int test_staging_clean_repo_setup(void **state) {
     mv("test-staging/simple-repo1/.gitbak", "test-staging/simple-repo1/.git");    
 }
 
+static void test_status_without_open_repo(void **state) {
+    (void) state; /* unused */
+
+    gk_repository_t repo;
+    gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
+    gk_session_t session;
+
+    gk_session_init(&session, &repo, &session_progress);
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    gk_session_query_status_summary(&session);
+    assert_int_not_equal(gk_result_code(session.last_result), 0);
+    assert_string_equal(gk_result_message(session.last_result), "Cannot query status, local checkout does not exist");
+}
 
 static void test_status_no_changes(void **state) {
     (void) state; /* unused */
@@ -64,6 +78,7 @@ static void test_status_no_changes(void **state) {
 
 int main(void) {
     const struct CMUnitTest tests[] = {
+        cmocka_unit_test_setup(test_status_without_open_repo, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_status_no_changes, test_staging_clean_repo_setup),
     };
 
