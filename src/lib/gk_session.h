@@ -9,8 +9,15 @@
 #include "gk_credentials.h"
 #include "gk_session_progress.h"
 
-
-
+typedef struct {
+    short int local_checkout_exists;
+    short int has_conflicts;
+    short int merge_in_progress;
+    short int clone_in_progress;
+    short int push_in_progress;
+    short int pull_in_progress;
+} gk_session_state_t;
+    
 typedef struct {
     const char *local_path;
     const char *remote_url;
@@ -25,6 +32,7 @@ typedef struct {
     gk_repository_t *repository;
     gk_result_t *last_result;
     gk_session_callbacks_t callbacks;
+    gk_session_state_t state;
 } gk_session_t;
 
 typedef struct {

@@ -40,6 +40,12 @@ void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_sess
     session->repository = repository;
     session->last_result = gk_result_success();
     session->callbacks.progress_callback = progress_callback;
+    session->state.local_checkout_exists = 0;
+    session->state.has_conflicts = 0;
+    session->state.merge_in_progress = 0;
+    session->state.clone_in_progress = 0;
+    session->state.push_in_progress = 0;
+    session->state.pull_in_progress = 0;
 }
 
 void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result) {
