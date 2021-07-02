@@ -25,6 +25,16 @@ typedef struct {
 } gk_repository_t;
 
 typedef struct {
+    size_t count_new;
+    size_t count_modified;
+    size_t count_deleted;
+    size_t count_renamed;
+    size_t count_typechange;
+    size_t count_conflicted;
+
+} gk_status_summary_t;
+
+typedef struct {
     gk_session_progress_callback_t *progress_callback;
 } gk_session_callbacks_t;
 
@@ -33,6 +43,9 @@ typedef struct {
     gk_result_t *last_result;
     gk_session_callbacks_t callbacks;
     gk_session_state_t state;
+    gk_status_summary_t status_summary;
+
+    void *lg2_status_list;
     void *lg2_repository;
 } gk_session_t;
 

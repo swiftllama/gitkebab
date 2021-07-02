@@ -1,11 +1,12 @@
 
 #include "stdio.h"
 
+#include "git2.h"
+#include "gitkebab.h"
 #include "gk_session.h"
 #include "gk_results.h"
 #include "gk_logging.h"
-#include "git2.h"
-#include "gitkebab.h"
+#include "gk_status.h"
 
 void gk_repository_init(gk_repository_t *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
@@ -51,6 +52,8 @@ void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_sess
     session->state.push_in_progress = 0;
     session->state.pull_in_progress = 0;
 
+    gk_status_summary_reset(&session->status_summary);
+    
     session->lg2_repository = NULL;
 }
 
@@ -71,7 +74,7 @@ void gk_session_open_local_repository(gk_session_t *session) {
     int rc = git_repository_open((git_repository **)&(session->lg2_repository), session->repository->local_path);
     if (rc != 0) {
         char message[256];
-        git_error *err = git_error_last();
+        const git_error *err = git_error_last();
         snprintf(message, 256, "Error opening repository at local path (%d): %s", err->klass, err->message);
         result = gk_result(-2, message);
         log_error(COMP_GENERAL, gk_result_message(result));
