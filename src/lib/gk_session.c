@@ -95,6 +95,29 @@ void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result)
     }
 }
 
+void gk_session_set_last_result_v(gk_session_t *session, int code, const char *message, ...) {
+    va_list args;
+    va_start(args, message);
+    char formatted_message[512];
+    gk_result_t *result = gk_result_v(code, message, args);
+    va_end(args);
+    gk_session_set_last_result(session, result);
+}
+
+int gk_session_failure(gk_session_t *session, log_Component *component, int code, const char *message, ...) {
+    va_list args;
+    va_start(args, message);
+    gk_session_set_last_result_v(session, code, message, args);
+    va_end(args);
+    log_log(LOG_ERROR, __FILE__, __LINE__, component, gk_result_message(session->last_result));
+    return GK_FAILURE;
+}
+
+int gk_session_success(gk_session_t *session) {
+    gk_session_set_last_result(session, gk_result_success());
+    return GK_SUCCESS;
+}
+
 int gk_session_credential_callback(git_credential **out,
                                    const char *url,
                                    const char *username_from_url,

@@ -8,6 +8,7 @@
 #include "gk_results.h"
 #include "gk_credentials.h"
 #include "gk_session_progress.h"
+#include "gk_logging.h"
 
 typedef struct {
     short int local_checkout_exists;
@@ -60,7 +61,11 @@ void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, g
 void gk_repository_init(gk_repository_t *repository, const char *local_path, const char *remote_url, const char *usr);
 
 void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_session_progress_callback_t *progress_callback);
+
 void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result);
+void gk_session_set_last_result_v(gk_session_t *session, int code, const char *message, ...);
+int gk_session_failure(gk_session_t *session, log_Component *component, int code, const char *message, ...);
+int gk_session_success(gk_session_t *session);
 
 int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential);
 int gk_session_open_local_repository(gk_session_t *session);
