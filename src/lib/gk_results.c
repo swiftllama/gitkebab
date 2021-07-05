@@ -19,16 +19,16 @@ gk_result_t *gk_result(int code, const char *message) {
     }
     result->code = code;
     result->message = message == NULL ? NULL : strdup(message);
-    result->cause = NULL;
     return result;
 }
 
-gk_result_t *gk_result_with_cause(int code, const char* message, gk_result_t *cause) {
-    gk_result_t *result = gk_result(code, message);
-    if (result != NULL) {
-        result->cause = cause;
-    }
-    return result;
+gk_result_t *gk_result_v(int code, const char *message, ...) {
+    va_list args;
+    va_start(args, message);
+    char formatted_message[512];
+    vsnprintf(formatted_message, 512, message, args);
+    va_end(args);
+    return gk_result(code, formatted_message);
 }
 
 gk_result_t *gk_result_success() {
@@ -40,10 +40,6 @@ void gk_result_free(gk_result_t *result) {
         if (result->message != NULL) {
             free(result->message);
             result->message = NULL;
-        }
-        if (result->cause != NULL) {
-            gk_result_free(result->cause);
-            result->cause = NULL;
         }
         free(result);
     }

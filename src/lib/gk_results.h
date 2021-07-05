@@ -11,13 +11,12 @@ typedef struct gk_result_t gk_result_t;
 struct gk_result_t {
     int code;
     char *message;
-    gk_result_t *cause;
 };
 
 
     
 gk_result_t *gk_result(int code, const char *message);
-gk_result_t *gk_result_with_cause(int code, const char* message, gk_result_t *cause);
+gk_result_t *gk_result_v(int code, const char *message, ...);
 gk_result_t *gk_result_success();
 void gk_result_free(gk_result_t *result);
 
