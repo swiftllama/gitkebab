@@ -6,6 +6,8 @@ link_directories(${PROJECT_SOURCE_DIR}/external/libgit2/lib)
 add_library(gitkebab
   gitkebab.c
   gitkebab.h
+  gk_commit.c
+  gk_commit.h
   gk_credentials.c
   gk_credentials.h
   gk_index.c

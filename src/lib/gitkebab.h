@@ -7,6 +7,7 @@
 #include "gk_credentials.h"
 #include "gk_status.h"
 #include "gk_index.h"
+#include "gk_commit.h"
 #include "gk_logging.h"
 
 int gk_did_init();

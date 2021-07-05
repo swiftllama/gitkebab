@@ -26,3 +26,5 @@ target_link_libraries(test_status cmocka gitkebab git2 ssl crypto /home/amos/Src
 add_executable(test_index test_index.c gk_test_filesystem_utils.c)
 target_link_libraries(test_index cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
 
+add_executable(test_commit test_commit.c gk_test_filesystem_utils.c)
+target_link_libraries(test_commit cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
