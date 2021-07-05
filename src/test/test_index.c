@@ -151,8 +151,8 @@ static void test_index_add_all(void **state) {
     gk_session_open_local_repository(&session);
     assert_int_equal(gk_result_code(session.last_result), 0);
 
-    //gk_session_index_add_all(&session, "*");
-    //assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_index_add_all(&session, "*");
+    assert_int_equal(gk_result_code(session.last_result), 0);
     
     gk_session_query_status_summary(&session);
     assert_int_equal(gk_result_code(session.last_result), 0);
