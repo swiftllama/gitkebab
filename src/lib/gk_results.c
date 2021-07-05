@@ -23,11 +23,17 @@ gk_result_t *gk_result(int code, const char *message) {
 }
 
 gk_result_t *gk_result_v(int code, const char *message, ...) {
+    char formatted_message[512];
     va_list args;
     va_start(args, message);
+    gk_result_t *result = gk_result_vargs(code, message, args);
+    va_end(args);
+    return result;
+}
+
+gk_result_t *gk_result_vargs(int code, const char *message, va_list args) {
     char formatted_message[512];
     vsnprintf(formatted_message, 512, message, args);
-    va_end(args);
     return gk_result(code, formatted_message);
 }
 
@@ -51,4 +57,13 @@ int gk_result_code(gk_result_t *result) {
 
 const char *gk_result_message(gk_result_t *result) {
     return result != NULL ? result->message : "(message attribute not available on NULL result)";
+}
+
+gk_result_t *gk_fail_result(log_Component *component, int code, const char *message, ...) {
+    va_list args;
+    va_start(args, message);
+    gk_result_t *result = gk_result_v(code, message, args);
+    va_end(args);
+    log_log(LOG_ERROR, __FILE__, __LINE__, component, gk_result_message(result));
+    return result;
 }

@@ -66,25 +66,19 @@ int gk_session_open_local_repository(gk_session_t *session) {
         return GK_FAILURE;
     }
     if (session->repository == NULL) {
-        result = gk_result(-1, "session has NULL repository, cannot open");
-        log_error(COMP_GENERAL, gk_result_message(result));
-        gk_session_set_last_result(session, result);
-        return GK_FAILURE;
+        return gk_session_failure(session, &COMP_GENERAL, -1, "session has NULL repository, cannot open");
     }
 
     int rc = git_repository_open((git_repository **)&(session->lg2_repository), session->repository->local_path);
     if (rc != 0) {
-        char message[256];
+        git_repository_free(session->lg2_repository);
+        session->lg2_repository = NULL;
         const git_error *err = git_error_last();
-        snprintf(message, 256, "Error opening repository at local path (%d): %s", err->klass, err->message);
-        result = gk_result(-2, message);
-        log_error(COMP_GENERAL, gk_result_message(result));
-        gk_session_set_last_result(session, result);
-        return GK_FAILURE;
+        return gk_session_failure(session, &COMP_GENERAL, -2, "Error opening repository at local path (%d): %s", err->klass, err->message);
     }
+    
     session->state.local_checkout_exists = 1;
-    gk_session_set_last_result(session, gk_result_success());
-    return GK_SUCCESS;
+    return gk_session_success(session);
 }
 
 void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result) {
@@ -96,18 +90,22 @@ void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result)
 }
 
 void gk_session_set_last_result_v(gk_session_t *session, int code, const char *message, ...) {
-    va_list args;
+    va_list(args);
     va_start(args, message);
-    char formatted_message[512];
     gk_result_t *result = gk_result_v(code, message, args);
     va_end(args);
+    gk_session_set_last_result(session, result);
+}
+
+void gk_session_set_last_result_vargs(gk_session_t *session, int code, const char *message, va_list args) {
+    gk_result_t *result = gk_result_vargs(code, message, args);
     gk_session_set_last_result(session, result);
 }
 
 int gk_session_failure(gk_session_t *session, log_Component *component, int code, const char *message, ...) {
     va_list args;
     va_start(args, message);
-    gk_session_set_last_result_v(session, code, message, args);
+    gk_session_set_last_result_vargs(session, code, message, args);
     va_end(args);
     log_log(LOG_ERROR, __FILE__, __LINE__, component, gk_result_message(session->last_result));
     return GK_FAILURE;
@@ -190,22 +188,14 @@ int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential)
     gk_result_t *result = NULL;
     
     if ((session == NULL)) {
-        result = gk_result(-1, "Cannot clone, session is NULL");
-        log_error(COMP_CLONE, gk_result_message(result));
-        gk_session_set_last_result(session, result);
+        log_error(COMP_CLONE, "Cannot clone, session is NULL");
         return GK_FAILURE;
     }
     else if (session->repository == NULL) {
-        result = gk_result(-2, "Cannot clone, session respository is NULL");
-        log_error(COMP_CLONE, gk_result_message(result));
-        gk_session_set_last_result(session, result);
-        return GK_FAILURE;
+        return gk_session_failure(session, &COMP_CLONE, -2, "Cannot clone, session respository is NULL");
     }
     if (gk_did_init() != 1) {
-        result = gk_result(-3, "Gitkebab not initialized");
-        log_error(COMP_CLONE, gk_result_message(result));
-        gk_session_set_last_result(session, result);
-        return GK_FAILURE;
+        return gk_session_failure(session, &COMP_CLONE, -3, "Gitkebab not initialized");
     }
         
     gk_authenticated_session_t authed_session;
@@ -233,29 +223,20 @@ int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential)
     error = git_clone((git_repository **)&(session->lg2_repository), session->repository->remote_url, session->repository->local_path, &clone_opts);
 
     if (error != 0) {
+        git_repository_free(session->lg2_repository);
+        session->lg2_repository = NULL;
         const git_error *err = git_error_last();
-        if (err) {
-            log_error(COMP_CLONE, "Clone failed: %s", err->message);
-            gk_session_set_last_result(session, gk_result(err->klass, err->message));
-        }
-        else {
-            log_error(COMP_CLONE, "Clone failed with git error code %d", error);
-            gk_session_set_last_result(session, gk_result(error, ""));
-        }
-        return GK_FAILURE;
+        return gk_session_failure(session, &COMP_CLONE, -1, "Clone failed (%d): %s", err->klass, err->message);
     }
     session->state.local_checkout_exists = 1;
     log_info(COMP_CLONE, "Clone succeeded");
-    gk_session_set_last_result(session, gk_result_success());
-    return GK_SUCCESS;
+    return gk_session_success(session);
 }
 
 void gk_session_close(gk_session_t *session) {
     if (session == NULL) {
         return;
     }
-    if (session->lg2_repository != NULL) {
-        git_repository_free(session->lg2_repository);
-        session->lg2_repository = NULL;
-    }
+    git_repository_free(session->lg2_repository);
+    session->lg2_repository = NULL;
 }

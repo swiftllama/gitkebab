@@ -7,12 +7,8 @@
 
 
 gk_result_t *gk_session_credential_ssh_key_memory_init(gk_session_credential_t *credential, const char *private_key_bytes, const char *public_key_bytes, const char *private_key_passphrase) {
-    gk_result_t *result = NULL;
-    
     if (credential == NULL) {
-        result = gk_result(-1, "Cannot initialize ssh key credential (memory), credential is NULL");
-        log_error(COMP_AUTH, gk_result_message(result));
-        return result;
+        return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize ssh key credential (memory), credential is NULL");
     }
 
     memset(credential, 0, sizeof(gk_session_credential_t));
@@ -25,12 +21,8 @@ gk_result_t *gk_session_credential_ssh_key_memory_init(gk_session_credential_t *
 }
 
 gk_result_t *gk_session_credential_ssh_key_file_init(gk_session_credential_t *credential, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase) {
-    gk_result_t *result = NULL;
-
     if (credential == NULL) {
-        result = gk_result(-1, "Cannot initialize ssh key credential (file), credential is NULL");
-        log_error(COMP_AUTH, gk_result_message(result));
-        return result;
+        return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize ssh key credential (file), credential is NULL");
     }
 
     memset(credential, 0, sizeof(gk_session_credential_t));
@@ -43,12 +35,8 @@ gk_result_t *gk_session_credential_ssh_key_file_init(gk_session_credential_t *cr
 }
 
 gk_result_t *gk_session_credential_username_password_init(gk_session_credential_t *credential, const char *username, const char *password) {
-    gk_result_t *result = NULL;
-    
     if (credential == NULL) {
-        result = gk_result(-1, "Cannot initialize username/password, credential is NULL");
-        log_error(COMP_AUTH, gk_result_message(result));
-        return result;
+        return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize username/password, credential is NULL");
     }
 
     memset(credential, 0, sizeof(gk_session_credential_t));
@@ -64,25 +52,11 @@ void gk_session_credential_free_members(gk_session_credential_t *credential) {
         return;
     }
 
-    if (credential->ssh_private_key_bytes != NULL) {
-        free((void *)credential->ssh_private_key_bytes);
-    }
-    if (credential->ssh_public_key_bytes != NULL) {
-        free((void *)credential->ssh_public_key_bytes);
-    }
-    if (credential->ssh_private_key_path != NULL) {
-        free((void *)credential->ssh_private_key_path);
-    }
-    if (credential->ssh_public_key_path != NULL) {
-        free((void *)credential->ssh_public_key_path);
-    }
-    if (credential->ssh_private_key_passphrase != NULL) {
-        free((void *)credential->ssh_private_key_passphrase);
-    }
-    if (credential->username != NULL) {
-        free((void *)credential->username);
-    }
-    if (credential->password != NULL) {
-        free((void *)credential->password);
-    }
+    free((void *)credential->ssh_private_key_bytes);
+    free((void *)credential->ssh_public_key_bytes);
+    free((void *)credential->ssh_private_key_path);
+    free((void *)credential->ssh_public_key_path);
+    free((void *)credential->ssh_private_key_passphrase);
+    free((void *)credential->username);
+    free((void *)credential->password);
 }

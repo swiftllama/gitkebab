@@ -64,6 +64,7 @@ void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_sess
 
 void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result);
 void gk_session_set_last_result_v(gk_session_t *session, int code, const char *message, ...);
+void gk_session_set_last_result_vargs(gk_session_t *session, int code, const char *message, va_list args);
 int gk_session_failure(gk_session_t *session, log_Component *component, int code, const char *message, ...);
 int gk_session_success(gk_session_t *session);
 
