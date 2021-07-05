@@ -4,8 +4,9 @@
 #include "gk_results.h"
 #include "git2.h"
 
-size_t gk_session_count_reflog_entries(gk_session_t *session) {
+size_t gk_session_count_reflog_entries(gk_session_t *session, const char* ref_name) {
     gk_result_t *result = NULL;
+    int rc;
     
     if (session == NULL) {
         log_error(COMP_COMMIT, "Cannot count reflog entries, session is NULL");
@@ -17,10 +18,17 @@ size_t gk_session_count_reflog_entries(gk_session_t *session) {
         snprintf(message, 256, "Cannot count reflog entries, local checkout does not exist");
     }
     else if (session->lg2_repository == NULL) {
-        snprintf(message, 256, "Cannot count reflog entries, internal git2 repository is unexpectedely NULL");
         // should never happen if local_checkout_exists == 1
+        snprintf(message, 256, "Cannot count reflog entries, internal git2 repository is unexpectedely NULL");
     }
-
+    else {
+        rc = git_repository_index(&index, session->lg2_repository);
+        if (rc != 0) {
+            const git_error *err = git_error_last();
+            snprintf(message, 256, "Cannot count reflog entries, error obtaining repository index (%d) while: %s", err->klass, err->message);
+        }
+    }
+    
     if (message[0] != '\0') {
         result = gk_result(-1, message);
         log_error(COMP_COMMIT, gk_result_message(result));
@@ -32,7 +40,7 @@ size_t gk_session_count_reflog_entries(gk_session_t *session) {
     }
 
     git_reflog *reflog = NULL;
-    int rc = git_reflog_read(&reflog, session->lg2_repository, "HEAD");
+    rc = git_reflog_read(&reflog, session->lg2_repository, ref_name);
     size_t entrycount = rc == 0 ? git_reflog_entrycount(reflog) : 0;
     if (reflog != NULL) {
         git_reflog_free(reflog);
@@ -76,8 +84,15 @@ int gk_session_commit(gk_session_t *session, const char *ref_name, const char* c
         // should never happen if local_checkout_exists == 1
         snprintf(message, 256, "Cannot commit, internal git2 repository is unexpectedely NULL");
     }
-    else if (ref == NULL) {
+    else if (ref_name == NULL) {
         snprintf(message, 256, "Cannot commit, ref is NULL");
+    }
+    else {
+        rc = git_repository_index(&index, session->lg2_repository);
+        if (rc != 0) {
+            const git_error *err = git_error_last();
+            snprintf(message, 256, "Cannot commit, error obtaining repository index (%d) while: %s", err->klass, err->message);
+        }
     }
 
     const char *safe_commit_message = commit_message == NULL ? "" : commit_message;
