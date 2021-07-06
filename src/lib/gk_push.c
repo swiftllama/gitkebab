@@ -40,5 +40,12 @@ int gk_session_push(gk_session_t *session, gk_session_credential_t *credential, 
     push_options.callbacks.credentials = (git_credential_acquire_cb)&gk_session_credential_callback;
     push_options.callbacks.payload = &authed_session;
 
-    //check_lg2(git_remote_push(remote, &refspecs, &options), "Error pushing", NULL);
+    rc = git_remote_push(remote, NULL, &push_options);
+    git_remote_free(remote);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_REMOTE, -3, "Error pushing to remote '%s' (%d): %s", remote_name, err->klass, err->message);
+    }
+    
+    return gk_session_success(session);
 }
