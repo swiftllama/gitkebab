@@ -38,9 +38,10 @@ typedef struct {
 
 typedef void gk_session_progress_callback_t(gk_session_progress_t *progress);
 
-void gk_session_fetch_progress_callback(const void *stats_vptr, void *payload);
+int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload);
 void gk_session_checkout_progress_callback(const char *path, size_t cur, size_t tot, void *payload);
-void gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload);
+int gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload);
+
 void gk_session_progress_init_fetch(gk_session_progress_t *progress, size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas);
 void gk_session_progress_init_checkout(gk_session_progress_t *progress, const char *path, size_t cur, size_t tot);
 

@@ -204,7 +204,7 @@ int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential)
     git_clone_options clone_opts = GIT_CLONE_OPTIONS_INIT;
     git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
 
-    int error;
+    int rc;
 
     /* Set up options */
     checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
@@ -220,15 +220,23 @@ int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential)
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        %s", session->repository->remote_url);
     log_info(COMP_CLONE, "  - Local path: %s", session->repository->local_path);
-    error = git_clone((git_repository **)&(session->lg2_repository), session->repository->remote_url, session->repository->local_path, &clone_opts);
+    rc = git_clone((git_repository **)&(session->lg2_repository), session->repository->remote_url, session->repository->local_path, &clone_opts);
 
-    if (error != 0) {
+    if (rc != 0) {
         git_repository_free(session->lg2_repository);
         session->lg2_repository = NULL;
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_CLONE, -1, "Clone failed (%d): %s", err->klass, err->message);
     }
+
+    rc = git_remote_add_push(session->lg2_repository, "origin", "refs/heads/master:refs/heads/master");
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CLONE, -1, "Error adding push refspec to remote 'origin'  (%d): %s", err->klass, err->message);
+    }
+
     session->state.local_checkout_exists = 1;
+
     log_info(COMP_CLONE, "Clone succeeded");
     return gk_session_success(session);
 }

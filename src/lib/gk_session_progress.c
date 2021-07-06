@@ -108,20 +108,21 @@ void gk_session_progress_init_checkout(gk_session_progress_t *progress, const ch
     snprintf(progress->description, 256, "%s", path == NULL ? "" : path);
 }
 
-void gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
+int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
     git_indexer_progress *stats = (git_indexer_progress *)stats_vptr;
     if (gk_session_check_progress_pointer(payload, "fetch") != 0) {
-        return;
+        return 0;
     }
     if (stats == NULL) {
         log_error(COMP_PROGRESS, "stats are NULL in fetch progress callback");
-        return;
+        return 0;
     }
     
     gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
     gk_session_progress_t progress;
     gk_session_progress_init_fetch(&progress, stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
     authed_session->session->callbacks.progress_callback(&progress);
+    return 0;
 }
 
 
@@ -136,15 +137,17 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
     authed_session->session->callbacks.progress_callback(&progress);
 }
 
-void gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload) {
+int gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload) {
     if (gk_session_check_progress_pointer(payload, "push transfer") != 0) {
-        return;
+        return 0;
     }
 
+    printf("DBG X0 received callback with current %ud total %ud bytes %zu\n", current, total, bytes);
     gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
     gk_session_progress_t progress;
     gk_session_progress_init_push_transfer(&progress, current, total, bytes);
     authed_session->session->callbacks.progress_callback(&progress);
+    return 0;
 }
 
 

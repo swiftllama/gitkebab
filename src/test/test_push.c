@@ -8,12 +8,20 @@
 #include "gk_test_filesystem_utils.h"
 
 gk_session_credential_t g_empty_credential;
-void session_progress(gk_session_progress_t *progress) { }
+void session_progress(gk_session_progress_t *progress) {
+    if (progress != NULL) {
+        log_info(COMP_TEST, "PROGRESS [%s] (%zu%%)", progress->description, progress->percent);
+    }
+    else {
+        log_error(COMP_TEST, "Error in progress callback, callback invoked with NULL progress struct");
+    }
+}
 
 
 static int test_staging_setup(void **state) {
     gk_init();
-        
+    gk_libgit2_set_log_level(LOG_DEBUG);
+    
     if (directory_exists("test-staging") == 0) {
         rm_rf("test-staging");
     }
@@ -43,27 +51,37 @@ static int test_staging_clean_repo_setup(void **state) {
 
 
 
-static void test_push_no_changes(void **state) {
+static void test_push_one_commit(void **state) {
     (void) state; /* unused */
-        
+    
     gk_repository_t repo;
     gk_repository_init(&repo, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1", "git");
     gk_session_t session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
-
+    
     gk_session_clone(&session, &g_empty_credential);
-
     assert_int_equal(gk_result_code(session.last_result), 0);
     assert_int_equal(session.state.local_checkout_exists, 1);
+
+    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+
+    gk_session_index_add_path(&session, "file1");
+    assert_int_equal(gk_result_code(session.last_result), 0);
+    
+    gk_session_commit(&session, "HEAD", "change file1");
+    assert_int_equal(gk_result_code(session.last_result), 0);
+
+    gk_session_push(&session, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session.last_result), 0);
 }
 
 
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {
