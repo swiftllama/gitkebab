@@ -74,6 +74,12 @@ int copy_directory(const char *source_path, const char *dest_path) {
     return system(cp_command);
 }
 
+int diff(const char *source_path, const char *dest_path) {
+    char cp_command[2048];
+    snprintf(cp_command, 2048, "diff %s %s", source_path, dest_path);
+    return system(cp_command);
+}
+
 int mv(const char *source_path, const char *dest_path) {
     char mv_command[2048];
     snprintf(mv_command, 2048, "mv %s %s", source_path, dest_path);

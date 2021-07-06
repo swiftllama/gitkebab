@@ -9,5 +9,6 @@ int create_directory(const char *path);
 int copy_file(const char *source_path, const char *dest_path);
 int copy_directory(const char *source_path, const char *dest_path);
 int mv(const char *source_path, const char *dest_path);
+int diff(const char *source_path, const char *dest_path);
 
 #endif // _GK_TEST_FILESYSTEM_UTILS
