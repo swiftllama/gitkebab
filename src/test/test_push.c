@@ -55,6 +55,20 @@ static int test_staging_clean_repo_setup(void **state) {
 static void test_push_no_changes(void **state) {
     (void) state; /* unused */
 
+    // Open source repo, save current commit
+    gk_repository_t repo2;
+    gk_repository_init(&repo2, "", "./test-staging/simple-repo1.git", "git");
+    gk_session_t session2;
+    gk_session_init(&session2, &repo2, &session_progress);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+
+    gk_session_open_local_repository(&session2);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+
+    gk_object_id_t source_current_commit = {0};
+    gk_session_resolve_reference(&session2, "HEAD", &source_current_commit);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+    
     // Clone repo, commit and push
     gk_repository_t repo;
     gk_repository_init(&repo, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1", "git");
@@ -69,10 +83,32 @@ static void test_push_no_changes(void **state) {
     
     gk_session_push(&session, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session.last_result), 0);
+
+    // Verify that current commit has not changed on source repo
+    gk_object_id_t source_last_commit = {0};
+    gk_session_resolve_reference(&session2, "HEAD", &source_last_commit);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+
+    assert_string_equal(source_last_commit.id, source_current_commit.id);
 }
 
 static void test_push_one_commit(void **state) {
     (void) state; /* unused */
+
+    // Open source repo, save current commit
+    gk_repository_t repo2;
+    gk_repository_init(&repo2, "", "./test-staging/simple-repo1.git", "git");
+    gk_session_t session2;
+    gk_session_init(&session2, &repo2, &session_progress);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+
+    gk_session_open_local_repository(&session2);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+
+    gk_object_id_t source_current_commit = {0};
+    gk_session_resolve_reference(&session2, "HEAD", &source_current_commit);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+
 
     // Clone repo, commit and push
     gk_repository_t repo;
@@ -91,28 +127,20 @@ static void test_push_one_commit(void **state) {
     gk_session_index_add_path(&session, "file1");
     assert_int_equal(gk_result_code(session.last_result), 0);
 
-    gk_object_id_t commit_id = {0};
-    gk_session_commit(&session, "HEAD", "change file1", &commit_id);
+    gk_object_id_t new_commit = {0};
+    gk_session_commit(&session, "HEAD", "change file1", &new_commit);
     assert_int_equal(gk_result_code(session.last_result), 0);
 
     gk_session_push(&session, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session.last_result), 0);
 
-
-    // clone repo again, verify the modified file is there
-    gk_repository_t repo2;
-    gk_repository_init(&repo2, "./test-staging/simple-repo1.git", "./test-staging/simple-repo2", "git");
-    gk_session_t session2;
-
-    gk_session_init(&session2, &repo2, &session_progress);
-    assert_int_equal(gk_result_code(session.last_result), 0);
-    
-    gk_session_clone(&session2, &g_empty_credential);
+    // Check new commit in source repo
+    gk_object_id_t source_last_commit = {0};
+    gk_session_resolve_reference(&session2, "HEAD", &source_last_commit);
     assert_int_equal(gk_result_code(session2.last_result), 0);
-    assert_int_equal(session2.state.local_checkout_exists, 1);
 
-    int diff_rc = diff("test-staging/simple-repo2/file1", "src/test/fixtures/simple-repo1-modifications/file1-modified");
-    assert_int_equal(diff_rc, 0);
+    assert_string_equal(new_commit.id, source_last_commit.id);
+    assert_string_not_equal(new_commit.id, source_current_commit.id);
 }
 
 

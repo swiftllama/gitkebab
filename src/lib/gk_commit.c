@@ -151,26 +151,9 @@ int gk_session_commit(gk_session_t *session, const char *ref_name, const char* c
     }
 
     if (out_commit_id != NULL) {
-        memcpy(out_commit_id->id, commit_oid.id, 20);
+        git_oid_tostr(out_commit_id->id, 41, &commit_oid);
     }
     return gk_session_success(session);
-}
-
-char *gk_object_id_hex_string_new(gk_object_id_t *object_id) {
-    if (object_id == NULL) {
-        return NULL;
-    }
-    char *hex_id = (char *)malloc(GK_OBJECT_ID_LENGTH*2+1);
-    if (hex_id == NULL) {
-        printf("Error allocating 40 bytes for hex id");
-        return NULL;
-    }
-    for (int i = 0; i <= GK_OBJECT_ID_LENGTH; i += 1) {
-        printf("printing byte #%d: %02x\n", i, (unsigned int)object_id->id[i]);
-        sprintf(hex_id + i*2, "%02x", (unsigned int)object_id->id[i]);
-    }
-    hex_id[GK_OBJECT_ID_LENGTH*2] = '\0';
-    return hex_id;
 }
 
 int gk_session_resolve_reference(gk_session_t *session, const char *ref_name, gk_object_id_t *object_id) {
@@ -203,7 +186,7 @@ int gk_session_resolve_reference(gk_session_t *session, const char *ref_name, gk
         return gk_session_failure(session, &COMP_COMMIT, -2, "Error resolving reference '%s' (%d): %s", ref_name, err->klass, err->message);
     }
 
-    memcpy(oid.id, object_id->id, 20);
+    git_oid_tostr(object_id->id, 41, &oid);
 
     return gk_session_success(session);
 }

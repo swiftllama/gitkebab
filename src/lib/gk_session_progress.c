@@ -142,7 +142,6 @@ int gk_session_progress_push_transfer_callback(unsigned int current, unsigned in
         return 0;
     }
 
-    printf("DBG X0 received callback with current %ud total %ud bytes %zu\n", current, total, bytes);
     gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
     gk_session_progress_t progress;
     gk_session_progress_init_push_transfer(&progress, current, total, bytes);
