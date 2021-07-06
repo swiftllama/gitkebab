@@ -73,4 +73,6 @@ int gk_session_open_local_repository(gk_session_t *session);
 
 void gk_session_free_members(gk_session_t *session);
 
+int gk_session_credential_callback(void **out, const char *url, const char *username_from_url, unsigned int allowed_types, void *payload);
+
 #endif // __GITKEBAB_SESSION_H__

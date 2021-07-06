@@ -36,6 +36,24 @@ static void gk_session_progress_init(gk_session_progress_t *progress) {
     progress->checkout.current_path = "";
 }
 
+void gk_session_progress_init_push_transfer(gk_session_progress_t *progress, unsigned int current, unsigned int total, size_t bytes) {
+    if (progress == NULL) {
+        log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as push transfer progress");
+        return;
+    }
+
+    gk_session_progress_init(progress);
+    progress->progress_event_type = GK_SESSION_PROGRESS_PUSH_TRANSFER;
+
+    progress->push_transfer.current = current;
+    progress->push_transfer.total = total;
+    progress->push_transfer.bytes = bytes;
+    progress->push_transfer.percent = total == 0 ? 0 : (int)(100.0*(float)current / (float)total);
+
+    progress->percent = progress->push_transfer.percent;
+    snprintf(progress->description, 256, "Uploading %d%% (%zuB)", progress->push_transfer.percent, progress->push_transfer.bytes);
+}
+
 void gk_session_progress_init_fetch(gk_session_progress_t *progress, size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas) {    
     if (progress == NULL) {
         log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as fetch progress");
@@ -115,6 +133,17 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
     gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
     gk_session_progress_t progress;
     gk_session_progress_init_checkout(&progress, path, current_steps, total_steps); 
+    authed_session->session->callbacks.progress_callback(&progress);
+}
+
+void gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload) {
+    if (gk_session_check_progress_pointer(payload, "push transfer") != 0) {
+        return;
+    }
+
+    gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
+    gk_session_progress_t progress;
+    gk_session_progress_init_push_transfer(&progress, current, total, bytes);
     authed_session->session->callbacks.progress_callback(&progress);
 }
 

@@ -116,7 +116,7 @@ int gk_session_success(gk_session_t *session) {
     return GK_SUCCESS;
 }
 
-int gk_session_credential_callback(git_credential **out,
+int gk_session_credential_callback(void **out,
                                    const char *url,
                                    const char *username_from_url,
                                    unsigned int allowed_types,
@@ -164,15 +164,15 @@ int gk_session_credential_callback(git_credential **out,
     int cred_type = authed_session->credential->credential_type;
     if (cred_type == CREDENTIAL_SSH_KEY_MEMORY) {
         log_info(COMP_AUTH, "authenticating session with an SSH_KEY_MEMORY credential");
-        git_credential_ssh_key_memory_new(out, username_from_url, authed_session->credential->ssh_public_key_bytes, authed_session->credential->ssh_private_key_bytes, authed_session->credential->ssh_private_key_passphrase);
+        git_credential_ssh_key_memory_new((git_credential **)out, username_from_url, authed_session->credential->ssh_public_key_bytes, authed_session->credential->ssh_private_key_bytes, authed_session->credential->ssh_private_key_passphrase);
     }
     else if (cred_type == CREDENTIAL_SSH_KEY_FILE) {
         log_info(COMP_AUTH, "authenticating session with an SSH_KEY_FILE credential");
-        git_credential_ssh_key_new(out, username_from_url, authed_session->credential->ssh_public_key_path, authed_session->credential->ssh_private_key_path, authed_session->credential->ssh_private_key_passphrase);
+        git_credential_ssh_key_new((git_credential **)out, username_from_url, authed_session->credential->ssh_public_key_path, authed_session->credential->ssh_private_key_path, authed_session->credential->ssh_private_key_passphrase);
     }
     else if (cred_type == CREDENTIAL_USERNAME_PASSWORD) {
         log_info(COMP_AUTH, "authenticating session with a USERNAME_PASSWORD credential");
-        git_credential_userpass_plaintext_new(out, authed_session->credential->username, authed_session->credential->password);
+        git_credential_userpass_plaintext_new((git_credential **)out, authed_session->credential->username, authed_session->credential->password);
     }
     else {
         result = gk_result(-1, "authed session has gk_credential of unknown type");
@@ -213,7 +213,7 @@ int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential)
     clone_opts.checkout_opts = checkout_opts;
     //clone_opts.fetch_opts.callbacks.sideband_progress = sideband_progress;
     clone_opts.fetch_opts.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
-    clone_opts.fetch_opts.callbacks.credentials = &gk_session_credential_callback;
+    clone_opts.fetch_opts.callbacks.credentials = (git_credential_acquire_cb)&gk_session_credential_callback;
     clone_opts.fetch_opts.callbacks.payload = &authed_session;
 
     /* Do the clone */

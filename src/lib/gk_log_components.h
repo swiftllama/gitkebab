@@ -13,5 +13,6 @@ extern log_Component COMP_GENERAL;
 extern log_Component COMP_TEST;
 extern log_Component COMP_STATUS;
 extern log_Component COMP_COMMIT;
+extern log_Component COMP_REMOTE;
 
 #endif // __GITKEBAB_LOG_COMPONENTS_H__
