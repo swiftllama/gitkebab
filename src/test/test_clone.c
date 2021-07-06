@@ -6,15 +6,13 @@
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 
-void session_progress(gk_session_progress_t *progress) { }
-
 gk_session_credential_t g_empty_credential;
+void session_progress(gk_session_progress_t *progress) { }
 
 static int test_staging_setup(void **state) {
     gk_init();
         
     if (directory_exists("test-staging") == 0) {
-        log_warn(COMP_TEST, "test staging directory 'test-staging' found to exist during test setup, this could mean a previous test was aborted mid-way. Removing");
         rm_rf("test-staging");
     }
         
@@ -32,8 +30,6 @@ static int test_staging_teardown(void **state) {
     (void) state; /* unused */
     gk_session_credential_free_members(&g_empty_credential);
 
-    rm_rf("test-staging");
-
     return 0;
 }
 
@@ -47,6 +43,7 @@ static void test_clone_simple(void **state) {
     gk_session_init(&session, &repo, &session_progress);
     gk_session_clone(&session, &g_empty_credential);
 
+    assert_int_equal(gk_result_code(session.last_result), 0);
     assert_int_equal(session.state.local_checkout_exists, 1);
         
     assert_int_equal(file_exists("test-staging/clone-test-1/file1"), 0);

@@ -46,3 +46,10 @@ target_link_libraries(test_commit cmocka gitkebab git2 ssl crypto /home/amos/Src
 add_test(NAME TestCommit
   COMMAND test_commit
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
+add_executable(test_push test_push.c gk_test_filesystem_utils.c)
+target_link_libraries(test_push cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestPush
+  COMMAND test_push
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})

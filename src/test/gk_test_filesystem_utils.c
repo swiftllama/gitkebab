@@ -48,6 +48,10 @@ int create_directory(const char *path) {
 }
 
 int copy_file(const char *source_path, const char *dest_path) {
+    if (file_exists(source_path) != 0) {
+        log_error(COMP_TEST, "Cannot copy [%s] to [%s], source file does not exist", source_path, dest_path);
+        return 1;
+    }
     char buffer[4096];
     FILE *read_stream = fopen(source_path, "r");
     FILE *write_stream = fopen(dest_path, "w");
