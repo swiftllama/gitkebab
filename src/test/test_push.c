@@ -144,11 +144,63 @@ static void test_push_one_commit(void **state) {
 }
 
 
+static void test_fetch_one_commit(void **state) {
+    (void) state; /* unused */
+    
+    // Clone repo to two different locations
+    gk_repository_t repo1;
+    gk_repository_init(&repo1, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A", "git");
+    gk_session_t session1;
+    gk_session_init(&session1, &repo1, &session_progress);
+    assert_int_equal(gk_result_code(session1.last_result), 0);
+    gk_session_clone(&session1, &g_empty_credential);
+    assert_int_equal(gk_result_code(session1.last_result), 0);
+    assert_int_equal(session1.state.local_checkout_exists, 1);
+    
+
+    gk_repository_t repo2;
+    gk_repository_init(&repo2, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-B", "git");
+    gk_session_t session2;
+    gk_session_init(&session2, &repo2, &session_progress);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+    gk_session_clone(&session2, &g_empty_credential);
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+    assert_int_equal(session2.state.local_checkout_exists, 1);
+
+    // Modify repo-A, commit and push
+    gk_object_id_t repo_A_first_commit = {0};
+    gk_session_resolve_reference(&session2, "HEAD", &repo_A_first_commit);
+    
+    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+    gk_session_index_add_path(&session1, "file1");
+    assert_int_equal(gk_result_code(session1.last_result), 0);
+    gk_object_id_t new_commit = {0};
+    gk_session_commit(&session1, "HEAD", "change file1", &new_commit);
+    assert_int_equal(gk_result_code(session1.last_result), 0);
+    gk_session_push(&session1, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session1.last_result), 0);
+
+    // Fetch repo-B
+    gk_session_fetch(&session2, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session2.last_result), 0);
+
+    gk_object_id_t fetched_commit = {0};
+    gk_session_resolve_reference(&session2, "refs/remotes/origin/master", &fetched_commit);
+
+    gk_object_id_t repo_B_first_commit = {0};
+    gk_session_resolve_reference(&session2, "HEAD", &repo_B_first_commit);
+
+    assert_string_equal(repo_A_first_commit.id, repo_B_first_commit.id);
+    assert_string_not_equal(repo_A_first_commit.id, new_commit.id);
+    assert_string_equal(fetched_commit.id, new_commit.id);
+    
+}
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_fetch_one_commit, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {
