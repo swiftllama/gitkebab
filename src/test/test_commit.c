@@ -67,7 +67,7 @@ static void test_commit_no_changes(void **state) {
     gk_session_open_local_repository(&session);
     assert_int_equal(gk_result_code(session.last_result), 0);
 
-    gk_session_commit(&session, "HEAD", "commit with no changes");
+    gk_session_commit(&session, "HEAD", "commit with no changes", NULL);
 
     size_t entrycount = gk_session_count_reflog_entries(&session, "HEAD");
     assert_int_equal(entrycount, 2);  // simple-repo1 has a single commit in its initial state
@@ -96,7 +96,7 @@ static void test_commit_new_file(void **state) {
     assert_string_equal(gk_session_status_summary_path_at(&session, 0), "new-file1");
     assert_int_equal(gk_session_status_summary_status_at(&session, 0), GIT_STATUS_INDEX_NEW);
 
-    gk_session_commit(&session, "HEAD", "commit new file");
+    gk_session_commit(&session, "HEAD", "commit new file", NULL);
 
     gk_session_query_status_summary(&session);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -136,7 +136,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     assert_string_equal(gk_session_status_summary_path_at(&session, 2), "new-file1");
     assert_int_equal(gk_session_status_summary_status_at(&session, 2), GIT_STATUS_INDEX_NEW);
 
-    gk_session_commit(&session, "HEAD", "commit new file and deletion");
+    gk_session_commit(&session, "HEAD", "commit new file and deletion", NULL);
 
     size_t entrycount = gk_session_count_reflog_entries(&session, "HEAD");
     assert_int_equal(entrycount, 2);
@@ -149,7 +149,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
 
     gk_session_index_add_path(&session, "file1");
 
-    gk_session_commit(&session, "HEAD", "commit modification");
+    gk_session_commit(&session, "HEAD", "commit modification", NULL);
     
     gk_session_query_status_summary(&session);
     assert_int_equal(gk_result_code(session.last_result), 0);

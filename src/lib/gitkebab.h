@@ -9,6 +9,7 @@
 #include "gk_index.h"
 #include "gk_commit.h"
 #include "gk_logging.h"
+#include "gk_push.h"
 
 int gk_did_init();
 void gk_init();

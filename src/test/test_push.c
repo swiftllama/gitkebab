@@ -91,7 +91,7 @@ static void test_push_one_commit(void **state) {
     gk_session_index_add_path(&session, "file1");
     assert_int_equal(gk_result_code(session.last_result), 0);
     
-    gk_session_commit(&session, "HEAD", "change file1");
+    gk_session_commit(&session, "HEAD", "change file1", NULL);
     assert_int_equal(gk_result_code(session.last_result), 0);
 
     gk_session_push(&session, &g_empty_credential, "origin");
