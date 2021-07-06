@@ -172,3 +172,38 @@ char *gk_object_id_hex_string_new(gk_object_id_t *object_id) {
     hex_id[GK_OBJECT_ID_LENGTH*2] = '\0';
     return hex_id;
 }
+
+int gk_session_resolve_reference(gk_session_t *session, const char *ref_name, gk_object_id_t *object_id) {
+    if (session == NULL) {
+        log_error(COMP_COMMIT, "Cannot resolve reference, session is NULL");
+        return GK_FAILURE;
+    }
+    if (session->state.local_checkout_exists == 0) {
+        return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot resolve reference, local checkout does not exist");
+    }
+    else if (session->lg2_repository == NULL) {
+        // should never happen if local_checkout_exists == 1
+        return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot resolve reference, internal git2 repository is unexpectedely NULL");
+    }
+    
+    if (ref_name == NULL) {
+        return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot resolve reference, reference name is NULL");
+    }
+    if (object_id == NULL) {
+        return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot resolve reference, destination object is NULL ");
+    }
+
+    git_oid oid;
+    int rc = git_reference_name_to_id(&oid, session->lg2_repository, ref_name);
+    if (rc == GIT_ENOTFOUND) {
+        return gk_session_failure(session, &COMP_COMMIT, -1, "Reference '%s' could not be found", ref_name);
+    }
+    else if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_COMMIT, -2, "Error resolving reference '%s' (%d): %s", ref_name, err->klass, err->message);
+    }
+
+    memcpy(oid.id, object_id->id, 20);
+
+    return gk_session_success(session);
+}
