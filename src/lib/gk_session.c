@@ -248,3 +248,14 @@ void gk_session_close(gk_session_t *session) {
     git_repository_free(session->lg2_repository);
     session->lg2_repository = NULL;
 }
+
+void gk_session_free_members(gk_session_t *session) {
+    if (session == NULL) {
+        return;
+    }
+
+    gk_result_free(session->last_result);
+    session->last_result = NULL;
+    git_status_list_free(session->lg2_status_list);
+    git_repository_free(session->lg2_repository);
+}
