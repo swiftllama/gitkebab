@@ -6,38 +6,25 @@
 #include "git2.h"
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
+#include "gk_test_env_utils.h"
 
 void session_progress(gk_session_progress *progress) { }
 
 static int test_staging_setup(void **state) {
     gk_init();
-        
-    if (directory_exists("test-staging") == 0) {
-        rm_rf("test-staging");
-    }
-    create_directory("test-staging");
-
-    return 0;
+    return gk_test_environment_setup(state);
 }
 
 static int test_staging_teardown(void **state) {
-    (void) state; /* unused */
-
-    return 0;
+    return gk_test_environment_teardown(state);
 }
 
 static int test_staging_clean_repo_setup(void **state) {
     (void) state;
-    if (directory_exists("test-staging/simple-repo1") == 0) {
-        rm_rf("test-staging/simple-repo1");
-    }
-    copy_directory("./src/test/fixtures/simple-repo1.gitbak", "test-staging/simple-repo1");
-    mv("test-staging/simple-repo1/.gitbak", "test-staging/simple-repo1/.git");    
+    gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak();
 }
 
 static void test_status_without_open_repo(void **state) {
-    (void) state; /* unused */
-
     gk_session *session = gk_session_new();
     gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
     assert_int_equal(gk_result_code(session->last_result), 0);
@@ -50,14 +37,8 @@ static void test_status_without_open_repo(void **state) {
 }
 
 static void test_status_no_changes(void **state) {
-    (void) state; /* unused */
-
-    gk_session *session = gk_session_new();
-    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
-    assert_int_equal(gk_result_code(session->last_result), 0);
-
-    gk_session_open_local_repository(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
+    assert_non_null(session);
 
     gk_session_query_status_summary(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
@@ -75,19 +56,13 @@ static void test_status_no_changes(void **state) {
 }
 
 static void test_status_new_file_modified_file_deleted_file(void **state) {
-    (void) state; /* unused */
-
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
-    gk_session *session = gk_session_new();
-    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
-    assert_int_equal(gk_result_code(session->last_result), 0);
-
-    gk_session_open_local_repository(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
+    assert_non_null(session);
 
     gk_session_query_status_summary(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
@@ -113,17 +88,11 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
 }
 
 static void test_status_renamed_file(void **state) {
-    (void) state; /* unused */
-
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
     rm_rf("test-staging/simple-repo1/file1");
     
-    gk_session *session = gk_session_new();
-    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
-    assert_int_equal(gk_result_code(session->last_result), 0);
-
-    gk_session_open_local_repository(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
+    assert_non_null(session);
 
     gk_session_query_status_summary(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
