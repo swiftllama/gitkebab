@@ -45,44 +45,43 @@ static void test_index_add_remove_individual_files(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
-    gk_repository repo;
-    gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session session;
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_init(&session, &repo, &session_progress);
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_open_local_repository(session);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_open_local_repository(&session);
-    assert_int_equal(gk_result_code(session.last_result), 0);
-
-    gk_session_index_add_path(&session, "new-file1");
-    assert_int_equal(gk_result_code(session.last_result), 0);
-    gk_session_index_add_path(&session, "file1");
-    assert_int_equal(gk_result_code(session.last_result), 0);
-    gk_session_index_remove_path(&session, "file2");
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_index_add_path(session, "new-file1");
+    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_session_index_add_path(session, "file1");
+    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_session_index_remove_path(session, "file2");
+    assert_int_equal(gk_result_code(session->last_result), 0);
     
-    gk_session_query_status_summary(&session);
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_query_status_summary(session);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    assert_int_equal(session.status_summary.count_new, 2);
-    assert_int_equal(session.status_summary.count_modified, 1);
-    assert_int_equal(session.status_summary.count_deleted, 1);
-    assert_int_equal(session.status_summary.count_renamed, 0);
-    assert_int_equal(session.status_summary.count_typechange, 0);
-    assert_int_equal(session.status_summary.count_conflicted, 0);
+    assert_int_equal(session->status_summary.count_new, 2);
+    assert_int_equal(session->status_summary.count_modified, 1);
+    assert_int_equal(session->status_summary.count_deleted, 1);
+    assert_int_equal(session->status_summary.count_renamed, 0);
+    assert_int_equal(session->status_summary.count_typechange, 0);
+    assert_int_equal(session->status_summary.count_conflicted, 0);
     
-    assert_int_equal(gk_session_status_summary_entrycount(&session), 4);
+    assert_int_equal(gk_session_status_summary_entrycount(session), 4);
 
-    assert_string_equal(gk_session_status_summary_path_at(&session, 0), "file1");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 1), "file2");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 2), "new-file1");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 3), "new-file2");
+    assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
+    assert_string_equal(gk_session_status_summary_path_at(session, 1), "file2");
+    assert_string_equal(gk_session_status_summary_path_at(session, 2), "new-file1");
+    assert_string_equal(gk_session_status_summary_path_at(session, 3), "new-file2");
 
-    assert_int_equal(gk_session_status_summary_status_at(&session, 0), GIT_STATUS_INDEX_MODIFIED);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 1), GIT_STATUS_INDEX_DELETED);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 2), GIT_STATUS_INDEX_NEW);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 3), GIT_STATUS_WT_NEW);
+    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_INDEX_MODIFIED);
+    assert_int_equal(gk_session_status_summary_status_at(session, 1), GIT_STATUS_INDEX_DELETED);
+    assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_INDEX_NEW);
+    assert_int_equal(gk_session_status_summary_status_at(session, 3), GIT_STATUS_WT_NEW);
+
+    gk_session_free(session);
 }
 
 
@@ -95,40 +94,39 @@ static void test_index_update_all(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
-    gk_repository repo;
-    gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session session;
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_init(&session, &repo, &session_progress);
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_open_local_repository(session);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_open_local_repository(&session);
-    assert_int_equal(gk_result_code(session.last_result), 0);
-
-    gk_session_index_update_all(&session, "*");
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_index_update_all(session, "*");
+    assert_int_equal(gk_result_code(session->last_result), 0);
     
-    gk_session_query_status_summary(&session);
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_query_status_summary(session);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    assert_int_equal(session.status_summary.count_new, 2);
-    assert_int_equal(session.status_summary.count_modified, 1);
-    assert_int_equal(session.status_summary.count_deleted, 1);
-    assert_int_equal(session.status_summary.count_renamed, 0);
-    assert_int_equal(session.status_summary.count_typechange, 0);
-    assert_int_equal(session.status_summary.count_conflicted, 0);
+    assert_int_equal(session->status_summary.count_new, 2);
+    assert_int_equal(session->status_summary.count_modified, 1);
+    assert_int_equal(session->status_summary.count_deleted, 1);
+    assert_int_equal(session->status_summary.count_renamed, 0);
+    assert_int_equal(session->status_summary.count_typechange, 0);
+    assert_int_equal(session->status_summary.count_conflicted, 0);
     
-    assert_int_equal(gk_session_status_summary_entrycount(&session), 4);
+    assert_int_equal(gk_session_status_summary_entrycount(session), 4);
 
-    assert_string_equal(gk_session_status_summary_path_at(&session, 0), "file1");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 1), "file2");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 2), "new-file1");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 3), "new-file2");
+    assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
+    assert_string_equal(gk_session_status_summary_path_at(session, 1), "file2");
+    assert_string_equal(gk_session_status_summary_path_at(session, 2), "new-file1");
+    assert_string_equal(gk_session_status_summary_path_at(session, 3), "new-file2");
 
-    assert_int_equal(gk_session_status_summary_status_at(&session, 0), GIT_STATUS_INDEX_MODIFIED);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 1), GIT_STATUS_INDEX_DELETED);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 2), GIT_STATUS_WT_NEW);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 3), GIT_STATUS_WT_NEW);
+    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_INDEX_MODIFIED);
+    assert_int_equal(gk_session_status_summary_status_at(session, 1), GIT_STATUS_INDEX_DELETED);
+    assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_WT_NEW);
+    assert_int_equal(gk_session_status_summary_status_at(session, 3), GIT_STATUS_WT_NEW);
+
+    gk_session_free(session);
 }
 
 
@@ -141,40 +139,39 @@ static void test_index_add_all(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
-    gk_repository repo;
-    gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session session;
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_init(&session, &repo, &session_progress);
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_open_local_repository(session);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_open_local_repository(&session);
-    assert_int_equal(gk_result_code(session.last_result), 0);
-
-    gk_session_index_add_all(&session, "*");
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_index_add_all(session, "*");
+    assert_int_equal(gk_result_code(session->last_result), 0);
     
-    gk_session_query_status_summary(&session);
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_query_status_summary(session);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    assert_int_equal(session.status_summary.count_new, 2);
-    assert_int_equal(session.status_summary.count_modified, 1);
-    assert_int_equal(session.status_summary.count_deleted, 1);
-    assert_int_equal(session.status_summary.count_renamed, 0);
-    assert_int_equal(session.status_summary.count_typechange, 0);
-    assert_int_equal(session.status_summary.count_conflicted, 0);
+    assert_int_equal(session->status_summary.count_new, 2);
+    assert_int_equal(session->status_summary.count_modified, 1);
+    assert_int_equal(session->status_summary.count_deleted, 1);
+    assert_int_equal(session->status_summary.count_renamed, 0);
+    assert_int_equal(session->status_summary.count_typechange, 0);
+    assert_int_equal(session->status_summary.count_conflicted, 0);
     
-    assert_int_equal(gk_session_status_summary_entrycount(&session), 4);
+    assert_int_equal(gk_session_status_summary_entrycount(session), 4);
 
-    assert_string_equal(gk_session_status_summary_path_at(&session, 0), "file1");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 1), "file2");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 2), "new-file1");
-    assert_string_equal(gk_session_status_summary_path_at(&session, 3), "new-file2");
+    assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
+    assert_string_equal(gk_session_status_summary_path_at(session, 1), "file2");
+    assert_string_equal(gk_session_status_summary_path_at(session, 2), "new-file1");
+    assert_string_equal(gk_session_status_summary_path_at(session, 3), "new-file2");
 
-    assert_int_equal(gk_session_status_summary_status_at(&session, 0), GIT_STATUS_INDEX_MODIFIED);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 1), GIT_STATUS_INDEX_DELETED);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 2), GIT_STATUS_INDEX_NEW);
-    assert_int_equal(gk_session_status_summary_status_at(&session, 3), GIT_STATUS_INDEX_NEW);
+    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_INDEX_MODIFIED);
+    assert_int_equal(gk_session_status_summary_status_at(session, 1), GIT_STATUS_INDEX_DELETED);
+    assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_INDEX_NEW);
+    assert_int_equal(gk_session_status_summary_status_at(session, 3), GIT_STATUS_INDEX_NEW);
+
+    gk_session_free(session);
 }
 
 

@@ -32,7 +32,7 @@ typedef struct {
 } gk_session_callbacks;
 
 typedef struct {
-    gk_repository *repository;
+    gk_repository repository;
     gk_result *last_result;
     gk_session_callbacks callbacks;
     gk_session_state state;

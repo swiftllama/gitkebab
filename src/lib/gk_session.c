@@ -9,11 +9,7 @@
 #include "gk_logging.h"
 #include "gk_status.h"
 
-gk_repository *gk_repository_new() {
-    return (gk_repository *)malloc(sizeof(gk_repository));
-}
-
-void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *usr) {
+static void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
         return;
     }
@@ -31,18 +27,17 @@ void gk_repository_init(gk_repository *repository, const char *remote_url, const
     repository->user = usr != NULL ? strdup(usr) : strdup("");
 }
 
-void gk_repository_free(gk_repository *repository) {
+static void gk_repository_free_members(gk_repository *repository) {
     free((char *)repository->local_path);
     repository->local_path = NULL;
     free((char *)repository->remote_url);
     repository->remote_url = NULL;
     free((char *)repository->user);
     repository->user = NULL;
-    free(repository);
 }
 
-gk_authenticated_session *gk_authenticated_session_new() {
-    return (gk_authenticated_session *)malloc(sizeof(gk_authenticated_session));
+gk_session *gk_session_new() {
+    return (gk_session *)malloc(sizeof(gk_session));
 }
 
 
@@ -53,15 +48,12 @@ void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_
     authed_session->session = session;
     authed_session->credential = credential;
 }
-                                
-void gk_session_init(gk_session *session, gk_repository *repository, gk_session_progress_callback *progress_callback) {
+
+void gk_session_init(gk_session *session, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback) {
     if (session == NULL) {
         return;
     }
-    if (repository == NULL) {
-        log_warn(COMP_GENERAL, "Session initialized with NULL repository");
-    }
-    session->repository = repository;
+    gk_repository_init(&session->repository, remote_url, local_path, user);
     session->last_result = gk_result_success();
     session->callbacks.progress_callback = progress_callback;
 
@@ -85,11 +77,8 @@ int gk_session_open_local_repository(gk_session *session) {
         log_error(COMP_GENERAL, "gk_session_open_local_repository(session) called on NULL session");
         return GK_FAILURE;
     }
-    if (session->repository == NULL) {
-        return gk_session_failure(session, &COMP_GENERAL, -1, "session has NULL repository, cannot open");
-    }
 
-    int rc = git_repository_open((git_repository **)&(session->lg2_repository), session->repository->local_path);
+    int rc = git_repository_open((git_repository **)&(session->lg2_repository), session->repository.local_path);
     if (rc != 0) {
         git_repository_free(session->lg2_repository);
         session->lg2_repository = NULL;
@@ -211,9 +200,6 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
         log_error(COMP_CLONE, "Cannot clone, session is NULL");
         return GK_FAILURE;
     }
-    else if (session->repository == NULL) {
-        return gk_session_failure(session, &COMP_CLONE, -2, "Cannot clone, session respository is NULL");
-    }
     if (gk_did_init() != 1) {
         return gk_session_failure(session, &COMP_CLONE, -3, "Gitkebab not initialized");
     }
@@ -238,9 +224,9 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
 
     /* Do the clone */
     log_info(COMP_CLONE, "Cloning repo");
-    log_info(COMP_CLONE, "  - URL:        %s", session->repository->remote_url);
-    log_info(COMP_CLONE, "  - Local path: %s", session->repository->local_path);
-    rc = git_clone((git_repository **)&(session->lg2_repository), session->repository->remote_url, session->repository->local_path, &clone_opts);
+    log_info(COMP_CLONE, "  - URL:        %s", session->repository.remote_url);
+    log_info(COMP_CLONE, "  - Local path: %s", session->repository.local_path);
+    rc = git_clone((git_repository **)&(session->lg2_repository), session->repository.remote_url, session->repository.local_path, &clone_opts);
 
     if (rc != 0) {
         git_repository_free(session->lg2_repository);
@@ -270,7 +256,6 @@ void gk_session_free(gk_session *session) {
     session->last_result = NULL;
     git_status_list_free(session->lg2_status_list);
     git_repository_free(session->lg2_repository);
-    gk_repository_free(session->repository);
-    session->repository = NULL;
+    gk_repository_free_members(&session->repository);
     free(session);
 }

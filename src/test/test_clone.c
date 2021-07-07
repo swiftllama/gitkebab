@@ -37,67 +37,67 @@ static int test_staging_teardown(void **state) {
 static void test_clone_simple(void **state) {
     (void) state; /* unused */
     
-    gk_repository repo;
-    gk_repository_init(&repo, "./src/test/fixtures/simple-repo1.git/", "./test-staging/clone-test-1", "git");
-    gk_session session;
-    gk_session_init(&session, &repo, &session_progress);
-    gk_session_clone(&session, &g_empty_credential);
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "./src/test/fixtures/simple-repo1.git/", "./test-staging/clone-test-1", "git", &session_progress);
+    gk_session_clone(session, &g_empty_credential);
 
-    assert_int_equal(gk_result_code(session.last_result), 0);
-    assert_int_equal(session.state.local_checkout_exists, 1);
+    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(session->state.local_checkout_exists, 1);
         
     assert_int_equal(file_exists("test-staging/clone-test-1/file1"), 0);
     assert_int_equal(file_exists("test-staging/clone-test-1/file2"), 0);
     assert_int_equal(directory_exists("test-staging/clone-test-1/folder1"), 0);
     assert_int_equal(file_exists("test-staging/clone-test-1/folder1/file3"), 0);
+
+    gk_session_free(session);
 }
 
 static void test_clone_bad_source_path(void **state) {
     (void) state; /* unused */
     
-    gk_repository repo;
-    gk_repository_init(&repo, "test-staging/tmp/non-existent-path/", "./test-staging/clone-test-2", "git");
-    gk_session session;
-    gk_session_init(&session, &repo, &session_progress);
-    gk_session_clone(&session, &g_empty_credential);
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "test-staging/tmp/non-existent-path/", "./test-staging/clone-test-2", "git", &session_progress);
+    gk_session_clone(session, &g_empty_credential);
 
-    assert_int_not_equal(gk_result_code(session.last_result), 0);
+    assert_int_not_equal(gk_result_code(session->last_result), 0);
+
+    gk_session_free(session);
 }
 
 static void test_clone_null_dest_path(void **state) {
     (void) state; /* unused */
     
-    gk_repository repo;
-    gk_repository_init(&repo, "src/test/fixtures/simple-repo1.git/", NULL, "git");
-    gk_session session;
-    gk_session_init(&session, &repo, &session_progress);
-    gk_session_clone(&session, &g_empty_credential);
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", NULL, "git", &session_progress);
+    gk_session_clone(session, &g_empty_credential);
 
-    assert_int_not_equal(gk_result_code(session.last_result), 0);
+    assert_int_not_equal(gk_result_code(session->last_result), 0);
+
+    gk_session_free(session);
 }
 
 static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
     (void) state; /* unused */
+    
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", "test-staging/empty-dir1", "git", &session_progress);
+    gk_session_clone(session, &g_empty_credential);
 
-    gk_repository repo;
-    gk_repository_init(&repo, "src/test/fixtures/simple-repo1.git/", "test-staging/empty-dir1", "git");
-    gk_session session;
-    gk_session_init(&session, &repo, &session_progress);
-    gk_session_clone(&session, &g_empty_credential);
+    assert_int_equal(gk_result_code(session->last_result), 0);
 
-    assert_int_equal(gk_result_code(session.last_result), 0);
+    gk_session_free(session);
 }
 
 static void test_clone_dest_path_nonempty_existing_regular_dir(void **state) {
     (void) state; /* unused */
 
-    gk_repository repo;
-    gk_repository_init(&repo, "src/test/fixtures/simple-repo1.git/", "test-staging/nonempty-dir1", "git");
-    gk_session session;
-    gk_session_init(&session, &repo, &session_progress);
-    gk_session_clone(&session, &g_empty_credential);
+    gk_session *session = gk_session_new();
+    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", "test-staging/nonempty-dir1", "git", &session_progress);
+    gk_session_clone(session, &g_empty_credential);
 
-    assert_int_not_equal(gk_result_code(session.last_result), 0);
+    assert_int_not_equal(gk_result_code(session->last_result), 0);
+
+    gk_session_free(session);
 }
 
 int main(void) {

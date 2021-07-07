@@ -11,16 +11,12 @@
 #include "gk_logging.h"
 #include "gk_types.h"
 
-gk_repository *gk_repository_new();
-void gk_repository_init(gk_repository *repository, const char *local_path, const char *remote_url, const char *usr);
-void gk_repository_free(gk_repository *repository);
-
-gk_authenticated_session *gk_authenticated_session_new();
-void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_session *session, gk_session_credential *credential);
-void gk_session_free(gk_session *session);                                   
+gk_session *gk_session_new();
+void gk_session_init(gk_session *session, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback);
+void gk_session_free(gk_session *session);
 
 
-void gk_session_init(gk_session *session, gk_repository *repository, gk_session_progress_callback *progress_callback);
+
 
 void gk_session_set_last_result(gk_session *session, gk_result *last_result);
 void gk_session_set_last_result_v(gk_session *session, int code, const char *message, ...);
@@ -31,7 +27,7 @@ int gk_session_success(gk_session *session);
 int gk_session_clone(gk_session *session, gk_session_credential *credential);
 int gk_session_open_local_repository(gk_session *session);
 
-
+void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_session *session, gk_session_credential *credential);
 
 int gk_session_credential_callback(void **out, const char *url, const char *username_from_url, unsigned int allowed_types, void *payload);
 
