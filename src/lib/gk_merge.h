@@ -2,6 +2,6 @@
 #ifndef __GK_MERGE_H__
 #define __GK_MERGE_H__
 
-int analyze_merge_into_head(gk_session *session, const char* from_refspec);
+int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name);
 
 #endif // __GK_MERGE_H__

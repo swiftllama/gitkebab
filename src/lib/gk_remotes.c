@@ -6,6 +6,7 @@
 #include "gk_session_progress.h"
 #include "gk_credentials.h"
 #include "gk_init.h"
+#include "gk_merge.h"
 
 git_remote *prepare_remote(gk_session *session, const char *remote_name, const char *purpose) {    
     if (session == NULL) {
@@ -184,6 +185,11 @@ int gk_session_fetch(gk_session *session, gk_session_credential *credential, con
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_REMOTE, -3, "Error fetching from remote '%s' (%d): %s", remote_name, err->klass, err->message);
+    }
+
+    rc = gk_analyze_merge_into_head(session, "refs/remotes/origin/master");
+    if (rc != 0) {
+        return GK_FAILURE;
     }
     
     return gk_session_success(session);

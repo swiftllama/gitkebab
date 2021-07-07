@@ -11,3 +11,4 @@ log_Component COMP_TEST = {LOG_INFO, "TEST"};
 log_Component COMP_STATUS = {LOG_INFO, "STATUS"};
 log_Component COMP_COMMIT = {LOG_INFO, "COMMIT"};
 log_Component COMP_REMOTE = {LOG_INFO, "REMOTE"};
+log_Component COMP_MERGE = {LOG_INFO, "MERGE"};

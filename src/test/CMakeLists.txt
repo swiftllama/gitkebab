@@ -48,8 +48,8 @@ add_test(NAME TestCommit
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-add_executable(test_push test_push.c gk_test_filesystem_utils.c gk_test_env_utils.c)
-target_link_libraries(test_push cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-add_test(NAME TestPush
-  COMMAND test_push
+add_executable(test_remotes test_remotes.c gk_test_filesystem_utils.c gk_test_env_utils.c)
+target_link_libraries(test_remotes cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestRemotes
+  COMMAND test_remotes
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
