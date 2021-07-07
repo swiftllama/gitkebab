@@ -7,8 +7,8 @@
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 
-gk_session_credential_t g_empty_credential;
-void session_progress(gk_session_progress_t *progress) {
+gk_session_credential g_empty_credential;
+void session_progress(gk_session_progress *progress) {
     if (progress != NULL) {
         log_info(COMP_TEST, "PROGRESS [%s] (%zu%%)", progress->description, progress->percent);
     }
@@ -56,23 +56,23 @@ static void test_push_no_changes(void **state) {
     (void) state; /* unused */
 
     // Open source repo, save current commit
-    gk_repository_t repo2;
+    gk_repository repo2;
     gk_repository_init(&repo2, "", "./test-staging/simple-repo1.git", "git");
-    gk_session_t session2;
+    gk_session session2;
     gk_session_init(&session2, &repo2, &session_progress);
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
     gk_session_open_local_repository(&session2);
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
-    gk_object_id_t source_current_commit = {0};
+    gk_object_id source_current_commit = {0};
     gk_session_resolve_reference(&session2, "HEAD", &source_current_commit);
     assert_int_equal(gk_result_code(session2.last_result), 0);
     
     // Clone repo, commit and push
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -85,7 +85,7 @@ static void test_push_no_changes(void **state) {
     assert_int_equal(gk_result_code(session.last_result), 0);
 
     // Verify that current commit has not changed on source repo
-    gk_object_id_t source_last_commit = {0};
+    gk_object_id source_last_commit = {0};
     gk_session_resolve_reference(&session2, "HEAD", &source_last_commit);
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
@@ -96,24 +96,24 @@ static void test_push_one_commit(void **state) {
     (void) state; /* unused */
 
     // Open source repo, save current commit
-    gk_repository_t repo2;
+    gk_repository repo2;
     gk_repository_init(&repo2, "", "./test-staging/simple-repo1.git", "git");
-    gk_session_t session2;
+    gk_session session2;
     gk_session_init(&session2, &repo2, &session_progress);
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
     gk_session_open_local_repository(&session2);
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
-    gk_object_id_t source_current_commit = {0};
+    gk_object_id source_current_commit = {0};
     gk_session_resolve_reference(&session2, "HEAD", &source_current_commit);
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
 
     // Clone repo, commit and push
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -127,7 +127,7 @@ static void test_push_one_commit(void **state) {
     gk_session_index_add_path(&session, "file1");
     assert_int_equal(gk_result_code(session.last_result), 0);
 
-    gk_object_id_t new_commit = {0};
+    gk_object_id new_commit = {0};
     gk_session_commit(&session, "HEAD", "change file1", &new_commit);
     assert_int_equal(gk_result_code(session.last_result), 0);
 
@@ -135,7 +135,7 @@ static void test_push_one_commit(void **state) {
     assert_int_equal(gk_result_code(session.last_result), 0);
 
     // Check new commit in source repo
-    gk_object_id_t source_last_commit = {0};
+    gk_object_id source_last_commit = {0};
     gk_session_resolve_reference(&session2, "HEAD", &source_last_commit);
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
@@ -148,9 +148,9 @@ static void test_fetch_one_commit(void **state) {
     (void) state; /* unused */
     
     // Clone repo to two different locations
-    gk_repository_t repo1;
+    gk_repository repo1;
     gk_repository_init(&repo1, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A", "git");
-    gk_session_t session1;
+    gk_session session1;
     gk_session_init(&session1, &repo1, &session_progress);
     assert_int_equal(gk_result_code(session1.last_result), 0);
     gk_session_clone(&session1, &g_empty_credential);
@@ -158,9 +158,9 @@ static void test_fetch_one_commit(void **state) {
     assert_int_equal(session1.state.local_checkout_exists, 1);
     
 
-    gk_repository_t repo2;
+    gk_repository repo2;
     gk_repository_init(&repo2, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-B", "git");
-    gk_session_t session2;
+    gk_session session2;
     gk_session_init(&session2, &repo2, &session_progress);
     assert_int_equal(gk_result_code(session2.last_result), 0);
     gk_session_clone(&session2, &g_empty_credential);
@@ -168,13 +168,13 @@ static void test_fetch_one_commit(void **state) {
     assert_int_equal(session2.state.local_checkout_exists, 1);
 
     // Modify repo-A, commit and push
-    gk_object_id_t repo_A_first_commit = {0};
+    gk_object_id repo_A_first_commit = {0};
     gk_session_resolve_reference(&session2, "HEAD", &repo_A_first_commit);
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_session_index_add_path(&session1, "file1");
     assert_int_equal(gk_result_code(session1.last_result), 0);
-    gk_object_id_t new_commit = {0};
+    gk_object_id new_commit = {0};
     gk_session_commit(&session1, "HEAD", "change file1", &new_commit);
     assert_int_equal(gk_result_code(session1.last_result), 0);
     gk_session_push(&session1, &g_empty_credential, "origin");
@@ -184,10 +184,10 @@ static void test_fetch_one_commit(void **state) {
     gk_session_fetch(&session2, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session2.last_result), 0);
 
-    gk_object_id_t fetched_commit = {0};
+    gk_object_id fetched_commit = {0};
     gk_session_resolve_reference(&session2, "refs/remotes/origin/master", &fetched_commit);
 
-    gk_object_id_t repo_B_first_commit = {0};
+    gk_object_id repo_B_first_commit = {0};
     gk_session_resolve_reference(&session2, "HEAD", &repo_B_first_commit);
 
     assert_string_equal(repo_A_first_commit.id, repo_B_first_commit.id);

@@ -8,7 +8,7 @@
 #include "gk_logging.h"
 #include "gk_status.h"
 
-void gk_repository_init(gk_repository_t *repository, const char *remote_url, const char *local_path, const char *usr) {
+void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
         return;
     }
@@ -26,7 +26,7 @@ void gk_repository_init(gk_repository_t *repository, const char *remote_url, con
     repository->user = usr != NULL ? usr : "";
 }
 
-void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, gk_session_t *session, gk_session_credential_t *credential) {
+void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_session *session, gk_session_credential *credential) {
     if (authed_session == NULL) {
         return;
     }
@@ -34,7 +34,7 @@ void gk_authenticated_session_init(gk_authenticated_session_t *authed_session, g
     authed_session->credential = credential;
 }
                                 
-void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_session_progress_callback_t *progress_callback) {
+void gk_session_init(gk_session *session, gk_repository *repository, gk_session_progress_callback *progress_callback) {
     if (session == NULL) {
         return;
     }
@@ -58,8 +58,8 @@ void gk_session_init(gk_session_t *session, gk_repository_t *repository, gk_sess
     session->lg2_status_list = NULL;
 }
 
-int gk_session_open_local_repository(gk_session_t *session) {
-    gk_result_t *result = NULL;
+int gk_session_open_local_repository(gk_session *session) {
+    gk_result *result = NULL;
     
     if (session == NULL) {
         log_error(COMP_GENERAL, "gk_session_open_local_repository(session) called on NULL session");
@@ -81,7 +81,7 @@ int gk_session_open_local_repository(gk_session_t *session) {
     return gk_session_success(session);
 }
 
-void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result) {
+void gk_session_set_last_result(gk_session *session, gk_result *last_result) {
     gk_result_free(session->last_result);
     session->last_result = last_result;
     if (last_result == NULL) {
@@ -89,20 +89,20 @@ void gk_session_set_last_result(gk_session_t *session, gk_result_t *last_result)
     }
 }
 
-void gk_session_set_last_result_v(gk_session_t *session, int code, const char *message, ...) {
+void gk_session_set_last_result_v(gk_session *session, int code, const char *message, ...) {
     va_list(args);
     va_start(args, message);
-    gk_result_t *result = gk_result_v(code, message, args);
+    gk_result *result = gk_result_v(code, message, args);
     va_end(args);
     gk_session_set_last_result(session, result);
 }
 
-void gk_session_set_last_result_vargs(gk_session_t *session, int code, const char *message, va_list args) {
-    gk_result_t *result = gk_result_vargs(code, message, args);
+void gk_session_set_last_result_vargs(gk_session *session, int code, const char *message, va_list args) {
+    gk_result *result = gk_result_vargs(code, message, args);
     gk_session_set_last_result(session, result);
 }
 
-int gk_session_failure(gk_session_t *session, log_Component *component, int code, const char *message, ...) {
+int gk_session_failure(gk_session *session, log_Component *component, int code, const char *message, ...) {
     va_list args;
     va_start(args, message);
     gk_session_set_last_result_vargs(session, code, message, args);
@@ -111,7 +111,7 @@ int gk_session_failure(gk_session_t *session, log_Component *component, int code
     return GK_FAILURE;
 }
 
-int gk_session_success(gk_session_t *session) {
+int gk_session_success(gk_session *session) {
     gk_session_set_last_result(session, gk_result_success());
     return GK_SUCCESS;
 }
@@ -121,7 +121,7 @@ int gk_session_credential_callback(void **out,
                                    const char *username_from_url,
                                    unsigned int allowed_types,
                                    void *payload) {
-    gk_result_t *result = NULL;
+    gk_result *result = NULL;
     
     int allowed_userpass_plaintext = allowed_types & GIT_CREDENTIAL_USERPASS_PLAINTEXT;
     int allowed_ssh_key = allowed_types & GIT_CREDENTIAL_SSH_KEY;
@@ -145,17 +145,17 @@ int gk_session_credential_callback(void **out,
              allowed_ssh_memory > 0 ? "on" : "off");
     
     if (payload == NULL) {
-        result = gk_result(-1, "authed-session payload is NULL");
+        result = gk_result_new(-1, "authed-session payload is NULL");
         log_error(COMP_AUTH, gk_result_message(result));
         return -1;
     }
-    gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
+    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
     if (authed_session->session == NULL) {
         log_error(COMP_AUTH, "session is NULL when trying to authenticate");
         return -1;
     }
     else if (authed_session->credential == NULL) {
-        result = gk_result(-1, "authed session has NULL credential, cannot auth" );
+        result = gk_result_new(-1, "authed session has NULL credential, cannot auth" );
         log_error(COMP_AUTH, gk_result_message(result));
         gk_session_set_last_result(authed_session->session, result);
         return -1;
@@ -175,7 +175,7 @@ int gk_session_credential_callback(void **out,
         git_credential_userpass_plaintext_new((git_credential **)out, authed_session->credential->username, authed_session->credential->password);
     }
     else {
-        result = gk_result(-1, "authed session has gk_credential of unknown type");
+        result = gk_result_new(-1, "authed session has gk_credential of unknown type");
         log_error(COMP_AUTH, "authed session has gk_credential of unknown type %d. Expected one of CREDENTIAL_SSH_KEY_MEMORY (%d), CREDENTIAL_SSH_KEY_FILE (%d) or CREDENTIAL_USERNAME_PASSWORD (%d). Cannot auth");
         gk_session_set_last_result(authed_session->session, result);
         return -1;
@@ -184,8 +184,8 @@ int gk_session_credential_callback(void **out,
     return 0;
 }
 
-int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential) {
-    gk_result_t *result = NULL;
+int gk_session_clone(gk_session *session, gk_session_credential *credential) {
+    gk_result *result = NULL;
     
     if ((session == NULL)) {
         log_error(COMP_CLONE, "Cannot clone, session is NULL");
@@ -198,7 +198,7 @@ int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential)
         return gk_session_failure(session, &COMP_CLONE, -3, "Gitkebab not initialized");
     }
         
-    gk_authenticated_session_t authed_session;
+    gk_authenticated_session authed_session;
     gk_authenticated_session_init(&authed_session, session, credential);
 
     git_clone_options clone_opts = GIT_CLONE_OPTIONS_INIT;
@@ -241,7 +241,7 @@ int gk_session_clone(gk_session_t *session, gk_session_credential_t *credential)
     return gk_session_success(session);
 }
 
-void gk_session_close(gk_session_t *session) {
+void gk_session_close(gk_session *session) {
     if (session == NULL) {
         return;
     }
@@ -249,7 +249,7 @@ void gk_session_close(gk_session_t *session) {
     session->lg2_repository = NULL;
 }
 
-void gk_session_free_members(gk_session_t *session) {
+void gk_session_free_members(gk_session *session) {
     if (session == NULL) {
         return;
     }

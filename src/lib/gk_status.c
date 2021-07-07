@@ -3,7 +3,7 @@
 #include "gk_status.h"
 #include "gk_logging.h"
 
-void gk_status_summary_reset(gk_status_summary_t *status_summary) {
+void gk_status_summary_reset(gk_status_summary *status_summary) {
     if (status_summary == NULL) {
         log_error(COMP_STATUS, "Cannot reset NULL status summary");
         return;
@@ -17,8 +17,8 @@ void gk_status_summary_reset(gk_status_summary_t *status_summary) {
     status_summary->count_conflicted = 0;
 }
 
-int gk_session_query_status_summary(gk_session_t *session) {
-    gk_result_t *result = NULL;
+int gk_session_query_status_summary(gk_session *session) {
+    gk_result *result = NULL;
 
     if (session == NULL) {
         log_error(COMP_STATUS, "Cannot check status, session is NULL");
@@ -90,8 +90,8 @@ int gk_session_query_status_summary(gk_session_t *session) {
     return gk_session_success(session);
 }
 
-static const git_status_entry *gk_session_status_summary_entry(gk_session_t *session, const char *purpose, size_t index) {
-    gk_result_t *result = NULL;
+static const git_status_entry *gk_session_status_summary_entry(gk_session *session, const char *purpose, size_t index) {
+    gk_result *result = NULL;
     if (session == NULL) {
         log_error(COMP_STATUS, "Cannot retrieve %s at index %zu, session is NULL", purpose, index);
         return NULL;
@@ -113,12 +113,12 @@ static const git_status_entry *gk_session_status_summary_entry(gk_session_t *ses
     return entry;
 }
 
-int gk_session_status_summary_status_at(gk_session_t *session, size_t index) {
+int gk_session_status_summary_status_at(gk_session *session, size_t index) {
     const git_status_entry *entry = gk_session_status_summary_entry(session, "status", index);
     return entry == NULL ? 0 : entry->status;
 }
 
-const char *gk_session_status_summary_path_at(gk_session_t *session, size_t index) {
+const char *gk_session_status_summary_path_at(gk_session *session, size_t index) {
     const git_status_entry *entry = gk_session_status_summary_entry(session, "status", index);
     if (entry == NULL) {
         return "";
@@ -150,8 +150,8 @@ const char *gk_session_status_summary_path_at(gk_session_t *session, size_t inde
     return path;
 }
 
-size_t gk_session_status_summary_entrycount(gk_session_t *session) {
-    gk_result_t *result = NULL;
+size_t gk_session_status_summary_entrycount(gk_session *session) {
+    gk_result *result = NULL;
     if (session == NULL) {
         log_error(COMP_STATUS, "Cannot retrieve summary entry count, session is NULL");
         return 0;

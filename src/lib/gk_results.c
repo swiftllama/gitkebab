@@ -7,14 +7,10 @@
 #include "stdlib.h"
 
 
-static gk_result_t *gk_result_new() {
-    return (gk_result_t *)malloc(sizeof(gk_result_t));
-}
-
-gk_result_t *gk_result(int code, const char *message) {
-    gk_result_t *result = gk_result_new();
+gk_result *gk_result_new(int code, const char *message) {
+    gk_result *result = (gk_result *)malloc(sizeof(gk_result));
     if (result == NULL) {
-        log_error(COMP_GENERAL, "Error allocating gk_result_t for error '%d', '%s'", code, message);
+        log_error(COMP_GENERAL, "Error allocating gk_result for error '%d', '%s'", code, message);
         return NULL;
     }
     result->code = code;
@@ -22,26 +18,26 @@ gk_result_t *gk_result(int code, const char *message) {
     return result;
 }
 
-gk_result_t *gk_result_v(int code, const char *message, ...) {
+gk_result *gk_result_v(int code, const char *message, ...) {
     char formatted_message[512];
     va_list args;
     va_start(args, message);
-    gk_result_t *result = gk_result_vargs(code, message, args);
+    gk_result *result = gk_result_vargs(code, message, args);
     va_end(args);
     return result;
 }
 
-gk_result_t *gk_result_vargs(int code, const char *message, va_list args) {
+gk_result *gk_result_vargs(int code, const char *message, va_list args) {
     char formatted_message[512];
     vsnprintf(formatted_message, 512, message, args);
-    return gk_result(code, formatted_message);
+    return gk_result_new(code, formatted_message);
 }
 
-gk_result_t *gk_result_success() {
-    return gk_result(0, NULL);
+gk_result *gk_result_success() {
+    return gk_result_new(0, NULL);
 }
 
-void gk_result_free(gk_result_t *result) {
+void gk_result_free(gk_result *result) {
     if (result != NULL) {
         if (result->message != NULL) {
             free(result->message);
@@ -51,18 +47,18 @@ void gk_result_free(gk_result_t *result) {
     }
 }
 
-int gk_result_code(gk_result_t *result) {
+int gk_result_code(gk_result *result) {
     return result != NULL ? result->code : -1;
 }
 
-const char *gk_result_message(gk_result_t *result) {
+const char *gk_result_message(gk_result *result) {
     return result != NULL ? result->message : "(message attribute not available on NULL result)";
 }
 
-gk_result_t *gk_fail_result(log_Component *component, int code, const char *message, ...) {
+gk_result *gk_fail_result(log_Component *component, int code, const char *message, ...) {
     va_list args;
     va_start(args, message);
-    gk_result_t *result = gk_result_v(code, message, args);
+    gk_result *result = gk_result_v(code, message, args);
     va_end(args);
     log_log(LOG_ERROR, __FILE__, __LINE__, component, gk_result_message(result));
     return result;

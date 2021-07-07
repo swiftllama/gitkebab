@@ -6,8 +6,8 @@
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 
-gk_session_credential_t g_empty_credential;
-void session_progress(gk_session_progress_t *progress) { }
+gk_session_credential g_empty_credential;
+void session_progress(gk_session_progress *progress) { }
 
 static int test_staging_setup(void **state) {
     gk_init();
@@ -37,9 +37,9 @@ static int test_staging_teardown(void **state) {
 static void test_clone_simple(void **state) {
     (void) state; /* unused */
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "./src/test/fixtures/simple-repo1.git/", "./test-staging/clone-test-1", "git");
-    gk_session_t session;
+    gk_session session;
     gk_session_init(&session, &repo, &session_progress);
     gk_session_clone(&session, &g_empty_credential);
 
@@ -55,9 +55,9 @@ static void test_clone_simple(void **state) {
 static void test_clone_bad_source_path(void **state) {
     (void) state; /* unused */
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "test-staging/tmp/non-existent-path/", "./test-staging/clone-test-2", "git");
-    gk_session_t session;
+    gk_session session;
     gk_session_init(&session, &repo, &session_progress);
     gk_session_clone(&session, &g_empty_credential);
 
@@ -67,9 +67,9 @@ static void test_clone_bad_source_path(void **state) {
 static void test_clone_null_dest_path(void **state) {
     (void) state; /* unused */
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "src/test/fixtures/simple-repo1.git/", NULL, "git");
-    gk_session_t session;
+    gk_session session;
     gk_session_init(&session, &repo, &session_progress);
     gk_session_clone(&session, &g_empty_credential);
 
@@ -79,9 +79,9 @@ static void test_clone_null_dest_path(void **state) {
 static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
     (void) state; /* unused */
 
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "src/test/fixtures/simple-repo1.git/", "test-staging/empty-dir1", "git");
-    gk_session_t session;
+    gk_session session;
     gk_session_init(&session, &repo, &session_progress);
     gk_session_clone(&session, &g_empty_credential);
 
@@ -91,9 +91,9 @@ static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
 static void test_clone_dest_path_nonempty_existing_regular_dir(void **state) {
     (void) state; /* unused */
 
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "src/test/fixtures/simple-repo1.git/", "test-staging/nonempty-dir1", "git");
-    gk_session_t session;
+    gk_session session;
     gk_session_init(&session, &repo, &session_progress);
     gk_session_clone(&session, &g_empty_credential);
 

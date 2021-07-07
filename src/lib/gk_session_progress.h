@@ -11,39 +11,39 @@ typedef struct {
     int index_percent;
     size_t received_bytes;
     int deltas_resolved_percent;
-} gk_fetch_progress_t;
+} gk_fetch_progress;
     
 typedef struct {
     size_t completed_steps;
     size_t total_steps;
     int checkout_percent;
     const char* current_path;
-} gk_checkout_progress_t;
+} gk_checkout_progress;
 
 typedef struct {
     unsigned int current;
     unsigned int total;
     size_t bytes;
     int percent;
-} gk_push_transfer_progress_t;
+} gk_push_transfer_progress;
 
 typedef struct {
-    gk_fetch_progress_t fetch;
-    gk_checkout_progress_t checkout;
-    gk_push_transfer_progress_t push_transfer;
+    gk_fetch_progress fetch;
+    gk_checkout_progress checkout;
+    gk_push_transfer_progress push_transfer;
     int progress_event_type;
     int percent;
     char description[256];
-} gk_session_progress_t;
+} gk_session_progress;
 
-typedef void gk_session_progress_callback_t(gk_session_progress_t *progress);
+typedef void gk_session_progress_callback(gk_session_progress *progress);
 
 int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload);
 void gk_session_checkout_progress_callback(const char *path, size_t cur, size_t tot, void *payload);
 int gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload);
 
-void gk_session_progress_init_fetch(gk_session_progress_t *progress, size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas);
-void gk_session_progress_init_checkout(gk_session_progress_t *progress, const char *path, size_t cur, size_t tot);
+void gk_session_progress_init_fetch(gk_session_progress *progress, size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas);
+void gk_session_progress_init_checkout(gk_session_progress *progress, const char *path, size_t cur, size_t tot);
 
 
 #endif // __GITKEBAB_SESSION_PROGRESS_H__

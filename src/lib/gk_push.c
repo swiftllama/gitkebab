@@ -6,7 +6,7 @@
 #include "gk_session_progress.h"
 #include "gk_credentials.h"
 
-git_remote *prepare_remote(gk_session_t *session, const char *remote_name, const char *purpose) {    
+git_remote *prepare_remote(gk_session *session, const char *remote_name, const char *purpose) {    
     if (session == NULL) {
         log_error(COMP_COMMIT, "Cannot %s, session is NULL", purpose);
         return NULL;
@@ -36,13 +36,13 @@ git_remote *prepare_remote(gk_session_t *session, const char *remote_name, const
     return remote;
 }
 
-int gk_session_fetch(gk_session_t *session, gk_session_credential_t *credential, const char *remote_name) {
+int gk_session_fetch(gk_session *session, gk_session_credential *credential, const char *remote_name) {
     git_remote *remote = prepare_remote(session, remote_name, "fetch");
     if (remote == NULL) {
         return GK_FAILURE;
     }
 
-    gk_authenticated_session_t authed_session;
+    gk_authenticated_session authed_session;
     gk_authenticated_session_init(&authed_session, session, credential);
 
     git_fetch_options fetch_options = GIT_FETCH_OPTIONS_INIT;
@@ -62,13 +62,13 @@ int gk_session_fetch(gk_session_t *session, gk_session_credential_t *credential,
     return gk_session_success(session);
 }
 
-int gk_session_push(gk_session_t *session, gk_session_credential_t *credential, const char *remote_name) {
+int gk_session_push(gk_session *session, gk_session_credential *credential, const char *remote_name) {
     git_remote *remote = prepare_remote(session, remote_name, "push");
     if (remote == NULL) {
         return GK_FAILURE;
     }
 
-    gk_authenticated_session_t authed_session;
+    gk_authenticated_session authed_session;
     gk_authenticated_session_init(&authed_session, session, credential);
     
     git_push_options push_options = GIT_PUSH_OPTIONS_INIT;

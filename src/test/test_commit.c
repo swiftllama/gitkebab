@@ -7,7 +7,7 @@
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 
-void session_progress(gk_session_progress_t *progress) { }
+void session_progress(gk_session_progress *progress) { }
 
 static int test_staging_setup(void **state) {
     gk_init();
@@ -39,9 +39,9 @@ static int test_staging_clean_repo_setup(void **state) {
 static void test_commit_count_reflog_entries(void **state) {
     (void) state; /* unused */
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -57,9 +57,9 @@ static void test_commit_count_reflog_entries(void **state) {
 static void test_commit_no_changes(void **state) {
     (void) state; /* unused */
         
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -78,9 +78,9 @@ static void test_commit_new_file(void **state) {
 
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file1");
         
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -113,9 +113,9 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
         
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);

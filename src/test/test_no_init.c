@@ -8,13 +8,13 @@
 static void test_no_init_clone(void **state) {
     (void) state; /* unused */
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "./src/test/fixtures/simple-repo1.git/", "./clone-test-1", "git");
 
-    gk_session_t session;
+    gk_session session;
     gk_session_init(&session, &repo, NULL);
 
-    gk_session_credential_t credential;
+    gk_session_credential credential;
     gk_session_credential_username_password_init(&credential, "", "");
     gk_session_clone(&session, &credential);
 

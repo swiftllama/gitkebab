@@ -6,8 +6,8 @@
 #include "gk_results.h"
 #include "git2.h"
 
-size_t gk_session_count_reflog_entries(gk_session_t *session, const char* ref_name) {
-    gk_result_t *result = NULL;
+size_t gk_session_count_reflog_entries(gk_session *session, const char* ref_name) {
+    gk_result *result = NULL;
     git_index *index = NULL;
     int rc;
     
@@ -50,8 +50,8 @@ size_t gk_session_count_reflog_entries(gk_session_t *session, const char* ref_na
     return entrycount;
 }
 
-int gk_session_commit(gk_session_t *session, const char *ref_name, const char* commit_message, gk_object_id_t *out_commit_id) {
-    gk_result_t *result = NULL;
+int gk_session_commit(gk_session *session, const char *ref_name, const char* commit_message, gk_object_id *out_commit_id) {
+    gk_result *result = NULL;
     git_oid commit_oid,tree_oid;
     git_tree *tree;
     git_index *index;	
@@ -156,7 +156,7 @@ int gk_session_commit(gk_session_t *session, const char *ref_name, const char* c
     return gk_session_success(session);
 }
 
-int gk_session_resolve_reference(gk_session_t *session, const char *ref_name, gk_object_id_t *object_id) {
+int gk_session_resolve_reference(gk_session *session, const char *ref_name, gk_object_id *object_id) {
     if (session == NULL) {
         log_error(COMP_COMMIT, "Cannot resolve reference, session is NULL");
         return GK_FAILURE;

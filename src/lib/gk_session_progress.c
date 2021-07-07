@@ -9,7 +9,7 @@ static int gk_session_check_progress_pointer(void *payload, const char *progress
         log_error(COMP_PROGRESS, "Authed-session payload is NULL in %s progress callback", progress_type);
         return -1;
     }
-    gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
+    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
     if (authed_session->session == NULL) {
         log_error(COMP_PROGRESS, "Authed-session contains NULL in %s progress callback", progress_type);
         return -1;
@@ -21,7 +21,7 @@ static int gk_session_check_progress_pointer(void *payload, const char *progress
     return 0;
 }
 
-static void gk_session_progress_init(gk_session_progress_t *progress) {
+static void gk_session_progress_init(gk_session_progress *progress) {
     progress->percent = 0;
     progress->description[0] = '\0';
 
@@ -36,7 +36,7 @@ static void gk_session_progress_init(gk_session_progress_t *progress) {
     progress->checkout.current_path = "";
 }
 
-void gk_session_progress_init_push_transfer(gk_session_progress_t *progress, unsigned int current, unsigned int total, size_t bytes) {
+void gk_session_progress_init_push_transfer(gk_session_progress *progress, unsigned int current, unsigned int total, size_t bytes) {
     if (progress == NULL) {
         log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as push transfer progress");
         return;
@@ -54,7 +54,7 @@ void gk_session_progress_init_push_transfer(gk_session_progress_t *progress, uns
     snprintf(progress->description, 256, "Uploading %d%% (%zuB)", progress->push_transfer.percent, progress->push_transfer.bytes);
 }
 
-void gk_session_progress_init_fetch(gk_session_progress_t *progress, size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas) {    
+void gk_session_progress_init_fetch(gk_session_progress *progress, size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas) {    
     if (progress == NULL) {
         log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as fetch progress");
         return;
@@ -90,7 +90,7 @@ void gk_session_progress_init_fetch(gk_session_progress_t *progress, size_t rece
     }
 }
 
-void gk_session_progress_init_checkout(gk_session_progress_t *progress, const char *path, size_t current_steps, size_t total_steps) {
+void gk_session_progress_init_checkout(gk_session_progress *progress, const char *path, size_t current_steps, size_t total_steps) {
     if (progress == NULL) {
         log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as checkout progress");
         return;
@@ -118,8 +118,8 @@ int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
         return 0;
     }
     
-    gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
-    gk_session_progress_t progress;
+    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
+    gk_session_progress progress;
     gk_session_progress_init_fetch(&progress, stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
     authed_session->session->callbacks.progress_callback(&progress);
     return 0;
@@ -131,8 +131,8 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
         return;
     }
 
-    gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
-    gk_session_progress_t progress;
+    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
+    gk_session_progress progress;
     gk_session_progress_init_checkout(&progress, path, current_steps, total_steps); 
     authed_session->session->callbacks.progress_callback(&progress);
 }
@@ -142,8 +142,8 @@ int gk_session_progress_push_transfer_callback(unsigned int current, unsigned in
         return 0;
     }
 
-    gk_authenticated_session_t *authed_session = (gk_authenticated_session_t *)payload;
-    gk_session_progress_t progress;
+    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
+    gk_session_progress progress;
     gk_session_progress_init_push_transfer(&progress, current, total, bytes);
     authed_session->session->callbacks.progress_callback(&progress);
     return 0;

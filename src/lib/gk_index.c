@@ -6,8 +6,8 @@
 #include "gk_results.h"
 #include "gk_logging.h"
 
-static git_index *index_for_session(gk_session_t *session, const char* purpose, const char *path) {
-    gk_result_t *result = NULL;
+static git_index *index_for_session(gk_session *session, const char* purpose, const char *path) {
+    gk_result *result = NULL;
     git_index *index = NULL;
     int rc;
     
@@ -45,8 +45,8 @@ static git_index *index_for_session(gk_session_t *session, const char* purpose, 
     return index;
 }
 
-int gk_session_index_add_path(gk_session_t *session, const char *path) {
-    gk_result_t *result = NULL;
+int gk_session_index_add_path(gk_session *session, const char *path) {
+    gk_result *result = NULL;
 
     git_index *index = index_for_session(session, "add path to index", path);
     if (index == NULL) {
@@ -64,8 +64,8 @@ int gk_session_index_add_path(gk_session_t *session, const char *path) {
     return gk_session_success(session);
 }
 
-int gk_session_index_remove_path(gk_session_t *session, const char *path) {
-    gk_result_t *result = NULL;
+int gk_session_index_remove_path(gk_session *session, const char *path) {
+    gk_result *result = NULL;
 
     git_index *index = index_for_session(session, "remove path from index", path);
     if (index == NULL) {
@@ -83,8 +83,8 @@ int gk_session_index_remove_path(gk_session_t *session, const char *path) {
     return gk_session_success(session);
 }
 
-int gk_session_index_add_all(gk_session_t *session, const char* pattern) {
-    gk_result_t *result = NULL;
+int gk_session_index_add_all(gk_session *session, const char* pattern) {
+    gk_result *result = NULL;
 
     git_index *index = index_for_session(session, "add all to index", pattern);
     if (index == NULL) {
@@ -105,8 +105,8 @@ int gk_session_index_add_all(gk_session_t *session, const char* pattern) {
     return gk_session_success(session);
 }
 
-int gk_session_index_update_all(gk_session_t *session, const char* pattern) {
-    gk_result_t *result = NULL;
+int gk_session_index_update_all(gk_session *session, const char* pattern) {
+    gk_result *result = NULL;
     
     git_index *index = index_for_session(session, "update all in index", pattern);
     if (index == NULL) {

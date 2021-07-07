@@ -7,7 +7,7 @@
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 
-void session_progress(gk_session_progress_t *progress) { }
+void session_progress(gk_session_progress *progress) { }
 
 static int test_staging_setup(void **state) {
     gk_init();
@@ -45,9 +45,9 @@ static void test_index_add_remove_individual_files(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -95,9 +95,9 @@ static void test_index_update_all(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);
@@ -141,9 +141,9 @@ static void test_index_add_all(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
-    gk_repository_t repo;
+    gk_repository repo;
     gk_repository_init(&repo, "", "./test-staging/simple-repo1", "git");
-    gk_session_t session;
+    gk_session session;
 
     gk_session_init(&session, &repo, &session_progress);
     assert_int_equal(gk_result_code(session.last_result), 0);

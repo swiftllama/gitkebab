@@ -6,12 +6,12 @@
 #include <string.h>
 
 
-gk_result_t *gk_session_credential_ssh_key_memory_init(gk_session_credential_t *credential, const char *private_key_bytes, const char *public_key_bytes, const char *private_key_passphrase) {
+gk_result *gk_session_credential_ssh_key_memory_init(gk_session_credential *credential, const char *private_key_bytes, const char *public_key_bytes, const char *private_key_passphrase) {
     if (credential == NULL) {
         return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize ssh key credential (memory), credential is NULL");
     }
 
-    memset(credential, 0, sizeof(gk_session_credential_t));
+    memset(credential, 0, sizeof(gk_session_credential));
     credential->credential_type = CREDENTIAL_SSH_KEY_MEMORY;
     credential->ssh_private_key_bytes = private_key_bytes == NULL ? NULL : strdup(private_key_bytes);
     credential->ssh_public_key_bytes = public_key_bytes == NULL ? NULL : strdup(public_key_bytes);
@@ -20,12 +20,12 @@ gk_result_t *gk_session_credential_ssh_key_memory_init(gk_session_credential_t *
     return gk_result_success();
 }
 
-gk_result_t *gk_session_credential_ssh_key_file_init(gk_session_credential_t *credential, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase) {
+gk_result *gk_session_credential_ssh_key_file_init(gk_session_credential *credential, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase) {
     if (credential == NULL) {
         return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize ssh key credential (file), credential is NULL");
     }
 
-    memset(credential, 0, sizeof(gk_session_credential_t));
+    memset(credential, 0, sizeof(gk_session_credential));
     credential->credential_type = CREDENTIAL_SSH_KEY_FILE;
     credential->ssh_private_key_path = private_key_path == NULL ? NULL : strdup(private_key_path);
     credential->ssh_public_key_path = public_key_path == NULL ? NULL : strdup(public_key_path);
@@ -34,12 +34,12 @@ gk_result_t *gk_session_credential_ssh_key_file_init(gk_session_credential_t *cr
     return gk_result_success();
 }
 
-gk_result_t *gk_session_credential_username_password_init(gk_session_credential_t *credential, const char *username, const char *password) {
+gk_result *gk_session_credential_username_password_init(gk_session_credential *credential, const char *username, const char *password) {
     if (credential == NULL) {
         return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize username/password, credential is NULL");
     }
 
-    memset(credential, 0, sizeof(gk_session_credential_t));
+    memset(credential, 0, sizeof(gk_session_credential));
     credential->credential_type = CREDENTIAL_USERNAME_PASSWORD;
     credential->username = username == NULL ? NULL : strdup(username);
     credential->password = password == NULL ? NULL : strdup(password);
@@ -47,7 +47,7 @@ gk_result_t *gk_session_credential_username_password_init(gk_session_credential_
     return gk_result_success();
 }
 
-void gk_session_credential_free_members(gk_session_credential_t *credential) {
+void gk_session_credential_free_members(gk_session_credential *credential) {
     if (credential == NULL) {
         return;
     }
