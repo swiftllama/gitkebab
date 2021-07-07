@@ -5,7 +5,7 @@
 #include "gk_remotes.h"
 #include "gk_session_progress.h"
 #include "gk_credentials.h"
-#include "gitkebab.h"
+#include "gk_init.h"
 
 git_remote *prepare_remote(gk_session *session, const char *remote_name, const char *purpose) {    
     if (session == NULL) {

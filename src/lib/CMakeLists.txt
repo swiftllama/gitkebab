@@ -4,7 +4,6 @@ include_directories(${PROJECT_SOURCE_DIR}/external/libgit2/include)
 link_directories(${PROJECT_SOURCE_DIR}/external/libgit2/lib)
 
 add_library(gitkebab
-  gitkebab.c
   gitkebab.h
   gk_commit.c
   gk_commit.h
@@ -12,6 +11,8 @@ add_library(gitkebab
   gk_credentials.h
   gk_index.c
   gk_index.h
+  gk_init.c
+  gk_init.h
   gk_log_components.c
   gk_log_components.h
   gk_logging.h

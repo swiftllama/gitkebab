@@ -10,9 +10,6 @@
 #include "gk_commit.h"
 #include "gk_logging.h"
 #include "gk_remotes.h"
-
-int gk_did_init();
-void gk_init();
-void gk_libgit2_set_log_level(int level);
+#include "gk_init.h"
 
 #endif // __GITKEBAB_H__
