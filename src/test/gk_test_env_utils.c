@@ -24,6 +24,18 @@ void gk_test_delete_simplerepo1() {
     }
 }
 
+void gk_test_delete_simplerepo1A() {
+    if (directory_exists("test-staging/simple-repo1-A") == 0) {
+        rm_rf("test-staging/simple-repo1");
+    }
+}
+
+void gk_test_delete_simplerepo1B() {
+    if (directory_exists("test-staging/simple-repo1-B") == 0) {
+        rm_rf("test-staging/simple-repo1");
+    }
+}
+
 void gk_test_delete_simplerepo1_dot_git() {
     if (directory_exists("test-staging/simple-repo1.git") == 0) {
         rm_rf("test-staging/simple-repo1.git");

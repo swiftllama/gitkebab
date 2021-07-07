@@ -15,6 +15,8 @@ int gk_test_environment_teardown(void **state);
 void gk_test_copy_source_repo_simplerepo1_dot_git();
 void gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak();
 void gk_test_delete_simplerepo1();
+void gk_test_delete_simplerepo1A();
+void gk_test_delete_simplerepo1B();
 void gk_test_delete_simplerepo1_dot_git();
 
 gk_session *gk_test_session_from_local_path(const char *repo_path);

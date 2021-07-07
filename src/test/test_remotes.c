@@ -22,6 +22,8 @@ static int test_staging_teardown(void **state) {
 static int test_staging_clean_repo_setup(void **state) {
     (void) state;
     gk_test_delete_simplerepo1();
+    gk_test_delete_simplerepo1A();
+    gk_test_delete_simplerepo1B();
     gk_test_delete_simplerepo1_dot_git();
     gk_test_copy_source_repo_simplerepo1_dot_git();
     return 0;
@@ -121,8 +123,46 @@ static void test_fetch_no_changes(void **state) {
     assert_string_equal(fetched_commit.id, repo_new_commit.id);
     assert_int_equal(session1->state.has_changes_to_merge, 0);
 
-    gk_session_free(session1);
+    gk_session_free(session1);    
+}
+
+static void test_fetch_one_commit_with_no_push(void **state) {
+    (void) state; /* unused */
     
+    // Clone repo 
+    gk_session *session = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
+    assert_non_null(session);
+
+    // Modify repo, commit but don't push
+    gk_object_id original_head = {0};
+    gk_session_resolve_reference(session, "HEAD", &original_head);
+    
+    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+    gk_session_index_add_path(session, "file1");
+    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_object_id new_commit = {0};
+    gk_session_commit(session, "HEAD", "change file1", &new_commit);
+    assert_int_equal(gk_result_code(session->last_result), 0);
+
+
+    // Fetch repo
+    gk_session_fetch(session, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session->last_result), 0);
+
+    gk_object_id fetched_commit = {0};
+    gk_session_resolve_reference(session, "refs/remotes/origin/master", &fetched_commit);
+
+    gk_object_id new_head = {0};
+    gk_session_resolve_reference(session, "HEAD", &new_head);
+
+    // Compare
+    assert_string_equal(fetched_commit.id, original_head.id);
+    assert_string_not_equal(original_head.id, new_head.id);
+    assert_string_equal(new_head.id, new_commit.id);
+
+    assert_int_equal(session->state.has_changes_to_merge, 0);
+
+    gk_session_free(session);
 }
 
 static void test_fetch_one_commit(void **state) {
@@ -166,7 +206,6 @@ static void test_fetch_one_commit(void **state) {
 
     gk_session_free(session1);
     gk_session_free(session2);
-    
 }
 
 int main(void) {
@@ -174,7 +213,8 @@ int main(void) {
         cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_fetch_one_commit, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup)
+        cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_fetch_one_commit_with_no_push, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {
