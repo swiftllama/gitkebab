@@ -2,41 +2,7 @@
 #ifndef __GITKEBAB_SESSION_PROGRESS_H__
 #define __GITKEBAB_SESSION_PROGRESS_H__
 
-enum gk_session_progress_event_type {
-    GK_SESSION_PROGRESS_FETCH, GK_SESSION_PROGRESS_CHECKOUT, GK_SESSION_PROGRESS_PUSH_TRANSFER
-};
-    
-typedef struct {
-    int network_percent;
-    int index_percent;
-    size_t received_bytes;
-    int deltas_resolved_percent;
-} gk_fetch_progress;
-    
-typedef struct {
-    size_t completed_steps;
-    size_t total_steps;
-    int checkout_percent;
-    const char* current_path;
-} gk_checkout_progress;
-
-typedef struct {
-    unsigned int current;
-    unsigned int total;
-    size_t bytes;
-    int percent;
-} gk_push_transfer_progress;
-
-typedef struct {
-    gk_fetch_progress fetch;
-    gk_checkout_progress checkout;
-    gk_push_transfer_progress push_transfer;
-    int progress_event_type;
-    int percent;
-    char description[256];
-} gk_session_progress;
-
-typedef void gk_session_progress_callback(gk_session_progress *progress);
+#include "gk_types.h"
 
 int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload);
 void gk_session_checkout_progress_callback(const char *path, size_t cur, size_t tot, void *payload);

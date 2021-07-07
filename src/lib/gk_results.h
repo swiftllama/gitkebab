@@ -3,18 +3,7 @@
 #define __GITKEBAB_RESULTS_H__
 
 #include "gk_logging.h"
-
-enum GK_RESULT_CODE {
-    GK_SUCCESS, GK_FAILURE
-};
-    
-typedef struct gk_result gk_result;
-
-struct gk_result {
-    int code;
-    char *message;
-};
-
+#include "gk_types.h"
 
     
 gk_result *gk_result_new(int code, const char *message);
