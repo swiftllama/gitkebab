@@ -96,6 +96,34 @@ static void test_push_one_commit(void **state) {
     gk_session_free(session2);
 }
 
+static void test_fetch_no_changes(void **state) {
+    (void) state; /* unused */
+    
+    // Clone repo 
+    gk_session *session1 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
+    assert_non_null(session1);
+
+    gk_object_id repo_first_commit = {0};
+    gk_session_resolve_reference(session1, "HEAD", &repo_first_commit);
+    
+    // Fetch 
+    gk_session_fetch(session1, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session1->last_result), 0);
+
+    gk_object_id fetched_commit = {0};
+    gk_session_resolve_reference(session1, "refs/remotes/origin/master", &fetched_commit);
+
+    gk_object_id repo_new_commit = {0};
+    gk_session_resolve_reference(session1, "HEAD", &repo_new_commit);
+
+    // Compare
+    assert_string_equal(fetched_commit.id, repo_first_commit.id);
+    assert_string_equal(fetched_commit.id, repo_new_commit.id);
+    assert_int_equal(session1->state.has_changes_to_merge, 0);
+
+    gk_session_free(session1);
+    
+}
 
 static void test_fetch_one_commit(void **state) {
     (void) state; /* unused */
@@ -130,9 +158,11 @@ static void test_fetch_one_commit(void **state) {
     gk_object_id repo_B_first_commit = {0};
     gk_session_resolve_reference(session2, "HEAD", &repo_B_first_commit);
 
+    // Compare
     assert_string_equal(repo_A_first_commit.id, repo_B_first_commit.id);
     assert_string_not_equal(repo_A_first_commit.id, new_commit.id);
     assert_string_equal(fetched_commit.id, new_commit.id);
+    assert_int_equal(session2->state.has_changes_to_merge, 1);
 
     gk_session_free(session1);
     gk_session_free(session2);
@@ -141,9 +171,10 @@ static void test_fetch_one_commit(void **state) {
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        //cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_fetch_one_commit, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup)
     };
 
     if (directory_exists("src/test/fixtures") != 0) {

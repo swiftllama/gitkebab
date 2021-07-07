@@ -57,12 +57,12 @@ int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -5, "Cannot analyze merge from reference '%s' (%d): %s", from_ref_name, err->klass, err->message);
     }
-    const char *analysis_label = analysis == GIT_MERGE_ANALYSIS_NONE ? "GIT_MERGE_ANALYSIS_NONE" :
-        analysis == GIT_MERGE_ANALYSIS_NORMAL ? "GIT_MERGE_ANALYSIS_NORMAL" :
-        analysis == GIT_MERGE_ANALYSIS_UP_TO_DATE ? "GIT_MERGE_ANALYSIS_UP_TO_DATE" :
-        analysis == GIT_MERGE_ANALYSIS_FASTFORWARD ? "GIT_MERGE_ANALYSIS_FASTFORWARD" :
-        analysis == GIT_MERGE_ANALYSIS_UNBORN ? "GIT_MERGE_ANALYSIS_UNBORN" : "<UNKNOWN GIT_MERGE_ANALYSIS constant>";
-    log_info(COMP_MERGE, "Merge analysis result is: %d (%s)", analysis, analysis_label);
+    
+    log_info(COMP_MERGE, "Merge analysis result is: %d", analysis);
+    log_info(COMP_MERGE, "MERGE_ANALYSIS_NORMAL: %d", (analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0 ? GIT_MERGE_ANALYSIS_NORMAL : 0);
+    log_info(COMP_MERGE, "MERGE_ANALYSIS_UP_TO_DATE: %d", (analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE) != 0 ? GIT_MERGE_ANALYSIS_UP_TO_DATE : 0);
+    log_info(COMP_MERGE, "MERGE_ANALYSIS_FASTFORWARD: %d", (analysis & GIT_MERGE_ANALYSIS_FASTFORWARD) != 0 ? GIT_MERGE_ANALYSIS_FASTFORWARD : 0);
+    log_info(COMP_MERGE, "MERGE_ANALYSIS_UNBORN: %d", (analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0 ? GIT_MERGE_ANALYSIS_UNBORN : 0);
 
 
     session->state.has_changes_to_merge = (analysis != GIT_MERGE_ANALYSIS_UP_TO_DATE);
