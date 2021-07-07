@@ -6,49 +6,24 @@
 #include "git2.h"
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
-
-gk_session_credential g_empty_credential;
-void session_progress(gk_session_progress *progress) {
-    if (progress != NULL) {
-        log_info(COMP_TEST, "PROGRESS [%s] (%zu%%)", progress->description, progress->percent);
-    }
-    else {
-        log_error(COMP_TEST, "Error in progress callback, callback invoked with NULL progress struct");
-    }
-}
+#include "gk_test_env_utils.h"
 
 
 static int test_staging_setup(void **state) {
     gk_init();
-    gk_libgit2_set_log_level(LOG_DEBUG);
-    
-    if (directory_exists("test-staging") == 0) {
-        rm_rf("test-staging");
-    }
-    create_directory("test-staging");
-
-    gk_session_credential_username_password_init(&g_empty_credential, "", "");
-    
-    return 0;
+    //gk_libgit2_set_log_level(LOG_DEBUG);
+    return gk_test_environment_setup(state);
 }
 
 static int test_staging_teardown(void **state) {
-    (void) state; /* unused */
-    gk_session_credential_free_members(&g_empty_credential);
-    
-    return 0;
+    return gk_test_environment_teardown(state);
 }
 
 static int test_staging_clean_repo_setup(void **state) {
     (void) state;
-    if (directory_exists("test-staging/simple-repo1") == 0) {
-        rm_rf("test-staging/simple-repo1");
-    }
-    if (directory_exists("test-staging/simple-repo1.git") == 0) {
-        rm_rf("test-staging/simple-repo1");
-    }
-    copy_directory("./src/test/fixtures/simple-repo1.git", "test-staging/simple-repo1.git");
-
+    gk_test_delete_simplerepo1();
+    gk_test_delete_simplerepo1_dot_git();
+    gk_test_copy_source_repo_simplerepo1_dot_git();
     return 0;
 }
 
@@ -56,25 +31,16 @@ static void test_push_no_changes(void **state) {
     (void) state; /* unused */
 
     // Open source repo, save current commit
-    gk_session *session2 = gk_session_new();
-    gk_session_init(session2, "", "./test-staging/simple-repo1.git", "git", &session_progress);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
-
-    gk_session_open_local_repository(session2);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    gk_session *session2 = gk_test_session_from_local_path("./test-staging/simple-repo1.git");
+    assert_non_null(session2);
 
     gk_object_id source_current_commit = {0};
     gk_session_resolve_reference(session2, "HEAD", &source_current_commit);
     assert_int_equal(gk_result_code(session2->last_result), 0);
     
     // Clone repo, commit and push
-    gk_session *session = gk_session_new();
-    gk_session_init(session, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1", "git", &session_progress);
-    assert_int_equal(gk_result_code(session->last_result), 0);
-    
-    gk_session_clone(session, &g_empty_credential);
-    assert_int_equal(gk_result_code(session->last_result), 0);
-    assert_int_equal(session->state.local_checkout_exists, 1);
+    gk_session *session = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
+    assert_non_null(session);
     
     gk_session_push(session, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session->last_result), 0);
@@ -95,7 +61,7 @@ static void test_push_one_commit(void **state) {
 
     // Open source repo, save current commit
     gk_session *session2 = gk_session_new();
-    gk_session_init(session2, "", "./test-staging/simple-repo1.git", "git", &session_progress);
+    gk_session_init(session2, "", "./test-staging/simple-repo1.git", "git", &gk_test_session_progress_verbose);
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     gk_session_open_local_repository(session2);
@@ -108,7 +74,7 @@ static void test_push_one_commit(void **state) {
 
     // Clone repo, commit and push
     gk_session *session = gk_session_new();
-    gk_session_init(session, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1", "git", &session_progress);
+    gk_session_init(session, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1", "git", &gk_test_session_progress_verbose);
     assert_int_equal(gk_result_code(session->last_result), 0);
     
     gk_session_clone(session, &g_empty_credential);
@@ -145,7 +111,7 @@ static void test_fetch_one_commit(void **state) {
     
     // Clone repo to two different locations
     gk_session *session1 = gk_session_new();
-    gk_session_init(session1, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A", "git", &session_progress);
+    gk_session_init(session1, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A", "git", &gk_test_session_progress_verbose);
     assert_int_equal(gk_result_code(session1->last_result), 0);
     gk_session_clone(session1, &g_empty_credential);
     assert_int_equal(gk_result_code(session1->last_result), 0);
@@ -153,7 +119,7 @@ static void test_fetch_one_commit(void **state) {
     
 
     gk_session *session2 = gk_session_new();
-    gk_session_init(session2, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-B", "git", &session_progress);
+    gk_session_init(session2, "./test-staging/simple-repo1.git", "./test-staging/simple-repo1-B", "git", &gk_test_session_progress_verbose);
     assert_int_equal(gk_result_code(session2->last_result), 0);
     gk_session_clone(session2, &g_empty_credential);
     assert_int_equal(gk_result_code(session2->last_result), 0);

@@ -1,0 +1,22 @@
+
+#ifndef __GK_TEST_HELPERS_H__
+#define __GK_TEST_HELPERS_H__
+
+#include "gitkebab.h"
+
+extern gk_session_credential g_empty_credential;
+
+void gk_test_session_progress_verbose(gk_session_progress *progress);
+void gk_test_session_progress_null(gk_session_progress *progress);
+
+int gk_test_environment_setup(void **state);
+int gk_test_environment_teardown(void **state);
+
+void gk_test_copy_source_repo_simplerepo1_dot_git();
+void gk_test_delete_simplerepo1();
+void gk_test_delete_simplerepo1_dot_git();
+
+gk_session *gk_test_session_from_local_path(const char *repo_path);
+gk_session *gk_test_session_from_clone(const char *remote_repo, const char *local_path);
+
+#endif // __GK_TEST_HELPERS_H__
