@@ -55,6 +55,9 @@ static void test_commit_new_file(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
+    gk_object_id original_head_commit = {0};
+    gk_session_resolve_reference(session, "HEAD", &original_head_commit);
+    
     gk_session_index_add_path(session, "new-file1");
 
     gk_session_query_status_summary(session);
@@ -63,8 +66,15 @@ static void test_commit_new_file(void **state) {
     assert_string_equal(gk_session_status_summary_path_at(session, 0), "new-file1");
     assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_INDEX_NEW);
 
-    gk_session_commit(session, "HEAD", "commit new file", NULL);
+    gk_object_id second_commit = {0};
+    gk_session_commit(session, "HEAD", "commit new file", &second_commit);
 
+    gk_object_id new_head_commit = {0};
+    gk_session_resolve_reference(session, "HEAD", &new_head_commit);
+
+    assert_string_not_equal(second_commit.id, original_head_commit.id);
+    assert_string_equal(second_commit.id, new_head_commit.id);
+    
     gk_session_query_status_summary(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
     assert_int_equal(gk_session_status_summary_entrycount(session), 0);

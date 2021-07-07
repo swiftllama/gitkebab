@@ -62,7 +62,7 @@ void gk_session_init(gk_session *session, const char *remote_url, const char *lo
     session->state.merge_in_progress = 0;
     session->state.clone_in_progress = 0;
     session->state.push_in_progress = 0;
-    session->state.pull_in_progress = 0;
+    session->state.fetch_in_progress = 0;
 
     gk_status_summary_reset(&session->status_summary);
     
@@ -226,7 +226,9 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        %s", session->repository.remote_url);
     log_info(COMP_CLONE, "  - Local path: %s", session->repository.local_path);
+    session->state.clone_in_progress = 1;
     rc = git_clone((git_repository **)&(session->lg2_repository), session->repository.remote_url, session->repository.local_path, &clone_opts);
+    session->state.clone_in_progress = 0;
 
     if (rc != 0) {
         git_repository_free(session->lg2_repository);

@@ -5,10 +5,11 @@
 typedef struct {
     short int local_checkout_exists;
     short int has_conflicts;
+    short int has_changes_to_merge;
     short int merge_in_progress;
     short int clone_in_progress;
     short int push_in_progress;
-    short int pull_in_progress;
+    short int fetch_in_progress;
 } gk_session_state;
     
 typedef struct {

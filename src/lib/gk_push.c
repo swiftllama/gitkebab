@@ -51,7 +51,9 @@ int gk_session_fetch(gk_session *session, gk_session_credential *credential, con
     fetch_options.callbacks.payload = &authed_session;
 
     const git_strarray *refspecs = NULL;
+    session->state.fetch_in_progress = 1;
     int rc = git_remote_fetch(remote, refspecs, &fetch_options, "fetch");
+    session->state.fetch_in_progress = 0;
     git_remote_free(remote);
     
     if (rc != 0) {
@@ -76,7 +78,9 @@ int gk_session_push(gk_session *session, gk_session_credential *credential, cons
     push_options.callbacks.credentials = (git_credential_acquire_cb)&gk_session_credential_callback;
     push_options.callbacks.payload = &authed_session;
 
+    session->state.push_in_progress = 1;
     int rc = git_remote_push(remote, NULL, &push_options);
+    session->state.push_in_progress = 0;
     git_remote_free(remote);
     if (rc != 0) {
         const git_error *err = git_error_last();
