@@ -41,7 +41,7 @@ add_test(NAME TestIndex
   COMMAND test_index
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-add_executable(test_commit test_commit.c gk_test_filesystem_utils.c)
+add_executable(test_commit test_commit.c gk_test_filesystem_utils.c gk_test_env_utils.c)
 target_link_libraries(test_commit cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
 add_test(NAME TestCommit
   COMMAND test_commit

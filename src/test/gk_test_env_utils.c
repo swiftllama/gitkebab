@@ -12,6 +12,12 @@ void gk_test_copy_source_repo_simplerepo1_dot_git() {
     copy_directory("./src/test/fixtures/simple-repo1.git", "test-staging/simple-repo1.git");
 }
 
+void gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak() {
+    gk_test_delete_simplerepo1();
+    copy_directory("./src/test/fixtures/simple-repo1.gitbak", "test-staging/simple-repo1");
+    mv("test-staging/simple-repo1/.gitbak", "test-staging/simple-repo1/.git");
+}
+
 void gk_test_delete_simplerepo1() {
     if (directory_exists("test-staging/simple-repo1") == 0) {
         rm_rf("test-staging/simple-repo1");
