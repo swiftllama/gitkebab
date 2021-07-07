@@ -15,8 +15,8 @@ add_library(gitkebab
   gk_log_components.c
   gk_log_components.h
   gk_logging.h
-  gk_push.h
-  gk_push.c
+  gk_remotes.h
+  gk_remotes.c
   gk_results.c
   gk_results.h
   gk_session.c

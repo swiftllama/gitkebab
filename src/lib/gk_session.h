@@ -24,11 +24,8 @@ void gk_session_set_last_result_vargs(gk_session *session, int code, const char 
 int gk_session_failure(gk_session *session, log_Component *component, int code, const char *message, ...);
 int gk_session_success(gk_session *session);
 
-int gk_session_clone(gk_session *session, gk_session_credential *credential);
 int gk_session_open_local_repository(gk_session *session);
 
 void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_session *session, gk_session_credential *credential);
-
-int gk_session_credential_callback(void **out, const char *url, const char *username_from_url, unsigned int allowed_types, void *payload);
 
 #endif // __GITKEBAB_SESSION_H__
