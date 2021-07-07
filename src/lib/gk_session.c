@@ -1,5 +1,6 @@
 
 #include "stdio.h"
+#include <string.h>
 
 #include "git2.h"
 #include "gitkebab.h"
@@ -7,6 +8,10 @@
 #include "gk_results.h"
 #include "gk_logging.h"
 #include "gk_status.h"
+
+gk_repository *gk_repository_new() {
+    return (gk_repository *)malloc(sizeof(gk_repository));
+}
 
 void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
@@ -21,10 +26,25 @@ void gk_repository_init(gk_repository *repository, const char *remote_url, const
     if (usr == NULL) {
         log_warn(COMP_GENERAL, "Repository initialized with NULL user, will use empty string instead");
     }
-    repository->local_path = local_path != NULL ? local_path : "";
-    repository->remote_url = remote_url != NULL ? remote_url : "";
-    repository->user = usr != NULL ? usr : "";
+    repository->local_path = local_path != NULL ? strdup(local_path) : strdup("");
+    repository->remote_url = remote_url != NULL ? strdup(remote_url) : strdup("");
+    repository->user = usr != NULL ? strdup(usr) : strdup("");
 }
+
+void gk_repository_free(gk_repository *repository) {
+    free((char *)repository->local_path);
+    repository->local_path = NULL;
+    free((char *)repository->remote_url);
+    repository->remote_url = NULL;
+    free((char *)repository->user);
+    repository->user = NULL;
+    free(repository);
+}
+
+gk_authenticated_session *gk_authenticated_session_new() {
+    return (gk_authenticated_session *)malloc(sizeof(gk_authenticated_session));
+}
+
 
 void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_session *session, gk_session_credential *credential) {
     if (authed_session == NULL) {
@@ -241,15 +261,7 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
     return gk_session_success(session);
 }
 
-void gk_session_close(gk_session *session) {
-    if (session == NULL) {
-        return;
-    }
-    git_repository_free(session->lg2_repository);
-    session->lg2_repository = NULL;
-}
-
-void gk_session_free_members(gk_session *session) {
+void gk_session_free(gk_session *session) {
     if (session == NULL) {
         return;
     }
@@ -258,4 +270,7 @@ void gk_session_free_members(gk_session *session) {
     session->last_result = NULL;
     git_status_list_free(session->lg2_status_list);
     git_repository_free(session->lg2_repository);
+    gk_repository_free(session->repository);
+    session->repository = NULL;
+    free(session);
 }
