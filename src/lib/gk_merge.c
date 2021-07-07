@@ -5,7 +5,8 @@
 #include "gk_logging.h"
 #include "gk_session.h"
 
-int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name) {
+
+int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
     if (session == NULL) {
         log_error(COMP_MERGE, "Cannot analyze merge, session is NULL");
         return GK_FAILURE;
@@ -71,6 +72,36 @@ int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name) {
         log_warn(COMP_MERGE, "Repositor merge analysis resulted UNBORN, this is unexpected");
     }
 
+    if (out_analysis != NULL) {
+        *out_analysis = analysis;
+    }
+    
     return gk_session_success(session);
 }
 
+
+int gk_merge_into_head(gk_session *session, const char* from_ref_name) {
+    int merge_analysis = 0;
+    int rc = gk_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
+    if (rc == GK_FAILURE) {
+        return GK_FAILURE;
+    }
+
+    if ((merge_analysis & GIT_MERGE_ANALYSIS_FASTFORWARD) != 0) {
+        // do a fast-forward merge
+    }
+    else if ((merge_analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0) {
+        // do a real merge
+    }
+    else if ((merge_analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0) {
+        return gk_session_failure(session, &COMP_MERGE, -4, "Error merging changes from server: head points to an unknonw commit id");
+    }
+    else if ((merge_analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE) != 0) {
+        // nothing to do
+    }
+    else {
+        log_warn(COMP_MERGE, "Unkonwn merge analysis state %d while merging, no merge will be performed", merge_analysis);
+    }
+
+    return gk_session_success(session);
+}
