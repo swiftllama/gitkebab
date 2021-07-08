@@ -75,6 +75,7 @@ typedef struct {
     short int clone_in_progress;
     short int push_in_progress;
     short int fetch_in_progress;
+    short int merge_finalization_pending;
 } gk_session_state;
     
 typedef struct {

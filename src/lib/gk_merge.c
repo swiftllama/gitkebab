@@ -79,10 +79,211 @@ int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref
     return gk_session_success(session);
 }
 
+static int create_merge_commit(gk_session *session, git_index *index, git_reference *fetch_head_ref, git_object *fetch_head_object) {
+    git_reference *head_ref = NULL;
+    git_object *head_object = NULL;
+    git_commit **parents = calloc(2, sizeof(git_commit *));
+    
+    int rc = git_revparse_ext(&head_object, &head_ref, session->lg2_repository, "HEAD");
+    if (rc == GIT_ENOTFOUND) {
+        git_reference_free(head_ref);
+        git_object_free(head_object);
+        free(parents);
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot create merge commit, HEAD not found");
+    }
+    if ((rc != 0)) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        free(parents);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot create merge commit, HEAD could not be looked up (%d): %s", err->klass, err->message);
+    }
+
+    // Find parents
+    const git_oid *fetch_head_oid = git_object_id(fetch_head_object);
+    rc = git_reference_peel((git_object **)&parents[0], head_ref, GIT_OBJECT_COMMIT);
+    if (rc != 0) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        git_object_free((git_object *)parents[0]);
+        free(parents);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot create merge commit, error peeling head reference (%d): %s", err->klass, err->message);
+    }
+
+    rc = git_commit_lookup(&parents[1], session->lg2_repository, fetch_head_oid);
+    if (rc != 0) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        git_object_free((git_object *)parents[0]);
+        git_commit_free(parents[1]);
+        free(parents);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot create merge commit, error peeling head reference (%d): %s", err->klass, err->message);
+    }
+    
+
+    git_oid tree_oid;
+    rc = git_index_write_tree(&tree_oid, index);
+    if (rc != 0) {
+        git_reference_free(head_ref);
+        git_object_free(head_object);
+        git_object_free((git_object *)parents[0]);
+        git_commit_free(parents[1]);
+        free(parents);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot create merge commit, error writing index tree (%d): %s", err->klass, err->message);
+    }
+
+    git_tree *tree = NULL;    
+    rc = git_tree_lookup(&tree, session->lg2_repository, &tree_oid);
+    if (rc != 0) {
+        git_reference_free(head_ref);
+        git_object_free(head_object);
+        git_tree_free(tree);
+        git_object_free((git_object *)parents[0]);
+        git_commit_free(parents[1]);
+        free(parents);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot create merge commit, error looking up tree (%d): %s", err->klass, err->message);
+    }
+
+    git_signature *signature = NULL;
+    rc = git_signature_default(&signature, session->lg2_repository);
+    if (rc != 0) {
+        git_reference_free(head_ref);
+        git_object_free(head_object);
+        git_tree_free(tree);
+        git_object_free((git_object *)parents[0]);
+        git_commit_free(parents[1]);
+        git_signature_free(signature);
+        free(parents);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot create merge commit, error creating signature (%d): %s", err->klass, err->message);
+    }
+    
+    git_oid commit_oid;
+    rc = git_commit_create(&commit_oid,
+                           session->lg2_repository, git_reference_name(head_ref),
+                           signature, signature,
+                           NULL, "Merge refs/remotes/origin/master into master",
+                           tree,
+                           2, (const git_commit **)parents);
+    if (rc != 0) {
+        git_reference_free(head_ref);
+        git_object_free(head_object);
+        git_tree_free(tree);
+        git_object_free((git_object *)parents[0]);
+        git_commit_free(parents[1]);
+        git_signature_free(signature);
+        free(parents);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot create merge commit, error looking up tree (%d): %s", err->klass, err->message);
+    }
+
+    log_info(COMP_MERGE, "Created merge commit '%s'", git_oid_tostr_s(&commit_oid));
+    git_repository_state_cleanup(session->lg2_repository);
+
+    git_reference_free(head_ref);
+    git_object_free(head_object);
+    git_object_free((git_object *)parents[0]);
+    git_commit_free(parents[1]);
+    git_signature_free(signature);
+    free(parents);
+    git_tree_free(tree);
+    return GK_SUCCESS;
+    
+}
+
+
+static int merge_normal(gk_session *session, const char *from_ref_name) {
+    git_merge_options merge_options = GIT_MERGE_OPTIONS_INIT;
+    git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
+
+    merge_options.flags = 0;
+    merge_options.file_flags = GIT_MERGE_FILE_STYLE_DIFF3;
+
+    gk_authenticated_session authed_session;
+    gk_authenticated_session_init(&authed_session, session, NULL);
+    
+    checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_ALLOW_CONFLICTS;
+    checkout_options.progress_cb = gk_session_checkout_progress_callback;
+    checkout_options.progress_payload = &authed_session;
+
+    git_reference *fetch_head_ref = NULL;
+    git_object *fetch_head_object = NULL;
+    int rc = git_revparse_ext(&fetch_head_object, &fetch_head_ref, session->lg2_repository, from_ref_name);
+    if (rc == GIT_ENOTFOUND) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform normal merge, reference '%s' not found", from_ref_name);
+    }
+    if ((rc != 0)) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform normal merge, the reference '%s' could not be looked up (%d): %s", from_ref_name, err->klass, err->message);
+    }
+    
+    git_annotated_commit *annotated_fetch_head_commit = NULL;
+    rc = git_annotated_commit_from_ref(&annotated_fetch_head_commit, session->lg2_repository, fetch_head_ref);
+    if ((rc != 0)) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        git_annotated_commit_free(annotated_fetch_head_commit);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform normal merge, error annotating commit for referencd '%s' (%d): %s", from_ref_name, err->klass, err->message);
+    }    
+    
+    rc = git_merge(session->lg2_repository, (const git_annotated_commit **)&annotated_fetch_head_commit, 1, &merge_options, &checkout_options);
+    if (rc != 0) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        git_annotated_commit_free(annotated_fetch_head_commit);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Error performing normal merge (%d): %s", from_ref_name, err->klass, err->message);
+    }
+
+    // Check index for conflicts
+    git_index *index;
+    rc = git_repository_index(&index, session->lg2_repository);
+    if (rc != 0) {
+        git_reference_free(fetch_head_ref);
+        git_object_free(fetch_head_object);
+        git_index_free(index);
+        git_annotated_commit_free(annotated_fetch_head_commit);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -6, "Error performing normal merge, failed to retrieve repository index (%d): %s", err->klass, err->message);
+    }
+
+    if (git_index_has_conflicts(index) == 1) {
+        log_info(COMP_MERGE, "Encountered conflicts after normal merge");
+        // TODO.. handle conflicts
+    }
+    else {
+        rc = create_merge_commit(session, index, fetch_head_ref, fetch_head_object);
+        if (rc != 0) {
+            git_reference_free(fetch_head_ref);
+            git_object_free(fetch_head_object);
+            git_annotated_commit_free(annotated_fetch_head_commit);
+            git_index_free(index);            
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_MERGE, -6, "Error performing normal merge, failed tocreate merge commit (%d): %s", err->klass, err->message);            
+        }
+    }
+
+    git_reference_free(fetch_head_ref);
+    git_object_free(fetch_head_object);
+    git_annotated_commit_free(annotated_fetch_head_commit);
+    git_index_free(index);
+    
+    return gk_session_success(session);
+}
+
 static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     git_reference *head_ref = NULL;
-    git_reference *new_head_ref = NULL;;
-    git_reference *fetch_head_ref = NULL;;
+    git_reference *new_head_ref = NULL;
+    git_reference *fetch_head_ref = NULL;
     git_object *fetch_head_object = NULL;
     git_object *head_object = NULL;
 
@@ -169,8 +370,11 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
 int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging '%s' into HEAD", from_ref_name);
+    session->state.merge_in_progress = 1;
+    
     int rc = gk_session_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
     if (rc == GK_FAILURE) {
+        session->state.merge_in_progress = 0;
         return GK_FAILURE;
     }
 
@@ -179,13 +383,21 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
         rc = merge_fast_forward(session, from_ref_name);
         if (rc == GK_FAILURE) {
             log_info(COMP_MERGE, "Fast-forward merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
+            session->state.merge_in_progress = 0;
             return GK_FAILURE;
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0) {
-        // do a real merge
+        log_info(COMP_MERGE, "will attempt a normal merge");
+        rc = merge_normal(session, from_ref_name);
+        if (rc == GK_FAILURE) {
+            log_info(COMP_MERGE, "normal merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
+            session->state.merge_in_progress = 0;
+            return GK_FAILURE;
+        }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0) {
+        session->state.merge_in_progress = 0;
         return gk_session_failure(session, &COMP_MERGE, -4, "Error merging changes from server: head points to an unknonw commit id");
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE) != 0) {
@@ -195,8 +407,9 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     else {
         log_warn(COMP_MERGE, "unknown merge analysis state %d while merging, no merge will be performed", merge_analysis);
     }
-
+    
     session->state.has_changes_to_merge = 0;
+    session->state.merge_in_progress = 0;
     log_info(COMP_MERGE, "merge succeeded");
     return gk_session_success(session);
 }
