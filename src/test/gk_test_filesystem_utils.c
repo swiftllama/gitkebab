@@ -27,6 +27,12 @@ int file_exists(const char *path) {
 }
 
 
+int parent_directory_exists(const char* path) {
+    char command[512];
+    snprintf(command, 512, "stat `dirname %s`", path);
+    return system(command);
+}
+
 static int rm_rf_unlink_path(const char *path, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
     int rc = remove(path);
     if (rc != 0) {
@@ -52,6 +58,10 @@ int copy_file(const char *source_path, const char *dest_path) {
         log_error(COMP_TEST, "Cannot copy [%s] to [%s], source file does not exist", source_path, dest_path);
         return 1;
     }
+    if (parent_directory_exists(dest_path) != 0) {
+        log_error(COMP_TEST, "Cannot copy [%s] to [%s], dest parent directory does not exist", source_path, dest_path);
+        return 2;
+    }
     char buffer[4096];
     FILE *read_stream = fopen(source_path, "r");
     FILE *write_stream = fopen(dest_path, "w");
@@ -63,7 +73,6 @@ int copy_file(const char *source_path, const char *dest_path) {
     }
     fclose(read_stream);
     fclose(write_stream);
-
     return 0;
 }
 

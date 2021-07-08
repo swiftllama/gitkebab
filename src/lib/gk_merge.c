@@ -142,13 +142,19 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
 
 int gk_merge_into_head(gk_session *session, const char* from_ref_name) {
     int merge_analysis = 0;
+    log_info(COMP_MERGE, "merging '%s' into HEAD", from_ref_name);
     int rc = gk_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
     if (rc == GK_FAILURE) {
         return GK_FAILURE;
     }
 
     if ((merge_analysis & GIT_MERGE_ANALYSIS_FASTFORWARD) != 0) {
-        // do a fast-forward merge
+        log_info(COMP_MERGE, "will attempt a fast-forward merge");
+        rc = merge_fast_forward(session, from_ref_name);
+        if (rc == GK_FAILURE) {
+            log_info(COMP_MERGE, "Fast-forward merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
+            return GK_FAILURE;
+        }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0) {
         // do a real merge
@@ -160,8 +166,9 @@ int gk_merge_into_head(gk_session *session, const char* from_ref_name) {
         // nothing to do
     }
     else {
-        log_warn(COMP_MERGE, "Unkonwn merge analysis state %d while merging, no merge will be performed", merge_analysis);
+        log_warn(COMP_MERGE, "unknown merge analysis state %d while merging, no merge will be performed", merge_analysis);
     }
 
+    log_info(COMP_MERGE, "merge succeeded");
     return gk_session_success(session);
 }

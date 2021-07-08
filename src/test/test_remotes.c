@@ -136,8 +136,8 @@ static void test_fetch_one_commit_with_no_push(void **state) {
     // Modify repo, commit but don't push
     gk_object_id original_head = {0};
     gk_session_resolve_reference(session, "HEAD", &original_head);
-    
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+
+    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     gk_session_index_add_path(session, "file1");
     assert_int_equal(gk_result_code(session->last_result), 0);
     gk_object_id new_commit = {0};
@@ -269,12 +269,12 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_fetch_one_commit, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_fetch_one_commit, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_fetch_one_commit_with_no_push, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_fetch_divergent_commits_no_conflict, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_fetch_divergent_commits_no_conflict, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {

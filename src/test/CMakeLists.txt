@@ -53,3 +53,10 @@ target_link_libraries(test_remotes cmocka gitkebab git2 ssl crypto /home/amos/Sr
 add_test(NAME TestRemotes
   COMMAND test_remotes
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
+add_executable(test_merge test_merge.c gk_test_filesystem_utils.c gk_test_env_utils.c)
+target_link_libraries(test_merge cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestMerge
+  COMMAND test_merge
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
