@@ -80,29 +80,50 @@ int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref
 }
 
 static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
-    git_reference *target_ref = NULL;
-    git_reference *new_target_ref = NULL;;
-    git_object *target = NULL;
-    
-    int rc  = git_repository_head(&target_ref, session->lg2_repository);
-    if (rc != 0) {
-        git_reference_free(target_ref);
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform fast-forward merge, failed obtaining repository head (%d): %s", err->klass, err->message);
-    }
+    git_reference *head_ref = NULL;
+    git_reference *new_head_ref = NULL;;
+    git_reference *fetch_head_ref = NULL;;
+    git_object *fetch_head_object = NULL;
+    git_object *head_object = NULL;
 
-    rc = git_revparse_ext(&target, &target_ref, session->lg2_repository, from_ref_name);
+
+    int rc = git_revparse_ext(&head_object, &head_ref, session->lg2_repository, "HEAD");
     if (rc == GIT_ENOTFOUND) {
-        git_object_free(target);
-        git_reference_free(target_ref);
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot preform fast-forward merge, reference '%s' not found", from_ref_name);
+        git_object_free(head_object);
+        git_reference_free(head_ref);
+        return gk_session_failure(session, &COMP_MERGE, -5, "cannot perform fast-forward merge, reference HEAD not found");
     }
     if ((rc != 0)) {
-        git_object_free(target);
-        git_reference_free(target_ref);
+        git_object_free(head_object);
+        git_reference_free(head_ref);
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform fast-forward merge, the reference '%s' could not be looked up (%d): %s", from_ref_name, err->klass, err->message);
+        return gk_session_failure(session, &COMP_MERGE, -5, "cannot perform fast-forward merge, failed to resolve HEAD reference (%d): %s", from_ref_name, err->klass, err->message);
     }
+
+    rc = git_revparse_ext(&fetch_head_object, &fetch_head_ref, session->lg2_repository, from_ref_name);
+    if (rc == GIT_ENOTFOUND) {
+        git_object_free(head_object);
+        git_reference_free(head_ref);
+        git_object_free(fetch_head_object);
+        git_reference_free(fetch_head_ref);
+        return gk_session_failure(session, &COMP_MERGE, -5, "cannot perform fast-forward merge, reference '%s' not found", from_ref_name);
+    }
+    if ((rc != 0)) {
+        git_object_free(head_object);
+        git_reference_free(head_ref);
+        git_object_free(fetch_head_object);
+        git_reference_free(fetch_head_ref);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "cannot perform fast-forward merge, reference '%s' could not be looked up (%d): %s", from_ref_name, err->klass, err->message);
+    }
+
+    const git_oid *head_oid = git_object_id(head_object);
+    const git_oid *fetch_head_oid = git_object_id(fetch_head_object);
+    char head_oid_id[41];
+    char fetch_head_oid_id[41];
+    git_oid_tostr(head_oid_id, 41, head_oid);
+    git_oid_tostr(fetch_head_oid_id, 41, fetch_head_oid);
+    log_info(COMP_MERGE, "Fast-forwardig merge from current HEAD at '%s' to %s at '%s'", head_oid_id , from_ref_name, fetch_head_oid_id);
     
     gk_authenticated_session authed_session;
     gk_authenticated_session_init(&authed_session, session, NULL);
@@ -111,30 +132,35 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE;
     checkout_options.progress_cb = gk_session_checkout_progress_callback;
     checkout_options.progress_payload = &authed_session;
-    
-    rc = git_checkout_tree(session->lg2_repository, target, &checkout_options);
+
+    log_debug(COMP_MERGE, "Checked out tree at rev '%s' into working directory", fetch_head_oid_id);
+    rc = git_checkout_tree(session->lg2_repository, fetch_head_object, &checkout_options);
     if (rc != 0) {
-        git_object_free(target);
-        git_reference_free(target_ref);        
+        git_object_free(head_object);
+        git_reference_free(head_ref);
+        git_object_free(fetch_head_object);
+        git_reference_free(fetch_head_ref);
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, checkout failed (%d): %s", err->klass, err->message);
     }
 
+
+    log_debug(COMP_MERGE, "Advancing HEAD to rev '%s'", fetch_head_oid_id);
     /* Move the target reference to the target OID */
-    const git_oid *target_oid = git_object_id(target);
-    rc = git_reference_set_target(&new_target_ref, target_ref, target_oid, NULL);
+    rc = git_reference_set_target(&new_head_ref, head_ref, fetch_head_oid, NULL);
     if (rc != 0) {
-        git_object_free(target);
-        git_reference_free(target_ref);
-        git_reference_free(new_target_ref);
+        git_object_free(head_object);
+        git_reference_free(head_ref);
+        git_object_free(fetch_head_object);
+        git_reference_free(fetch_head_ref);
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, failed to advance head to oid '%s' (%d): %s", git_oid_tostr_s(target_oid), err->klass, err->message);
+        return gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, failed to advance head to oid '%s' (%d): %s", fetch_head_oid_id, err->klass, err->message);
     }
 
-
-    git_reference_free(target_ref);
-    git_reference_free(new_target_ref);
-    git_object_free(target);
+    git_object_free(head_object);
+    git_reference_free(head_ref);
+    git_object_free(fetch_head_object);
+    git_reference_free(fetch_head_ref);
 
     return gk_session_success(session);
 }

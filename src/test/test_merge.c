@@ -107,6 +107,11 @@ static void test_merge_one_commit(void **state) {
     gk_session_resolve_reference(session2, "HEAD", &repo_B_new_head);
     
     // Compare
+    log_error(COMP_MERGE, "repo_A_original_head: %s", repo_A_original_head.id);
+    log_error(COMP_MERGE, "repo_B_original_head: %s", repo_B_original_head.id);
+    log_error(COMP_MERGE, "repo_A_new commit: %s", repo_A_new_commit.id);
+    log_error(COMP_MERGE, "repo_B_fetched_commit: %s", repo_B_fetched_commit.id);
+    log_error(COMP_MERGE, "repo_B_new_head: %s", repo_B_new_head.id);
     assert_string_equal(repo_A_original_head.id, repo_B_original_head.id);
     assert_string_not_equal(repo_A_original_head.id, repo_A_new_commit.id);
     assert_string_equal(repo_B_fetched_commit.id, repo_A_new_commit.id);
