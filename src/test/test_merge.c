@@ -178,11 +178,13 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     log_error(COMP_MERGE, "repo_B_head_after_fetch: %s", repo_B_head_after_fetch.id);
     log_error(COMP_MERGE, "repo_B_head_after_merge: %s", repo_B_head_after_merge.id);
 
-    //assert_string_equal(repo_A_original_head.id, repo_B_original_head.id);
-    //assert_string_not_equal(repo_A_original_head.id, repo_A_new_commit.id);
-    //assert_string_equal(repo_B_fetched_commit.id, repo_A_new_commit.id);
-    //assert_string_equal(repo_B_new_head.id, repo_A_new_commit.id);
-
+    assert_string_equal(repo_A_original_head.id, repo_B_original_head.id);
+    assert_string_not_equal(repo_A_original_head.id, repo_A_new_commit.id);
+    assert_string_not_equal(repo_B_original_head.id, repo_B_new_commit.id);
+    assert_string_equal(repo_B_fetched_commit.id, repo_A_new_commit.id);
+    assert_string_not_equal(repo_B_head_after_fetch.id, repo_A_new_commit.id);
+    assert_string_not_equal(repo_B_head_after_merge.id, repo_A_new_commit.id);
+    assert_string_not_equal(repo_B_head_after_merge.id, repo_B_new_commit.id);
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -190,8 +192,8 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        //cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_merge_divergent_commits_no_conflict, test_staging_clean_repo_setup),
     };
 
