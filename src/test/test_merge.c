@@ -64,9 +64,62 @@ static void test_merge_no_changes(void **state) {
     gk_session_free(session1);
 }
 
+static void test_merge_one_commit(void **state) {
+    (void) state; /* unused */
+    
+    // Clone repo to two different locations
+    gk_session *session1 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A");
+    assert_non_null(session1);
+
+    gk_object_id repo_A_original_head = {0};
+    gk_session_resolve_reference(session1, "HEAD", &repo_A_original_head);
+    
+    gk_session *session2 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-B");
+    assert_non_null(session2);
+
+    gk_object_id repo_B_original_head = {0};
+    gk_session_resolve_reference(session2, "HEAD", &repo_B_original_head);
+    
+    // Modify repo-A, commit and push
+    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+    gk_session_index_add_path(session1, "file1");
+    assert_int_equal(gk_result_code(session1->last_result), 0);
+    gk_object_id repo_A_new_commit = {0};
+    gk_session_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
+    assert_int_equal(gk_result_code(session1->last_result), 0);
+    gk_session_push(session1, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session1->last_result), 0);
+
+    // Fetch repo-B
+    gk_session_fetch(session2, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(session2->state.has_changes_to_merge, 1);
+            
+    gk_object_id repo_B_fetched_commit = {0};
+    gk_session_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
+        
+    // Merge in repo-B
+    gk_session_merge_into_head(session2, "refs/remotes/origin/master");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(session2->state.has_changes_to_merge, 0);
+
+    gk_object_id repo_B_new_head = {0};
+    gk_session_resolve_reference(session2, "HEAD", &repo_B_new_head);
+    
+    // Compare
+    assert_string_equal(repo_A_original_head.id, repo_B_original_head.id);
+    assert_string_not_equal(repo_A_original_head.id, repo_A_new_commit.id);
+    assert_string_equal(repo_B_fetched_commit.id, repo_A_new_commit.id);
+    assert_string_equal(repo_B_new_head.id, repo_A_new_commit.id);
+
+    gk_session_free(session1);
+    gk_session_free(session2);
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {

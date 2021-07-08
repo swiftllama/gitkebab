@@ -170,6 +170,7 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
         log_warn(COMP_MERGE, "unknown merge analysis state %d while merging, no merge will be performed", merge_analysis);
     }
 
+    session->state.has_changes_to_merge = 0;
     log_info(COMP_MERGE, "merge succeeded");
     return gk_session_success(session);
 }
