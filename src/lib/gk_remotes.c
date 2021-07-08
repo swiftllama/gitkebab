@@ -187,7 +187,7 @@ int gk_session_fetch(gk_session *session, gk_session_credential *credential, con
         return gk_session_failure(session, &COMP_REMOTE, -3, "Error fetching from remote '%s' (%d): %s", remote_name, err->klass, err->message);
     }
 
-    rc = gk_analyze_merge_into_head(session, "refs/remotes/origin/master", NULL);
+    rc = gk_session_analyze_merge_into_head(session, "refs/remotes/origin/master", NULL);
     if (rc != 0) {
         return GK_FAILURE;
     }

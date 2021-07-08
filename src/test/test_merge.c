@@ -36,8 +36,8 @@ static void test_merge_no_changes(void **state) {
     gk_session *session1 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
     assert_non_null(session1);
 
-    gk_object_id repo_first_commit = {0};
-    gk_session_resolve_reference(session1, "HEAD", &repo_first_commit);
+    gk_object_id original_head = {0};
+    gk_session_resolve_reference(session1, "HEAD", &original_head);
     
     // Fetch 
     gk_session_fetch(session1, &g_empty_credential, "origin");
@@ -46,15 +46,22 @@ static void test_merge_no_changes(void **state) {
     gk_object_id fetched_commit = {0};
     gk_session_resolve_reference(session1, "refs/remotes/origin/master", &fetched_commit);
 
-    gk_object_id repo_new_commit = {0};
-    gk_session_resolve_reference(session1, "HEAD", &repo_new_commit);
+    gk_object_id new_head_before_merge = {0};
+    gk_session_resolve_reference(session1, "HEAD", &new_head_before_merge);
 
+    // Merge
+    gk_session_merge_into_head(session1, "refs/remotes/origin/master");
+    assert_int_equal(gk_result_code(session1->last_result), 0);
+
+    gk_object_id new_head_after_merge = {0};
+    gk_session_resolve_reference(session1, "HEAD", &new_head_after_merge);
+    
     // Compare
-    assert_string_equal(fetched_commit.id, repo_first_commit.id);
-    assert_string_equal(fetched_commit.id, repo_new_commit.id);
-    assert_int_equal(session1->state.has_changes_to_merge, 0);
+    assert_string_equal(original_head.id, fetched_commit.id);
+    assert_string_equal(original_head.id, new_head_before_merge.id);
+    assert_string_equal(original_head.id, new_head_after_merge.id);
 
-    gk_session_free(session1);    
+    gk_session_free(session1);
 }
 
 int main(void) {

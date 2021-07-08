@@ -11,5 +11,6 @@
 #include "gk_logging.h"
 #include "gk_remotes.h"
 #include "gk_init.h"
+#include "gk_merge.h"
 
 #endif // __GITKEBAB_H__

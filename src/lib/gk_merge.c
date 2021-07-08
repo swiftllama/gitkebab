@@ -6,7 +6,7 @@
 #include "gk_session.h"
 
 
-int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
+int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
     if (session == NULL) {
         log_error(COMP_MERGE, "Cannot analyze merge, session is NULL");
         return GK_FAILURE;
@@ -140,10 +140,10 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
 }
 
 
-int gk_merge_into_head(gk_session *session, const char* from_ref_name) {
+int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging '%s' into HEAD", from_ref_name);
-    int rc = gk_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
+    int rc = gk_session_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
     if (rc == GK_FAILURE) {
         return GK_FAILURE;
     }
@@ -163,6 +163,7 @@ int gk_merge_into_head(gk_session *session, const char* from_ref_name) {
         return gk_session_failure(session, &COMP_MERGE, -4, "Error merging changes from server: head points to an unknonw commit id");
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE) != 0) {
+        log_info(COMP_MERGE, "HEAD is up to date with '%s', no merge is necessary", from_ref_name);
         // nothing to do
     }
     else {
