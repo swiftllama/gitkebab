@@ -38,7 +38,7 @@ static void test_clone_simple(void **state) {
     (void) state; /* unused */
     
     gk_session *session = gk_session_new();
-    gk_session_init(session, "./src/test/fixtures/simple-repo1.git/", "./test-staging/clone-test-1", "git", &session_progress);
+    gk_session_init(session, "./src/test/fixtures/simple-repo1.git/", "./test-staging/clone-test-1", "git", &session_progress, NULL);
     gk_session_clone(session, &g_empty_credential);
 
     assert_int_equal(gk_result_code(session->last_result), 0);
@@ -56,7 +56,7 @@ static void test_clone_bad_source_path(void **state) {
     (void) state; /* unused */
     
     gk_session *session = gk_session_new();
-    gk_session_init(session, "test-staging/tmp/non-existent-path/", "./test-staging/clone-test-2", "git", &session_progress);
+    gk_session_init(session, "test-staging/tmp/non-existent-path/", "./test-staging/clone-test-2", "git", &session_progress, NULL);
     gk_session_clone(session, &g_empty_credential);
 
     assert_int_not_equal(gk_result_code(session->last_result), 0);
@@ -68,7 +68,7 @@ static void test_clone_null_dest_path(void **state) {
     (void) state; /* unused */
     
     gk_session *session = gk_session_new();
-    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", NULL, "git", &session_progress);
+    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", NULL, "git", &session_progress, NULL);
     gk_session_clone(session, &g_empty_credential);
 
     assert_int_not_equal(gk_result_code(session->last_result), 0);
@@ -80,7 +80,7 @@ static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
     (void) state; /* unused */
     
     gk_session *session = gk_session_new();
-    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", "test-staging/empty-dir1", "git", &session_progress);
+    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", "test-staging/empty-dir1", "git", &session_progress, NULL);
     gk_session_clone(session, &g_empty_credential);
 
     assert_int_equal(gk_result_code(session->last_result), 0);
@@ -92,7 +92,7 @@ static void test_clone_dest_path_nonempty_existing_regular_dir(void **state) {
     (void) state; /* unused */
 
     gk_session *session = gk_session_new();
-    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", "test-staging/nonempty-dir1", "git", &session_progress);
+    gk_session_init(session, "src/test/fixtures/simple-repo1.git/", "test-staging/nonempty-dir1", "git", &session_progress, NULL);
     gk_session_clone(session, &g_empty_credential);
 
     assert_int_not_equal(gk_result_code(session->last_result), 0);

@@ -94,11 +94,16 @@ typedef struct {
 
 } gk_status_summary;
 
-typedef struct {
-    gk_session_progress_callback *progress_callback;
-} gk_session_callbacks;
+typedef struct gk_session gk_session;
+
+typedef void gk_session_state_changed_callback(gk_session *session);
 
 typedef struct {
+    gk_session_progress_callback *progress_callback;
+    gk_session_state_changed_callback *state_changed_callback;
+} gk_session_callbacks;
+
+struct gk_session {
     gk_repository repository;
     gk_result *last_result;
     gk_session_callbacks callbacks;
@@ -107,11 +112,13 @@ typedef struct {
 
     void *lg2_status_list;
     void *lg2_repository;
-} gk_session;
+};
 
 typedef struct {
     gk_session *session;
     gk_session_credential *credential;
 } gk_authenticated_session;
+
+
 
 #endif // __GK_TYPES_H__

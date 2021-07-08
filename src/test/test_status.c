@@ -26,7 +26,7 @@ static int test_staging_clean_repo_setup(void **state) {
 
 static void test_status_without_open_repo(void **state) {
     gk_session *session = gk_session_new();
-    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress);
+    gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress, NULL);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     gk_session_query_status_summary(session);

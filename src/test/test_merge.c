@@ -190,7 +190,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     gk_session_free(session2);
 }
 
-static void test_merge_divergent_commits_with_conflict(void **state) {    
+static void test_merge_divergent_commits_with_conflict(void **state) {
     // Clone repo to two different locations
     gk_session *session1 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A");
     assert_non_null(session1);
@@ -266,9 +266,10 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_merge_divergent_commits_no_conflict, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_merge_divergent_commits_no_conflict, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_divergent_commits_with_conflict, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {

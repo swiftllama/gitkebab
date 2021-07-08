@@ -73,7 +73,7 @@ void gk_test_session_progress_null(gk_session_progress *progress) {
 
 gk_session *gk_test_session_from_local_path(const char *repo_path) {
     gk_session *session = gk_session_new();
-    gk_session_init(session, "", repo_path, "git", &gk_test_session_progress_verbose);
+    gk_session_init(session, "", repo_path, "git", &gk_test_session_progress_verbose, NULL);
     if (gk_result_code(session->last_result) != 0) {
         log_error(COMP_TEST, "Error initializing session from path '%s': %s", repo_path, gk_result_message(session->last_result));
         gk_session_free(session);
@@ -91,7 +91,7 @@ gk_session *gk_test_session_from_local_path(const char *repo_path) {
 
 gk_session *gk_test_session_from_clone(const char *remote_repo, const char *local_path) {
     gk_session *session = gk_session_new();
-    gk_session_init(session, remote_repo, local_path, "git", &gk_test_session_progress_verbose);
+    gk_session_init(session, remote_repo, local_path, "git", &gk_test_session_progress_verbose, NULL);
     if (gk_result_code(session->last_result) != 0) {
         log_error(COMP_TEST, "Error initializing session for clone from '%s' to path '%s': %s", remote_repo, local_path, gk_result_message(session->last_result));
         gk_session_free(session);

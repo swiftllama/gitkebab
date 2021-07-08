@@ -12,10 +12,8 @@
 #include "gk_types.h"
 
 gk_session *gk_session_new();
-void gk_session_init(gk_session *session, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback);
+void gk_session_init(gk_session *session, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_session_state_changed_callback *state_changed_callback);
 void gk_session_free(gk_session *session);
-
-
 
 
 void gk_session_set_last_result(gk_session *session, gk_result *last_result);

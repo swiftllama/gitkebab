@@ -48,13 +48,14 @@ void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_
     authed_session->credential = credential;
 }
 
-void gk_session_init(gk_session *session, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback) {
+void gk_session_init(gk_session *session, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_session_state_changed_callback *state_changed_callback) {
     if (session == NULL) {
         return;
     }
     gk_repository_init(&session->repository, remote_url, local_path, user);
     session->last_result = gk_result_success();
     session->callbacks.progress_callback = progress_callback;
+    session->callbacks.state_changed_callback = state_changed_callback;
 
     session->state.local_checkout_exists = 0;
     session->state.has_conflicts = 0;

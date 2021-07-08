@@ -9,7 +9,7 @@ static void test_no_init_clone(void **state) {
     (void) state; /* unused */
 
     gk_session *session = gk_session_new();
-    gk_session_init(session, "./src/test/fixtures/simple-repo1.git/", "./clone-test-1", "git", NULL);
+    gk_session_init(session, "./src/test/fixtures/simple-repo1.git/", "./clone-test-1", "git", NULL, NULL);
 
     gk_session_credential credential;
     gk_session_credential_username_password_init(&credential, "", "");
