@@ -269,12 +269,12 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        //cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_fetch_one_commit, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_push_one_commit, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_fetch_one_commit, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_fetch_one_commit_with_no_push, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_fetch_divergent_commits_no_conflict, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_fetch_divergent_commits_no_conflict, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {
