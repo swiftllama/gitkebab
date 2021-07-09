@@ -6,7 +6,8 @@
 #include "gk_session.h"
 #include "gk_internal_resources_private.h"
 
-int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
+int gk_session_analyze_merge_into_head(gk_session *session, void *resources_ptr, const char* from_ref_name, int *out_analysis) {
+    gk_internal_resources *resources = (gk_internal_resources *)resources_ptr;
     if (session == NULL) {
         log_error(COMP_MERGE, "Cannot analyze merge, session is NULL");
         return GK_FAILURE;
@@ -21,39 +22,11 @@ int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref
         return gk_session_failure(session, &COMP_MERGE, -5, "Cannot analyze merge from NULL reference");
     }
 
-    git_reference *ref = NULL;
-    git_object *parent = NULL;
-    int rc = git_revparse_ext(&parent, &ref, session->lg2_repository, from_ref_name);
-    if (rc == GIT_ENOTFOUND) {
-        git_reference_free(ref);
-        git_object_free(parent);
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot analyze merge, reference '%s' not found", from_ref_name);
-    }
-    if ((rc != 0)) {
-        git_object_free(parent);
-        git_reference_free(ref);
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot analyze merge, the reference '%s' could not be looked up (%d): %s", from_ref_name, err->klass, err->message);
-    }
-        
-    git_annotated_commit *annotated_commit = NULL;
-    rc = git_annotated_commit_from_ref(&annotated_commit, session->lg2_repository, ref);
-    if ((rc != 0)) {
-        git_object_free(parent);
-        git_reference_free(ref);
-        git_annotated_commit_free(annotated_commit);
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot analyze merge, error annotating commit for referencd '%s' (%d): %s", from_ref_name, err->klass, err->message);
-    }    
-
     log_info(COMP_MERGE, "Initiating merge analysis for merging ref '%s' into HEAD in repository '%s'", from_ref_name, session->repository.local_path);
     git_merge_analysis_t analysis;
     git_merge_preference_t preference;
     git_merge_options merge_opts = GIT_MERGE_OPTIONS_INIT;
-    rc = git_merge_analysis(&analysis, &preference, session->lg2_repository, (const git_annotated_commit **)&annotated_commit, 1);
-    git_reference_free(ref);
-    git_object_free(parent);
-    git_annotated_commit_free(annotated_commit);
+    int rc = git_merge_analysis(&analysis, &preference, session->lg2_repository, (const git_annotated_commit **)&resources->annotated_fetch_head_commit, 1);
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -5, "Cannot analyze merge from reference '%s' (%d): %s", from_ref_name, err->klass, err->message);
@@ -85,6 +58,7 @@ int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref
 }
 
 static int create_merge_commit(gk_session *session, git_index *index, git_reference *fetch_head_ref, git_object *fetch_head_object) {
+    
     git_reference *head_ref = NULL;
     git_object *head_object = NULL;
     git_commit **parents = calloc(2, sizeof(git_commit *));
@@ -201,14 +175,7 @@ static int create_merge_commit(gk_session *session, git_index *index, git_refere
 }
 
 
-static int merge_normal(gk_session *session, const char *from_ref_name) {
-    gk_internal_resources *resources = gk_internal_resources_new();
-    int rc = gk_internal_resources_load_references(session, resources, from_ref_name, "perform normal merge");
-    if (rc != GK_SUCCESS) {
-        gk_internal_resources_free(resources);
-        return GK_FAILURE;
-    }
-    
+static int merge_normal(gk_session *session, gk_internal_resources *resources, const char *from_ref_name) {    
     git_merge_options merge_options = GIT_MERGE_OPTIONS_INIT;
     git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
 
@@ -222,18 +189,16 @@ static int merge_normal(gk_session *session, const char *from_ref_name) {
     checkout_options.progress_cb = gk_session_checkout_progress_callback;
     checkout_options.progress_payload = &authed_session;
     
-    rc = git_merge(session->lg2_repository, (const git_annotated_commit **)&resources->annotated_fetch_head_commit, 1, &merge_options, &checkout_options);
+    int rc = git_merge(session->lg2_repository, (const git_annotated_commit **)&resources->annotated_fetch_head_commit, 1, &merge_options, &checkout_options);
     if (rc != 0) {
         const git_error *err = git_error_last();
         gk_session_failure(session, &COMP_MERGE, -5, "Error performing normal merge (%d): %s", from_ref_name, err->klass, err->message);
-        gk_internal_resources_free(resources);
         return GK_FAILURE;
     }
 
 
     rc = gk_internal_resources_load_index(session, resources, "perform normal merge");
     if (rc != GK_SUCCESS) {
-        gk_internal_resources_free(resources);
         return GK_FAILURE;
     }
 
@@ -244,24 +209,15 @@ static int merge_normal(gk_session *session, const char *from_ref_name) {
     else {
         rc = create_merge_commit(session, resources->index, resources->fetch_head_ref, resources->fetch_head_object);
         if (rc != 0) {
-            gk_internal_resources_free(resources);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_MERGE, -6, "Error performing normal merge, failed tocreate merge commit (%d): %s", err->klass, err->message);            
         }
     }
 
-    gk_internal_resources_free(resources);
     return gk_session_success(session);
 }
 
-static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
-    gk_internal_resources *resources = gk_internal_resources_new();
-    int rc = gk_internal_resources_load_references(session, resources, from_ref_name, "perform fast forward merge");
-    if (rc != GK_SUCCESS) {
-        gk_internal_resources_free(resources);
-        return GK_FAILURE;
-    }
-    
+static int merge_fast_forward(gk_session *session, gk_internal_resources *resources, const char *from_ref_name) {    
     log_info(COMP_MERGE, "Fast-forwardig merge from current HEAD at '%s' to %s at '%s'", resources->repository_head_oid_id , from_ref_name, resources->fetch_head_oid_id);
     
     gk_authenticated_session authed_session;
@@ -273,9 +229,8 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     checkout_options.progress_payload = &authed_session;
 
     log_debug(COMP_MERGE, "Checked out tree at rev '%s' into working directory", resources->fetch_head_oid_id);
-    rc = git_checkout_tree(session->lg2_repository, resources->fetch_head_object, &checkout_options);
+    int rc = git_checkout_tree(session->lg2_repository, resources->fetch_head_object, &checkout_options);
     if (rc != 0) {
-        gk_internal_resources_free(resources);
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, checkout failed (%d): %s", err->klass, err->message);
     }
@@ -286,14 +241,10 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     rc = git_reference_set_target(&new_head_ref, resources->repository_head_ref, resources->fetch_head_oid, NULL);
     if (rc != 0) {
         const git_error *err = git_error_last();
-        gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, failed to advance head to oid '%s' (%d): %s", resources->fetch_head_oid_id, err->klass, err->message);
         git_reference_free(new_head_ref);
-        gk_internal_resources_free(resources);
-        return GK_FAILURE;
+        return gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, failed to advance head to oid '%s' (%d): %s", resources->fetch_head_oid_id, err->klass, err->message);
     }
 
-    git_reference_free(new_head_ref);
-    gk_internal_resources_free(resources);
     return gk_session_success(session);
 }
 
@@ -302,33 +253,44 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging '%s' into HEAD", from_ref_name);
     gk_session_state_set(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
+
+    gk_internal_resources *resources = gk_internal_resources_new();
+    int rc = gk_internal_resources_load_references(session, resources, from_ref_name, "analyze merge for fetch");
+    if (rc == GK_FAILURE) {
+        gk_internal_resources_free(resources);
+        return GK_FAILURE;
+    }
     
-    int rc = gk_session_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
+    rc = gk_session_analyze_merge_into_head(session, resources, from_ref_name, &merge_analysis);
     if (rc == GK_FAILURE) {
         gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
+        gk_internal_resources_free(resources);
         return GK_FAILURE;
     }
 
     if ((merge_analysis & GIT_MERGE_ANALYSIS_FASTFORWARD) != 0) {
         log_info(COMP_MERGE, "will attempt a fast-forward merge");
-        rc = merge_fast_forward(session, from_ref_name);
+        rc = merge_fast_forward(session, resources, from_ref_name);
         if (rc == GK_FAILURE) {
             log_info(COMP_MERGE, "Fast-forward merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
             gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
+            gk_internal_resources_free(resources);
             return GK_FAILURE;
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0) {
         log_info(COMP_MERGE, "will attempt a normal merge");
-        rc = merge_normal(session, from_ref_name);
+        rc = merge_normal(session, resources, from_ref_name);
         if (rc == GK_FAILURE) {
             log_info(COMP_MERGE, "normal merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
             gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
+            gk_internal_resources_free(resources);
             return GK_FAILURE;
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0) {
         gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
+        gk_internal_resources_free(resources);
         return gk_session_failure(session, &COMP_MERGE, -4, "Error merging changes from server: head points to an unknonw commit id");
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE) != 0) {
@@ -342,5 +304,6 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
     gk_session_state_unset(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
     log_info(COMP_MERGE, "merge succeeded");
+    gk_internal_resources_free(resources);
     return gk_session_success(session);
 }

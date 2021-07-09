@@ -7,6 +7,7 @@
 #include "gk_credentials.h"
 #include "gk_init.h"
 #include "gk_merge.h"
+#include "gk_internal_resources_private.h"
 
 git_remote *prepare_remote(gk_session *session, const char *remote_name, const char *purpose) {    
     if (session == NULL) {
@@ -187,7 +188,16 @@ int gk_session_fetch(gk_session *session, gk_session_credential *credential, con
         return gk_session_failure(session, &COMP_REMOTE, -3, "Error fetching from remote '%s' (%d): %s", remote_name, err->klass, err->message);
     }
 
-    rc = gk_session_analyze_merge_into_head(session, "refs/remotes/origin/master", NULL);
+    const char *from_ref_name = "refs/remotes/origin/master";
+    gk_internal_resources *resources = gk_internal_resources_new();
+    rc = gk_internal_resources_load_references(session, resources, from_ref_name, "analyze merge for fetch");
+    if (rc != 0) {
+        gk_internal_resources_free(resources);
+        return GK_FAILURE;
+    }
+    rc = gk_session_analyze_merge_into_head(session, resources, from_ref_name, NULL);
+    gk_internal_resources_free(resources);
+
     if (rc != 0) {
         return GK_FAILURE;
     }
