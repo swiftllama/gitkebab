@@ -105,7 +105,7 @@ gk_session *gk_test_session_from_clone(const char *remote_repo, const char *loca
         return NULL;        
     }
 
-    if (session->state.local_checkout_exists != 1) {
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         log_error(COMP_TEST, "Error cloning repository from '%s' to local path '%s': local checkout does not exist after clone", remote_repo, local_path);
         gk_session_free(session);
         return NULL;        

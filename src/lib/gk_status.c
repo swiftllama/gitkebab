@@ -24,7 +24,7 @@ int gk_session_query_status_summary(gk_session *session) {
         log_error(COMP_STATUS, "Cannot check status, session is NULL");
         return GK_FAILURE;
     }
-    if (session->state.local_checkout_exists == 0) {
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         return gk_session_failure(session, &COMP_STATUS, -1, "Cannot query status, local checkout does not exist");
     }
     if (session->lg2_repository == NULL) {

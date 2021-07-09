@@ -17,7 +17,7 @@ git_remote *prepare_remote(gk_session *session, const char *remote_name, const c
         gk_session_failure(session, &COMP_REMOTE, -1, "Cannot %s, remote is NULL", purpose);
         return NULL;
     }
-    if (session->state.local_checkout_exists == 0) {
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, local checkout does not exist", purpose);
         return NULL;
     }
@@ -139,9 +139,9 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        %s", session->repository.remote_url);
     log_info(COMP_CLONE, "  - Local path: %s", session->repository.local_path);
-    session->state.clone_in_progress = 1;
+    gk_session_state_set(session, GK_SESSION_STATE_CLONE_IN_PROGRESS);
     rc = git_clone((git_repository **)&(session->lg2_repository), session->repository.remote_url, session->repository.local_path, &clone_opts);
-    session->state.clone_in_progress = 0;
+    gk_session_state_unset(session, GK_SESSION_STATE_CLONE_IN_PROGRESS);
 
     if (rc != 0) {
         git_repository_free(session->lg2_repository);
@@ -156,7 +156,7 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
         return gk_session_failure(session, &COMP_CLONE, -1, "Error adding push refspec to remote 'origin'  (%d): %s", err->klass, err->message);
     }
 
-    session->state.local_checkout_exists = 1;
+    gk_session_state_set(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS);
 
     log_info(COMP_CLONE, "Clone succeeded");
     return gk_session_success(session);
@@ -177,9 +177,9 @@ int gk_session_fetch(gk_session *session, gk_session_credential *credential, con
     fetch_options.callbacks.payload = &authed_session;
 
     const git_strarray *refspecs = NULL;
-    session->state.fetch_in_progress = 1;
+    gk_session_state_set(session, GK_SESSION_STATE_FETCH_IN_PROGRESS);
     int rc = git_remote_fetch(remote, refspecs, &fetch_options, "fetch");
-    session->state.fetch_in_progress = 0;
+    gk_session_state_unset(session, GK_SESSION_STATE_FETCH_IN_PROGRESS);
     git_remote_free(remote);
     
     if (rc != 0) {
@@ -209,9 +209,9 @@ int gk_session_push(gk_session *session, gk_session_credential *credential, cons
     push_options.callbacks.credentials = gk_session_credential_callback;
     push_options.callbacks.payload = &authed_session;
 
-    session->state.push_in_progress = 1;
+    gk_session_state_set(session, GK_SESSION_STATE_PUSH_IN_PROGRESS);
     int rc = git_remote_push(remote, NULL, &push_options);
-    session->state.push_in_progress = 0;
+    gk_session_state_unset(session, GK_SESSION_STATE_PUSH_IN_PROGRESS);
     git_remote_free(remote);
     if (rc != 0) {
         const git_error *err = git_error_last();

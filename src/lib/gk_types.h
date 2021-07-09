@@ -67,16 +67,21 @@ typedef struct {
     const char *password;
 } gk_session_credential;
 
-typedef struct {
-    short int local_checkout_exists;
-    short int has_conflicts;
-    short int has_changes_to_merge;
-    short int merge_in_progress;
-    short int clone_in_progress;
-    short int push_in_progress;
-    short int fetch_in_progress;
-    short int merge_finalization_pending;
+typedef enum {
+    GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS      = (1 << 0),
+    GK_SESSION_STATE_HAS_CONFLICTS              = (1 << 1),
+    GK_SESSION_STATE_HAS_CHANGES_TO_MERGE       = (1 << 2),
+    GK_SESSION_STATE_MERGE_IN_PROGRESS          = (1 << 3),
+    GK_SESSION_STATE_CLONE_IN_PROGRESS          = (1 << 4),
+    GK_SESSION_STATE_PUSH_IN_PROGRESS           = (1 << 5),
+    GK_SESSION_STATE_FETCH_IN_PROGRESS          = (1 << 6),
+    GK_SESSION_STATE_MERGE_FINALIZATION_PENDING = (1 << 7),
 } gk_session_state;
+
+/*
+typedef struct {
+    int state;
+    } gk_session_state;*/
     
 typedef struct {
     const char *local_path;

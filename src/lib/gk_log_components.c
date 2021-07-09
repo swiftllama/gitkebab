@@ -1,6 +1,7 @@
 
 #include "gk_log_components.h"
 
+log_Component COMP_SESSION = {LOG_DEBUG, "SESSION"};
 log_Component COMP_LIBGIT2 = {LOG_TRACE, "LIBGIT2"};
 log_Component COMP_INIT = {LOG_TRACE, "INIT"};
 log_Component COMP_CLONE = {LOG_DEBUG, "CLONE"};

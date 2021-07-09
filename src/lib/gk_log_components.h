@@ -4,6 +4,7 @@
 
 #include "rxi_log.h"
 
+extern log_Component COMP_SESSION;
 extern log_Component COMP_CLONE;
 extern log_Component COMP_PROGRESS;
 extern log_Component COMP_INIT;

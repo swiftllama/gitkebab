@@ -11,7 +11,7 @@ int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref
         log_error(COMP_MERGE, "Cannot analyze merge, session is NULL");
         return GK_FAILURE;
     }
-    if (session->state.local_checkout_exists == 0) {
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         return gk_session_failure(session, &COMP_MERGE, -3, "Cannot analyze merge, local checkout does not exist");
     }
     if (session->lg2_repository == NULL) {
@@ -66,8 +66,13 @@ int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref
     log_info(COMP_MERGE, "MERGE_ANALYSIS_UNBORN: %d", (analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0 ? GIT_MERGE_ANALYSIS_UNBORN : 0);
 
 
-    session->state.has_changes_to_merge = (analysis != GIT_MERGE_ANALYSIS_UP_TO_DATE);
-    log_info(COMP_MERGE, "Set session has changes to merge to %d", session->state.has_changes_to_merge);
+    if (analysis == GIT_MERGE_ANALYSIS_UP_TO_DATE) {
+        gk_session_state_unset(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
+    }
+    else {
+        gk_session_state_set(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
+    }
+    log_info(COMP_MERGE, "Set session has changes to merge to %d", gk_session_state_enabled(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE));
     if (analysis == GIT_MERGE_ANALYSIS_UNBORN) {
         log_warn(COMP_MERGE, "Repositor merge analysis resulted UNBORN, this is unexpected");
     }
@@ -370,11 +375,11 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
 int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging '%s' into HEAD", from_ref_name);
-    session->state.merge_in_progress = 1;
+    gk_session_state_set(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
     
     int rc = gk_session_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
     if (rc == GK_FAILURE) {
-        session->state.merge_in_progress = 0;
+        gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
         return GK_FAILURE;
     }
 
@@ -383,7 +388,7 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
         rc = merge_fast_forward(session, from_ref_name);
         if (rc == GK_FAILURE) {
             log_info(COMP_MERGE, "Fast-forward merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
-            session->state.merge_in_progress = 0;
+            gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
             return GK_FAILURE;
         }
     }
@@ -392,12 +397,12 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
         rc = merge_normal(session, from_ref_name);
         if (rc == GK_FAILURE) {
             log_info(COMP_MERGE, "normal merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
-            session->state.merge_in_progress = 0;
+            gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
             return GK_FAILURE;
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0) {
-        session->state.merge_in_progress = 0;
+        gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
         return gk_session_failure(session, &COMP_MERGE, -4, "Error merging changes from server: head points to an unknonw commit id");
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UP_TO_DATE) != 0) {
@@ -407,9 +412,9 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     else {
         log_warn(COMP_MERGE, "unknown merge analysis state %d while merging, no merge will be performed", merge_analysis);
     }
-    
-    session->state.has_changes_to_merge = 0;
-    session->state.merge_in_progress = 0;
+
+    gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
+    gk_session_state_unset(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
     log_info(COMP_MERGE, "merge succeeded");
     return gk_session_success(session);
 }

@@ -15,7 +15,8 @@ size_t gk_session_count_reflog_entries(gk_session *session, const char* ref_name
         log_error(COMP_COMMIT, "Cannot count reflog entries, session is NULL");
         return 0;
     }
-    if (session->state.local_checkout_exists == 0) {
+    
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         gk_session_failure(session, &COMP_COMMIT, -3, "Cannot count reflog entries, local checkout does not exist");
         return 0;
     }
@@ -66,7 +67,7 @@ int gk_session_commit(gk_session *session, const char *ref_name, const char* com
         return GK_FAILURE;
     }
 
-    if (session->state.local_checkout_exists == 0) {
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot commit, local checkout does not exist");
     }
     else if (session->lg2_repository == NULL) {
@@ -161,7 +162,7 @@ int gk_session_resolve_reference(gk_session *session, const char *ref_name, gk_o
         log_error(COMP_COMMIT, "Cannot resolve reference, session is NULL");
         return GK_FAILURE;
     }
-    if (session->state.local_checkout_exists == 0) {
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot resolve reference, local checkout does not exist");
     }
     else if (session->lg2_repository == NULL) {

@@ -16,7 +16,7 @@ static git_index *index_for_session(gk_session *session, const char* purpose, co
         return NULL;
     }
 
-    if (session->state.local_checkout_exists == 0) {
+    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
         gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, local checkout does not exist", purpose);
         return NULL;
     }
