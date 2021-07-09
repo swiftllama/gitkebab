@@ -202,6 +202,13 @@ static int create_merge_commit(gk_session *session, git_index *index, git_refere
 
 
 static int merge_normal(gk_session *session, const char *from_ref_name) {
+    gk_internal_resources *resources = gk_internal_resources_new();
+    int rc = gk_internal_resources_load_references(session, resources, from_ref_name, "perform normal merge");
+    if (rc != GK_SUCCESS) {
+        gk_internal_resources_free(resources);
+        return GK_FAILURE;
+    }
+    
     git_merge_options merge_options = GIT_MERGE_OPTIONS_INIT;
     git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
 
@@ -214,74 +221,36 @@ static int merge_normal(gk_session *session, const char *from_ref_name) {
     checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_ALLOW_CONFLICTS;
     checkout_options.progress_cb = gk_session_checkout_progress_callback;
     checkout_options.progress_payload = &authed_session;
-
-    git_reference *fetch_head_ref = NULL;
-    git_object *fetch_head_object = NULL;
-    int rc = git_revparse_ext(&fetch_head_object, &fetch_head_ref, session->lg2_repository, from_ref_name);
-    if (rc == GIT_ENOTFOUND) {
-        git_reference_free(fetch_head_ref);
-        git_object_free(fetch_head_object);
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform normal merge, reference '%s' not found", from_ref_name);
-    }
-    if ((rc != 0)) {
-        git_reference_free(fetch_head_ref);
-        git_object_free(fetch_head_object);
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform normal merge, the reference '%s' could not be looked up (%d): %s", from_ref_name, err->klass, err->message);
-    }
     
-    git_annotated_commit *annotated_fetch_head_commit = NULL;
-    rc = git_annotated_commit_from_ref(&annotated_fetch_head_commit, session->lg2_repository, fetch_head_ref);
-    if ((rc != 0)) {
-        git_reference_free(fetch_head_ref);
-        git_object_free(fetch_head_object);
-        git_annotated_commit_free(annotated_fetch_head_commit);
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot perform normal merge, error annotating commit for referencd '%s' (%d): %s", from_ref_name, err->klass, err->message);
-    }    
-    
-    rc = git_merge(session->lg2_repository, (const git_annotated_commit **)&annotated_fetch_head_commit, 1, &merge_options, &checkout_options);
+    rc = git_merge(session->lg2_repository, (const git_annotated_commit **)&resources->annotated_fetch_head_commit, 1, &merge_options, &checkout_options);
     if (rc != 0) {
-        git_reference_free(fetch_head_ref);
-        git_object_free(fetch_head_object);
-        git_annotated_commit_free(annotated_fetch_head_commit);
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -5, "Error performing normal merge (%d): %s", from_ref_name, err->klass, err->message);
+        gk_session_failure(session, &COMP_MERGE, -5, "Error performing normal merge (%d): %s", from_ref_name, err->klass, err->message);
+        gk_internal_resources_free(resources);
+        return GK_FAILURE;
     }
 
-    // Check index for conflicts
-    git_index *index;
-    rc = git_repository_index(&index, session->lg2_repository);
-    if (rc != 0) {
-        git_reference_free(fetch_head_ref);
-        git_object_free(fetch_head_object);
-        git_index_free(index);
-        git_annotated_commit_free(annotated_fetch_head_commit);
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -6, "Error performing normal merge, failed to retrieve repository index (%d): %s", err->klass, err->message);
+
+    rc = gk_internal_resources_load_index(session, resources, "perform normal merge");
+    if (rc != GK_SUCCESS) {
+        gk_internal_resources_free(resources);
+        return GK_FAILURE;
     }
 
-    if (git_index_has_conflicts(index) == 1) {
+    if (git_index_has_conflicts(resources->index) == 1) {
         log_info(COMP_MERGE, "Encountered conflicts after normal merge");
         // TODO.. handle conflicts
     }
     else {
-        rc = create_merge_commit(session, index, fetch_head_ref, fetch_head_object);
+        rc = create_merge_commit(session, resources->index, resources->fetch_head_ref, resources->fetch_head_object);
         if (rc != 0) {
-            git_reference_free(fetch_head_ref);
-            git_object_free(fetch_head_object);
-            git_annotated_commit_free(annotated_fetch_head_commit);
-            git_index_free(index);            
+            gk_internal_resources_free(resources);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_MERGE, -6, "Error performing normal merge, failed tocreate merge commit (%d): %s", err->klass, err->message);            
         }
     }
 
-    git_reference_free(fetch_head_ref);
-    git_object_free(fetch_head_object);
-    git_annotated_commit_free(annotated_fetch_head_commit);
-    git_index_free(index);
-    
+    gk_internal_resources_free(resources);
     return gk_session_success(session);
 }
 
@@ -310,7 +279,6 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, checkout failed (%d): %s", err->klass, err->message);
     }
-
 
     git_reference *new_head_ref = NULL;
     log_debug(COMP_MERGE, "Advancing HEAD to rev '%s'", resources->fetch_head_oid_id);

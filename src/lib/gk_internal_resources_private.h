@@ -30,8 +30,10 @@ typedef struct {
 void gk_internal_resources_free(gk_internal_resources *resources);
 gk_internal_resources *gk_internal_resources_new();
 
+int gk_internal_resources_load_references(gk_session *session, gk_internal_resources *resources, const char *from_ref_name, const char *purpose);
 void gk_internal_resources_free_references(gk_internal_resources *resources);
 
-int gk_internal_resources_load_references(gk_session *session, gk_internal_resources *resources, const char *from_ref_name, const char *purpose);
+int gk_internal_resources_load_index(gk_session *session, gk_internal_resources *resources, const char *purpose);
+void gk_internal_resources_free_index(gk_internal_resources *resources);
 
 #endif // _GK_INTERNAL_RESOURCES_PRIVATE_H__

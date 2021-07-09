@@ -20,15 +20,12 @@ void gk_internal_resources_free(gk_internal_resources *resources) {
         return;
     }
     gk_internal_resources_free_references(resources);
+    gk_internal_resources_free_index(resources);
 
-    git_index_free(resources->index);
     git_tree_free(resources->tree);
-
     git_signature_free(resources->signature);
-
     free(resources->merge_parents);
 
-    resources->index = NULL;
     resources->tree = NULL;
     resources->signature = NULL;
     resources->merge_parents = NULL;
@@ -53,7 +50,7 @@ void gk_internal_resources_free_references(gk_internal_resources *resources) {
 
 int gk_internal_resources_load_references(gk_session *session, gk_internal_resources *resources, const char *from_ref_name, const char *purpose) {
     if (session == NULL) {
-        log_error(COMP_MERGE, "Cannot load resources for NULL session");
+        log_error(COMP_MERGE, "Cannot load resources references for NULL session");
         return GK_FAILURE;
     }
 
@@ -75,6 +72,12 @@ int gk_internal_resources_load_references(gk_session *session, gk_internal_resou
         return gk_session_failure(session, &COMP_MERGE, -5, "cannot %s, failed to resolve HEAD reference (%d): %s", purpose, err->klass, err->message);
     }
 
+    rc = git_annotated_commit_from_ref(&resources->annotated_fetch_head_commit, session->lg2_repository, resources->fetch_head_ref);
+    if ((rc != 0)) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot %s, error annotating commit for referencd '%s' (%d): %s", purpose, from_ref_name, err->klass, err->message);
+    }    
+
     resources->repository_head_oid = git_object_id(resources->repository_head_object);
     resources->fetch_head_oid = git_object_id(resources->fetch_head_object);
     git_oid_tostr(resources->repository_head_oid_id, 41, resources->repository_head_oid);
@@ -83,3 +86,27 @@ int gk_internal_resources_load_references(gk_session *session, gk_internal_resou
     return GK_SUCCESS;
 }
 
+int gk_internal_resources_load_index(gk_session *session, gk_internal_resources *resources, const char *purpose) {
+    if (session == NULL) {
+        log_error(COMP_MERGE, "Cannot load resources references for NULL session");
+        return GK_FAILURE;
+    }
+
+    int rc = git_repository_index(&resources->index, session->lg2_repository);
+    if (rc != 0) {
+        gk_internal_resources_free_index(resources);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -6, "Error %s, failed to retrieve repository index (%d): %s", purpose, err->klass, err->message);
+    }
+
+    return GK_SUCCESS;
+}
+
+void gk_internal_resources_free_index(gk_internal_resources *resources) {
+    if (resources == NULL) {
+        return;
+    }
+
+    git_index_free(resources->index);
+    resources->index = NULL;
+}
