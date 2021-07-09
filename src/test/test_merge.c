@@ -266,10 +266,10 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
 
 int main(void) {
     const struct CMUnitTest tests[] = {
-        //cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_merge_divergent_commits_no_conflict, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_merge_divergent_commits_with_conflict, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_divergent_commits_no_conflict, test_staging_clean_repo_setup),
+        //cmocka_unit_test_setup(test_merge_divergent_commits_with_conflict, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {

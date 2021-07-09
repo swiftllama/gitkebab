@@ -13,6 +13,7 @@ add_library(gitkebab
   gk_index.h
   gk_init.c
   gk_init.h
+  gk_internal_resources_private.c
   gk_log_components.c
   gk_log_components.h
   gk_logging.h
