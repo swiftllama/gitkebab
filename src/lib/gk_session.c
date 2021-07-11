@@ -7,6 +7,7 @@
 #include "gk_results.h"
 #include "gk_logging.h"
 #include "gk_status.h"
+#include "gk_lg2_private.h"
 
 static void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
@@ -36,7 +37,9 @@ static void gk_repository_free_members(gk_repository *repository) {
 }
 
 gk_session *gk_session_new() {
-    return (gk_session *)malloc(sizeof(gk_session));
+    gk_session *session = (gk_session *)malloc(sizeof(gk_session));
+    session->lg2_resources = (gk_lg2_resources *)malloc(sizeof(gk_lg2_resources));
+    return session;
 }
 
 
@@ -60,24 +63,17 @@ void gk_session_init(gk_session *session, const char *remote_url, const char *lo
     session->state = 0;
     gk_status_summary_reset(&session->status_summary);
     
-    session->lg2_repository = NULL;
-    session->lg2_status_list = NULL;
+    gk_lg2_resources_init(session);
 }
 
 int gk_session_open_local_repository(gk_session *session) {
-    gk_result *result = NULL;
-    
     if (session == NULL) {
         log_error(COMP_SESSION, "gk_session_open_local_repository(session) called on NULL session");
         return GK_FAILURE;
     }
 
-    int rc = git_repository_open((git_repository **)&(session->lg2_repository), session->repository.local_path);
-    if (rc != 0) {
-        git_repository_free(session->lg2_repository);
-        session->lg2_repository = NULL;
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_SESSION, -2, "Error opening repository at local path (%d): %s", err->klass, err->message);
+    if (gk_lg2_repository_open(session, "open local repository") == GK_FAILURE) {
+        return GK_FAILURE;
     }
 
     gk_session_state_set(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS);
@@ -126,9 +122,9 @@ void gk_session_free(gk_session *session) {
 
     gk_result_free(session->last_result);
     session->last_result = NULL;
-    git_status_list_free(session->lg2_status_list);
-    git_repository_free(session->lg2_repository);
     gk_repository_free_members(&session->repository);
+    gk_lg2_free_all_but_repository(session);
+    free(session->lg2_resources);
     free(session);
 }
 
@@ -170,4 +166,29 @@ void gk_session_state_trigger_callback(gk_session *session) {
         return;
     }
     session->callbacks.state_changed_callback(session);
+}
+
+int gk_session_verify(gk_session *session, log_Component *component, int condition, const char *purpose) {
+    if (session == NULL) {
+        log_log(LOG_ERROR, __FILE__, __LINE__, component, "Cannot %s, session is NULL", purpose);
+        return GK_FAILURE;
+    }
+
+    if (condition & GK_SESSION_VERIFY_LOCAL_CHECKOUT) {
+        if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
+            return gk_session_failure(session, component, -3, "Cannot %s, local checkout does not exist", purpose);
+        }
+
+        if (session->lg2_resources->repository == NULL) {
+            return gk_session_failure(session, component, -4, "Cannot %s, internal git2 repository is unexpectedly NULL", purpose);
+        }
+    }
+
+    if (condition & GK_SESSION_VERIFY_STATUS_LIST) {
+        if (session->lg2_resources->status_list == NULL) {
+            return gk_session_failure(session, component, -5, "Cannot %s, must query status list first", purpose);
+        }
+    }
+
+    return GK_SUCCESS;
 }

@@ -60,7 +60,7 @@ static void test_commit_new_file(void **state) {
     
     gk_session_index_add_path(session, "new-file1");
 
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
     assert_int_equal(gk_session_status_summary_entrycount(session), 1);
     assert_string_equal(gk_session_status_summary_path_at(session, 0), "new-file1");
@@ -75,7 +75,7 @@ static void test_commit_new_file(void **state) {
     assert_string_not_equal(second_commit.id, original_head_commit.id);
     assert_string_equal(second_commit.id, new_head_commit.id);
     
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
     assert_int_equal(gk_session_status_summary_entrycount(session), 0);
 
@@ -98,7 +98,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     gk_session_index_add_path(session, "new-file1");
     gk_session_index_remove_path(session, "file2");
 
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
     assert_int_equal(gk_session_status_summary_entrycount(session), 3);
     assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
@@ -113,7 +113,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     size_t entrycount = gk_session_count_reflog_entries(session, "HEAD");
     assert_int_equal(entrycount, 2);
     
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
     assert_int_equal(gk_session_status_summary_entrycount(session), 1);
     assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
@@ -123,7 +123,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
 
     gk_session_commit(session, "HEAD", "commit modification", NULL);
     
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
     assert_int_equal(gk_session_status_summary_entrycount(session), 0);
 

@@ -101,6 +101,8 @@ typedef struct {
 
 typedef struct gk_session gk_session;
 
+typedef struct gk_lg2_resources gk_lg2_resources;;
+
 typedef void gk_session_state_changed_callback(gk_session *session);
 
 typedef struct {
@@ -115,8 +117,7 @@ struct gk_session {
     gk_session_state state;
     gk_status_summary status_summary;
 
-    void *lg2_status_list;
-    void *lg2_repository;
+    gk_lg2_resources *lg2_resources;
 };
 
 typedef struct {

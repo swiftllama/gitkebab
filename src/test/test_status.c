@@ -29,7 +29,7 @@ static void test_status_without_open_repo(void **state) {
     gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress, NULL);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_not_equal(gk_result_code(session->last_result), 0);
     assert_string_equal(gk_result_message(session->last_result), "Cannot query status, local checkout does not exist");
 
@@ -40,7 +40,7 @@ static void test_status_no_changes(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     assert_int_equal(session->status_summary.count_new, 0);
@@ -64,7 +64,7 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     assert_int_equal(session->status_summary.count_new, 1);
@@ -94,7 +94,7 @@ static void test_status_renamed_file(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     assert_int_equal(session->status_summary.count_new, 0);

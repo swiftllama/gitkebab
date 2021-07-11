@@ -7,7 +7,7 @@
 #include "gk_credentials.h"
 #include "gk_init.h"
 #include "gk_merge.h"
-#include "gk_internal_resources_private.h"
+#include "gk_lg2_private.h"
 
 git_remote *prepare_remote(gk_session *session, const char *remote_name, const char *purpose) {    
     if (session == NULL) {
@@ -22,13 +22,13 @@ git_remote *prepare_remote(gk_session *session, const char *remote_name, const c
         gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, local checkout does not exist", purpose);
         return NULL;
     }
-    else if (session->lg2_repository == NULL) {
+    else if (session->lg2_resources->repository == NULL) {
         gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, internal git2 repository is unexpectedely NULL", purpose);
         return NULL;
     }
 
     git_remote *remote = NULL;
-    int rc = git_remote_lookup(&remote, session->lg2_repository, remote_name);
+    int rc = git_remote_lookup(&remote, session->lg2_resources->repository, remote_name);
     if (rc != 0) {
         git_remote_free(remote);
         const git_error *err = git_error_last();
@@ -141,17 +141,17 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
     log_info(COMP_CLONE, "  - URL:        %s", session->repository.remote_url);
     log_info(COMP_CLONE, "  - Local path: %s", session->repository.local_path);
     gk_session_state_set(session, GK_SESSION_STATE_CLONE_IN_PROGRESS);
-    rc = git_clone((git_repository **)&(session->lg2_repository), session->repository.remote_url, session->repository.local_path, &clone_opts);
+    rc = git_clone((git_repository **)&(session->lg2_resources->repository), session->repository.remote_url, session->repository.local_path, &clone_opts);
     gk_session_state_unset(session, GK_SESSION_STATE_CLONE_IN_PROGRESS);
 
     if (rc != 0) {
-        git_repository_free(session->lg2_repository);
-        session->lg2_repository = NULL;
+        git_repository_free(session->lg2_resources->repository);
+        session->lg2_resources->repository = NULL;
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_CLONE, -1, "Clone failed (%d): %s", err->klass, err->message);
     }
 
-    rc = git_remote_add_push(session->lg2_repository, "origin", "refs/heads/master:refs/heads/master");
+    rc = git_remote_add_push(session->lg2_resources->repository, "origin", "refs/heads/master:refs/heads/master");
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_CLONE, -1, "Error adding push refspec to remote 'origin'  (%d): %s", err->klass, err->message);
@@ -189,14 +189,14 @@ int gk_session_fetch(gk_session *session, gk_session_credential *credential, con
     }
 
     const char *from_ref_name = "refs/remotes/origin/master";
-    gk_internal_resources *resources = gk_internal_resources_new();
-    rc = gk_internal_resources_load_references(session, resources, from_ref_name, "analyze merge for fetch");
+
+    rc = gk_lg2_load_references(session, from_ref_name, "analyze merge for fetch");
     if (rc != 0) {
-        gk_internal_resources_free(resources);
+        gk_lg2_free_references(session);
         return GK_FAILURE;
     }
-    rc = gk_session_analyze_merge_into_head(session, resources, from_ref_name, NULL);
-    gk_internal_resources_free(resources);
+    rc = gk_session_analyze_merge_into_head(session, from_ref_name, NULL);
+    gk_lg2_free_references(session);
 
     if (rc != 0) {
         return GK_FAILURE;

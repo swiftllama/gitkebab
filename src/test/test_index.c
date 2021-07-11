@@ -42,7 +42,7 @@ static void test_index_add_remove_individual_files(void **state) {
     gk_session_index_remove_path(session, "file2");
     assert_int_equal(gk_result_code(session->last_result), 0);
     
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     assert_int_equal(session->status_summary.count_new, 2);
@@ -83,7 +83,7 @@ static void test_index_update_all(void **state) {
     gk_session_index_update_all(session, "*");
     assert_int_equal(gk_result_code(session->last_result), 0);
     
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     assert_int_equal(session->status_summary.count_new, 2);
@@ -124,7 +124,7 @@ static void test_index_add_all(void **state) {
     gk_session_index_add_all(session, "*");
     assert_int_equal(gk_result_code(session->last_result), 0);
     
-    gk_session_query_status_summary(session);
+    gk_session_status_summary_query(session);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     assert_int_equal(session->status_summary.count_new, 2);

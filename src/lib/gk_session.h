@@ -35,4 +35,11 @@ void gk_session_state_set(gk_session *session, int states_enable);
 void gk_session_state_unset(gk_session *session, int states_disable);
 void gk_session_state_trigger_callback(gk_session *session);
 
+typedef enum {
+    GK_SESSION_VERIFY_LOCAL_CHECKOUT = (1 << 0),
+    GK_SESSION_VERIFY_STATUS_LIST = (1 << 1)
+} gk_session_verify_condition;
+
+int gk_session_verify(gk_session *session, log_Component *component, int condition, const char *purpose);
+    
 #endif // __GITKEBAB_SESSION_H__

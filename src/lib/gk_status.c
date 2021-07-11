@@ -2,6 +2,7 @@
 #include "git2.h"
 #include "gk_status.h"
 #include "gk_logging.h"
+#include "gk_lg2_private.h"
 
 void gk_status_summary_reset(gk_status_summary *status_summary) {
     if (status_summary == NULL) {
@@ -17,47 +18,27 @@ void gk_status_summary_reset(gk_status_summary *status_summary) {
     status_summary->count_conflicted = 0;
 }
 
-int gk_session_query_status_summary(gk_session *session) {
+void gk_session_status_summary_close(gk_session *session) {
+    gk_lg2_status_list_free(session);
+}
+
+int gk_session_status_summary_query(gk_session *session) {
     gk_result *result = NULL;
 
-    if (session == NULL) {
-        log_error(COMP_STATUS, "Cannot check status, session is NULL");
+    if (!gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "query status")) {
         return GK_FAILURE;
     }
-    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
-        return gk_session_failure(session, &COMP_STATUS, -1, "Cannot query status, local checkout does not exist");
-    }
-    if (session->lg2_repository == NULL) {
-        // Should never happen if local_checkout_exists == 1
-        return gk_session_failure(session, &COMP_STATUS, -1, "Cannot query status, internal git2 repository is unexpectedely NULL");
-    }
-    
-    git_status_list_free(session->lg2_status_list);
-    session->lg2_status_list = NULL;
-    
-    git_status_options status_options = GIT_STATUS_OPTIONS_INIT;
-    
-    status_options.show  = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
-    status_options.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
-        GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS |
-        GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR | 
-        GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX |
-        GIT_STATUS_OPT_SORT_CASE_INSENSITIVELY;
 
-    git_status_list *status_list = NULL;
-    int rc = git_status_list_new(&status_list, (git_repository *)session->lg2_repository, &status_options);
-    if (rc != 0) {
-        git_status_list_free(status_list);
-        const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_STATUS, -2, "Error querying status (%d): %s", err->klass, err->message);
+    gk_lg2_status_list_free(session);
+    if (!gk_lg2_status_list_load(session, "query status")) {
+        gk_lg2_status_list_free(session);
+        return GK_FAILURE;
     }
 
-    session->lg2_status_list = (void *)status_list;
-
-    size_t count_total = git_status_list_entrycount(status_list);
+    size_t count_total = git_status_list_entrycount(session->lg2_resources->status_list);
     gk_status_summary_reset(&session->status_summary);
     for (size_t i = 0; i < count_total; i += 1) {
-        const git_status_entry *entry = git_status_byindex(status_list, i); // NOTE: entry should not be freed
+        const git_status_entry *entry = git_status_byindex(session->lg2_resources->status_list, i); // NOTE: entry should not be freed
         if (entry == NULL) {
             log_error(COMP_STATUS, "Unexpected status list NULL entry at index %d", i);
             continue;
@@ -91,22 +72,16 @@ int gk_session_query_status_summary(gk_session *session) {
 }
 
 static const git_status_entry *gk_session_status_summary_entry(gk_session *session, const char *purpose, size_t index) {
-    gk_result *result = NULL;
-    if (session == NULL) {
-        log_error(COMP_STATUS, "Cannot retrieve %s at index %zu, session is NULL", purpose, index);
+    if (!gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_STATUS_LIST, "retrieve status list entry")) {
         return NULL;
     }
-    git_status_list *status_list = (git_status_list *)session->lg2_status_list;
-    if (status_list == NULL) {
-        gk_session_failure(session, &COMP_STATUS, -1, "Error retrieving %s at index %zu, status_list is NULL", purpose, index);
-        return NULL;
-    }
-    size_t total = git_status_list_entrycount(status_list);
+
+    size_t total = git_status_list_entrycount(session->lg2_resources->status_list);
     if (index >= total) {
         gk_session_failure(session, &COMP_STATUS, -1, "Error retrieving %s at index %zu, index out of bounds (total entry count is only %zu)", purpose, index, total);
         return NULL;
     }
-    const git_status_entry *entry = git_status_byindex(status_list, index);    
+    const git_status_entry *entry = git_status_byindex(session->lg2_resources->status_list, index);    
     if (entry == NULL) {
         gk_session_failure(session, &COMP_STATUS, -1, "Error retrieving %s at index %zu, status list entry is unexpectedly NULL", purpose, index, total);
     }
@@ -151,15 +126,9 @@ const char *gk_session_status_summary_path_at(gk_session *session, size_t index)
 }
 
 size_t gk_session_status_summary_entrycount(gk_session *session) {
-    gk_result *result = NULL;
-    if (session == NULL) {
-        log_error(COMP_STATUS, "Cannot retrieve summary entry count, session is NULL");
-        return 0;
+    if (!gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_STATUS_LIST, "retrieve status list entry")) {
+        return GK_FAILURE;
     }
-    git_status_list *status_list = (git_status_list *)session->lg2_status_list;
-    if (status_list == NULL) {
-        gk_session_failure(session, &COMP_STATUS, -1, "Error retrieving summary entry count, status list is NULL");
-        return 0;
-    }
-    return git_status_list_entrycount(status_list);
+    
+    return git_status_list_entrycount(session->lg2_resources->status_list);
 }
