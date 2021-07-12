@@ -7,6 +7,7 @@
 
 
 int gk_session_status_summary_query(gk_session *session);
+void gk_session_status_summary_close(gk_session *session);
 
 const char *gk_session_status_summary_path_at(gk_session *session, size_t index);
 

@@ -12,7 +12,8 @@ void session_progress(gk_session_progress *progress) { }
 
 static int test_staging_setup(void **state) {
     gk_init();
-        
+    gk_libgit2_set_log_level(LOG_DEBUG);
+    
     return gk_test_environment_setup(state);
 }
 

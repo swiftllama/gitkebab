@@ -64,6 +64,7 @@ static void test_index_add_remove_individual_files(void **state) {
     assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_INDEX_NEW);
     assert_int_equal(gk_session_status_summary_status_at(session, 3), GIT_STATUS_WT_NEW);
 
+    gk_session_status_summary_close(session);
     gk_session_free(session);
 }
 
@@ -105,6 +106,7 @@ static void test_index_update_all(void **state) {
     assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_WT_NEW);
     assert_int_equal(gk_session_status_summary_status_at(session, 3), GIT_STATUS_WT_NEW);
 
+    gk_session_status_summary_close(session);
     gk_session_free(session);
 }
 
@@ -146,6 +148,7 @@ static void test_index_add_all(void **state) {
     assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_INDEX_NEW);
     assert_int_equal(gk_session_status_summary_status_at(session, 3), GIT_STATUS_INDEX_NEW);
 
+    gk_session_status_summary_close(session);
     gk_session_free(session);
 }
 

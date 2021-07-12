@@ -25,12 +25,12 @@ void gk_session_status_summary_close(gk_session *session) {
 int gk_session_status_summary_query(gk_session *session) {
     gk_result *result = NULL;
 
-    if (!gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "query status")) {
+    if (gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "query status") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
     gk_lg2_status_list_free(session);
-    if (!gk_lg2_status_list_load(session, "query status")) {
+    if (gk_lg2_status_list_load(session, "query status") != GK_SUCCESS) {
         gk_lg2_status_list_free(session);
         return GK_FAILURE;
     }
@@ -72,7 +72,7 @@ int gk_session_status_summary_query(gk_session *session) {
 }
 
 static const git_status_entry *gk_session_status_summary_entry(gk_session *session, const char *purpose, size_t index) {
-    if (!gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_STATUS_LIST, "retrieve status list entry")) {
+    if (gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_STATUS_LIST, "retrieve status list entry") != GK_SUCCESS) {
         return NULL;
     }
 
@@ -126,7 +126,7 @@ const char *gk_session_status_summary_path_at(gk_session *session, size_t index)
 }
 
 size_t gk_session_status_summary_entrycount(gk_session *session) {
-    if (!gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_STATUS_LIST, "retrieve status list entry")) {
+    if (gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_STATUS_LIST, "retrieve status list entry count") != GK_SUCCESS) {
         return GK_FAILURE;
     }
     

@@ -11,30 +11,19 @@ size_t gk_session_count_reflog_entries(gk_session *session, const char* ref_name
     gk_result *result = NULL;
     git_index *index = NULL;
     int rc;
-    
-    if (session == NULL) {
-        log_error(COMP_COMMIT, "Cannot count reflog entries, session is NULL");
-        return 0;
-    }
-    
-    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
-        gk_session_failure(session, &COMP_COMMIT, -3, "Cannot count reflog entries, local checkout does not exist");
-        return 0;
-    }
-    else if (session->lg2_resources->repository == NULL) {
-        // should never happen if local_checkout_exists == 1
-        gk_session_failure(session, &COMP_COMMIT, -3, "Cannot count reflog entries, internal git2 repository is unexpectedely NULL");
+
+    if (gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "count reflog entries") != GK_SUCCESS) {
         return 0;
     }
 
-    if (gk_lg2_index_load(session, "count reflog entries") == GK_FAILURE) {
+    if (gk_lg2_index_load(session, "count reflog entries") != GK_SUCCESS) {
         return 0;
     }
 
-    if (gk_lg2_reflog_read(session, "ref_name", "count reflog entries") == GK_FAILURE) {
+    if (gk_lg2_reflog_read(session, ref_name, "count reflog entries") != GK_SUCCESS) {
         return 0;
     }
-    
+
     size_t entrycount = git_reflog_entrycount(session->lg2_resources->reflog);
     gk_lg2_reflog_free(session);
     gk_lg2_index_free(session);

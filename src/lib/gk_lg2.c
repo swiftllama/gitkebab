@@ -186,10 +186,12 @@ int gk_lg2_parents_lookup(gk_session *session, const char *purpose) {
 }
 
 void gk_lg2_parents_free(gk_session *session) {
-    git_object_free((git_object *)session->lg2_resources->merge_parents[0]);
-    session->lg2_resources->merge_parents[0] = NULL;
-    git_commit_free(session->lg2_resources->merge_parents[1]);
-    session->lg2_resources->merge_parents[1] = NULL;
+    if (session->lg2_resources->merge_parents != NULL) {
+        git_object_free((git_object *)session->lg2_resources->merge_parents[0]);
+        session->lg2_resources->merge_parents[0] = NULL;
+        git_commit_free(session->lg2_resources->merge_parents[1]);
+        session->lg2_resources->merge_parents[1] = NULL;
+    }
     free(session->lg2_resources->merge_parents);
     session->lg2_resources->merge_parents = NULL;
 }
@@ -248,4 +250,6 @@ int gk_lg2_status_list_load(gk_session *session, const char *purpose) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_STATUS, -2, "Cannot query status (%d): %s", err->klass, err->message);
     }
+
+    return GK_SUCCESS;
 }

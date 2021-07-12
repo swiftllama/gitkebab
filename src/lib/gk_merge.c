@@ -7,7 +7,7 @@
 #include "gk_lg2_private.h"
 
 int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
-    if (!gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "analyze merge")) {
+    if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "analyze merge") != GK_SUCCESS) {
         return GK_FAILURE;
     }
     if (from_ref_name == NULL) {
@@ -54,15 +54,15 @@ static int create_merge_commit(gk_session *session, git_index *index, git_refere
     git_commit **parents = calloc(2, sizeof(git_commit *));
 
     // Find parents
-    if (!gk_lg2_parents_lookup(session, "create merge commit")) {
+    if (gk_lg2_parents_lookup(session, "create merge commit") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
-    if (!gk_lg2_index_write_tree(session, "create merge commit")) {
+    if (gk_lg2_index_write_tree(session, "create merge commit") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
-    if (!gk_lg2_signature_create(session, &COMP_MERGE, "create merge commit")) {
+    if (gk_lg2_signature_create(session, &COMP_MERGE, "create merge commit") != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
@@ -163,7 +163,7 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     log_info(COMP_MERGE, "merging '%s' into HEAD", from_ref_name);
     gk_session_state_set(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
 
-    if (!gk_lg2_load_references(session, from_ref_name, "analyze merge for fetch")) {
+    if (gk_lg2_load_references(session, from_ref_name, "analyze merge for fetch") != GK_SUCCESS) {
         gk_lg2_free_all_but_repository(session);
         return GK_FAILURE;
     }

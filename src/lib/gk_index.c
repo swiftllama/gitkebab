@@ -8,7 +8,7 @@
 #include "gk_lg2_private.h"
 
 static git_index *index_for_session(gk_session *session, const char* purpose, const char *path) {
-    if (!gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose)) {
+    if (gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
         return NULL;
     }
     else if (path == NULL) {
@@ -26,7 +26,7 @@ static git_index *index_for_session(gk_session *session, const char* purpose, co
 }
 
 static int verify_session_and_path(gk_session *session, const char* purpose, const char *path) {
-    if (!gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose)) {
+    if (gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     if (path == NULL) {
@@ -39,11 +39,11 @@ static int verify_session_and_path(gk_session *session, const char* purpose, con
 }
 
 int gk_session_index_add_path(gk_session *session, const char *path) {
-    if (!verify_session_and_path(session, "add path to index", path)) {
+    if (verify_session_and_path(session, "add path to index", path) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (!gk_lg2_index_load(session, "add path to index")) {
+    if (gk_lg2_index_load(session, "add path to index") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -59,11 +59,11 @@ int gk_session_index_add_path(gk_session *session, const char *path) {
 }
 
 int gk_session_index_remove_path(gk_session *session, const char *path) {
-    if (!verify_session_and_path(session, "remove path from index", path)) {
+    if (verify_session_and_path(session, "remove path from index", path) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (!gk_lg2_index_load(session, "remove path from index")) {
+    if (gk_lg2_index_load(session, "remove path from index") != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
@@ -79,11 +79,11 @@ int gk_session_index_remove_path(gk_session *session, const char *path) {
 }
 
 int gk_session_index_add_all(gk_session *session, const char* pattern) {
-    if (!verify_session_and_path(session, "add all paths", pattern)) {
+    if (verify_session_and_path(session, "add all paths", pattern) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (!gk_lg2_index_load(session, "add all paths")) {
+    if (gk_lg2_index_load(session, "add all paths") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -102,11 +102,11 @@ int gk_session_index_add_all(gk_session *session, const char* pattern) {
 }
 
 int gk_session_index_update_all(gk_session *session, const char* pattern) {
-    if (!verify_session_and_path(session, "update all paths", pattern)) {
+    if (verify_session_and_path(session, "update all paths", pattern) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (!gk_lg2_index_load(session, "update all paths")) {
+    if (gk_lg2_index_load(session, "update all paths") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
