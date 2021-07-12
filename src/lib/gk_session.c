@@ -78,10 +78,16 @@ int gk_session_open_local_repository(gk_session *session) {
 
     gk_session_state_set(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS);
 
-    int rc = gk_session_status_summary_query(session);
-    gk_session_status_summary_close(session);
-    if (rc != GK_SUCCESS) {
-        return GK_FAILURE;
+    if (git_repository_is_bare(session->lg2_resources->repository) == 1) {
+        gk_session_state_unset(session, GK_SESSION_STATE_HAS_CONFLICTS);
+        gk_session_state_unset(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
+    }
+    else {
+        int rc = gk_session_status_summary_query(session);
+        gk_session_status_summary_close(session);
+        if (rc != GK_SUCCESS) {
+            return GK_FAILURE;
+        }
     }
 
     return gk_session_success(session);

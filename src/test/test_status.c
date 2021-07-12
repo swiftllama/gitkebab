@@ -52,6 +52,9 @@ static void test_status_no_changes(void **state) {
     
     assert_int_equal(gk_session_status_summary_entrycount(session), 0);
 
+    assert_int_equal(gk_session_state_disabled(session, GK_SESSION_STATE_HAS_CONFLICTS), 1);
+    assert_int_equal(gk_session_state_disabled(session, GK_SESSION_STATE_MERGE_IN_PROGRESS), 1);
+                                
     gk_session_status_summary_close(session);
     gk_session_free(session);
 }
