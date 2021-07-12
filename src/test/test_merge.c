@@ -25,7 +25,9 @@ static int test_staging_clean_repo_setup(void **state) {
     gk_test_delete_simplerepo1A();
     gk_test_delete_simplerepo1B();
     gk_test_delete_simplerepo1_dot_git();
+    gk_test_delete_simplerepo1B_mergeconflicts();
     gk_test_copy_source_repo_simplerepo1_dot_git();
+    gk_test_copy_simplerepo1_from_simplerepo1B_mergeconflicts_dot_gitbak();
     return 0;
 }
 
@@ -60,6 +62,10 @@ static void test_merge_no_changes(void **state) {
     assert_string_equal(original_head.id, fetched_commit.id);
     assert_string_equal(original_head.id, new_head_before_merge.id);
     assert_string_equal(original_head.id, new_head_after_merge.id);
+
+    assert_int_equal(0, gk_session_state_enabled(session1, GK_SESSION_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(0, gk_session_state_enabled(session1, GK_SESSION_STATE_HAS_CONFLICTS));
+    assert_int_equal(0, gk_session_state_enabled(session1, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
 
     gk_session_free(session1);
 }
@@ -112,6 +118,10 @@ static void test_merge_one_commit(void **state) {
     assert_string_equal(repo_B_fetched_commit.id, repo_A_new_commit.id);
     assert_string_equal(repo_B_new_head.id, repo_A_new_commit.id);
 
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
+    
     gk_session_free(session1);
     gk_session_free(session2);
 }
@@ -170,13 +180,13 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
 
     // Compare
-    log_error(COMP_MERGE, "repo_A_original_head: %s", repo_A_original_head.id);
-    log_error(COMP_MERGE, "repo_B_original_head: %s", repo_B_original_head.id);
-    log_error(COMP_MERGE, "repo_A_new commit: %s", repo_A_new_commit.id);
-    log_error(COMP_MERGE, "repo_B_new commit: %s", repo_B_new_commit.id);
-    log_error(COMP_MERGE, "repo_B_fetched_commit: %s", repo_B_fetched_commit.id);
-    log_error(COMP_MERGE, "repo_B_head_after_fetch: %s", repo_B_head_after_fetch.id);
-    log_error(COMP_MERGE, "repo_B_head_after_merge: %s", repo_B_head_after_merge.id);
+    //log_error(COMP_MERGE, "repo_A_original_head: %s", repo_A_original_head.id);
+    //log_error(COMP_MERGE, "repo_B_original_head: %s", repo_B_original_head.id);
+    //log_error(COMP_MERGE, "repo_A_new commit: %s", repo_A_new_commit.id);
+    //log_error(COMP_MERGE, "repo_B_new commit: %s", repo_B_new_commit.id);
+    //log_error(COMP_MERGE, "repo_B_fetched_commit: %s", repo_B_fetched_commit.id);
+    //log_error(COMP_MERGE, "repo_B_head_after_fetch: %s", repo_B_head_after_fetch.id);
+    //log_error(COMP_MERGE, "repo_B_head_after_merge: %s", repo_B_head_after_merge.id);
 
     assert_string_equal(repo_A_original_head.id, repo_B_original_head.id);
     assert_string_not_equal(repo_A_original_head.id, repo_A_new_commit.id);
@@ -185,6 +195,10 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     assert_string_not_equal(repo_B_head_after_fetch.id, repo_A_new_commit.id);
     assert_string_not_equal(repo_B_head_after_merge.id, repo_A_new_commit.id);
     assert_string_not_equal(repo_B_head_after_merge.id, repo_B_new_commit.id);
+
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -237,6 +251,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
 
     // Merge
     gk_session_merge_into_head(session2, "refs/remotes/origin/master");
+
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
@@ -244,23 +259,40 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
 
     // Compare
-    log_error(COMP_MERGE, "repo_A_original_head: %s", repo_A_original_head.id);
-    log_error(COMP_MERGE, "repo_B_original_head: %s", repo_B_original_head.id);
-    log_error(COMP_MERGE, "repo_A_new commit: %s", repo_A_new_commit.id);
-    log_error(COMP_MERGE, "repo_B_new commit: %s", repo_B_new_commit.id);
-    log_error(COMP_MERGE, "repo_B_fetched_commit: %s", repo_B_fetched_commit.id);
-    log_error(COMP_MERGE, "repo_B_head_after_fetch: %s", repo_B_head_after_fetch.id);
-    log_error(COMP_MERGE, "repo_B_head_after_merge: %s", repo_B_head_after_merge.id);
-
+    //log_error(COMP_MERGE, "repo_A_original_head: %s", repo_A_original_head.id);
+    //log_error(COMP_MERGE, "repo_B_original_head: %s", repo_B_original_head.id);
+    //log_error(COMP_MERGE, "repo_A_new commit: %s", repo_A_new_commit.id);
+    //log_error(COMP_MERGE, "repo_B_new commit: %s", repo_B_new_commit.id);
+    //log_error(COMP_MERGE, "repo_B_fetched_commit: %s", repo_B_fetched_commit.id);
+    //log_error(COMP_MERGE, "repo_B_head_after_fetch: %s", repo_B_head_after_fetch.id);
+    //log_error(COMP_MERGE, "repo_B_head_after_merge: %s", repo_B_head_after_merge.id);
+    //
     assert_string_equal(repo_A_original_head.id, repo_B_original_head.id);
     assert_string_not_equal(repo_A_original_head.id, repo_A_new_commit.id);
     assert_string_not_equal(repo_B_original_head.id, repo_B_new_commit.id);
     assert_string_equal(repo_B_fetched_commit.id, repo_A_new_commit.id);
     assert_string_not_equal(repo_B_head_after_fetch.id, repo_A_new_commit.id);
     assert_string_not_equal(repo_B_head_after_merge.id, repo_A_new_commit.id);
-    assert_string_not_equal(repo_B_head_after_merge.id, repo_B_new_commit.id);
+    assert_string_equal(repo_B_head_after_merge.id, repo_B_new_commit.id); // no commit created because of conflicts
+
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
+    assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
     
     gk_session_free(session1);
+    gk_session_free(session2);
+}
+
+
+static void test_merge_open_existing_merge_conflicted_repo(void **state) {
+    // Open pre-merge conflicted repo
+    gk_session *session2 = gk_test_session_from_local_path("test-staging/simple-repo1-B_merge-conflicts");
+
+    // Compare
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
+    assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
+    
     gk_session_free(session2);
 }
 
@@ -269,7 +301,8 @@ int main(void) {
         cmocka_unit_test_setup(test_merge_no_changes, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_merge_one_commit, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_merge_divergent_commits_no_conflict, test_staging_clean_repo_setup),
-        //cmocka_unit_test_setup(test_merge_divergent_commits_with_conflict, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_divergent_commits_with_conflict, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_merge_open_existing_merge_conflicted_repo, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {

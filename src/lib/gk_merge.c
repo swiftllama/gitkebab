@@ -112,8 +112,8 @@ static int merge_normal(gk_session *session, const char *from_ref_name) {
     }
 
     if (git_index_has_conflicts(session->lg2_resources->index) == 1) {
-        log_info(COMP_MERGE, "Encountered conflicts after normal merge");
-        // TODO.. handle conflicts
+        log_info(COMP_MERGE, "Encountered conflicts after normal merge, setting state to GK_SESSION_STATE_MERGE_FINALIZATION_PENDING");
+        gk_session_state_set(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING | GK_SESSION_STATE_HAS_CONFLICTS);
     }
     else {
         rc = create_merge_commit(session, session->lg2_resources->index, session->lg2_resources->fetch_head_ref, session->lg2_resources->fetch_head_object);

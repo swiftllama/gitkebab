@@ -18,6 +18,12 @@ void gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak() {
     mv("test-staging/simple-repo1/.gitbak", "test-staging/simple-repo1/.git");
 }
 
+void gk_test_copy_simplerepo1_from_simplerepo1B_mergeconflicts_dot_gitbak() {
+    gk_test_delete_simplerepo1B_mergeconflicts();
+    copy_directory("./src/test/fixtures/simple-repo1-B_merge-conflicts.gitbak", "test-staging/simple-repo1-B_merge-conflicts");
+    mv("test-staging/simple-repo1-B_merge-conflicts/.gitbak", "test-staging/simple-repo1-B_merge-conflicts/.git");
+}
+
 void gk_test_delete_simplerepo1() {
     if (directory_exists("test-staging/simple-repo1") == 0) {
         rm_rf("test-staging/simple-repo1");
@@ -33,6 +39,12 @@ void gk_test_delete_simplerepo1A() {
 void gk_test_delete_simplerepo1B() {
     if (directory_exists("test-staging/simple-repo1-B") == 0) {
         rm_rf("test-staging/simple-repo1-B");
+    }
+}
+
+void gk_test_delete_simplerepo1B_mergeconflicts() {
+    if (directory_exists("test-staging/simple-repo1-B_merge-conflicts") == 0) {
+        rm_rf("test-staging/simple-repo1-B_merge-conflicts");
     }
 }
 

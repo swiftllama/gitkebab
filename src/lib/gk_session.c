@@ -72,11 +72,18 @@ int gk_session_open_local_repository(gk_session *session) {
         return GK_FAILURE;
     }
 
-    if (gk_lg2_repository_open(session, "open local repository") == GK_FAILURE) {
+    if (gk_lg2_repository_open(session, "open local repository") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
     gk_session_state_set(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS);
+
+    int rc = gk_session_status_summary_query(session);
+    gk_session_status_summary_close(session);
+    if (rc != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
     return gk_session_success(session);
 }
 

@@ -68,6 +68,15 @@ int gk_session_status_summary_query(gk_session *session) {
         }
     }
 
+    if (session->status_summary.count_conflicted > 0) {
+        gk_session_state_set(session, GK_SESSION_STATE_HAS_CONFLICTS);
+    }
+        
+    int status = git_repository_state(session->lg2_resources->repository);
+    if (status == GIT_REPOSITORY_STATE_MERGE) {
+        gk_session_state_set(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
+    }
+
     return gk_session_success(session);
 }
 
