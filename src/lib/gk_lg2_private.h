@@ -7,16 +7,19 @@
 struct gk_lg2_resources {
     git_reference *repository_head_ref;
     git_object *repository_head_object;
+    git_commit *repository_head_commit;
     const git_oid *repository_head_oid;
     char repository_head_oid_id[41];
     
     git_reference *fetch_head_ref;
     git_object *fetch_head_object;
+    git_commit *fetch_head_commit;
     git_annotated_commit *annotated_fetch_head_commit;
     const git_oid *fetch_head_oid;
     char fetch_head_oid_id[41];
 
     git_oid tree_oid;
+    char tree_oid_id[41];
     
     git_reflog *reflog;
     git_index *index;
@@ -46,7 +49,7 @@ void gk_lg2_repository_free(gk_session *session);
 int gk_lg2_reflog_read(gk_session *session, const char *ref_name, const char *purpose);
 void gk_lg2_reflog_free(gk_session *session);
 
-int gk_lg2_index_write_tree(gk_session *session, const char *purpose);
+int gk_lg2_index_write_tree(gk_session *session, git_index *target_index, const char *purpose);
 void gk_lg2_tree_free(gk_session *session);
 
 int gk_lg2_signature_create(gk_session *session, log_Component *component, const char *purpose);
@@ -57,5 +60,7 @@ int gk_lg2_parents_lookup(gk_session *session, const char *purpose);
 
 int gk_lg2_status_list_load(gk_session *session, const char *purpose);
 void gk_lg2_status_list_free(gk_session *session);
+
+int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_options, const char *purpose);
 
 #endif // _GK_LG2_PRIVATE_H__

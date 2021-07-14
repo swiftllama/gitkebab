@@ -17,11 +17,13 @@ void gk_lg2_resources_init(gk_session *session) {
     
     session->lg2_resources->repository_head_ref = NULL;
     session->lg2_resources->repository_head_object = NULL;
+    session->lg2_resources->repository_head_commit = NULL;
     session->lg2_resources->repository_head_oid = NULL;
     session->lg2_resources->repository_head_oid_id[0] = '\0';
 
     session->lg2_resources->fetch_head_ref = NULL;
     session->lg2_resources->fetch_head_object = NULL;
+    session->lg2_resources->fetch_head_commit = NULL;
     session->lg2_resources->annotated_fetch_head_commit = NULL;
     session->lg2_resources->fetch_head_oid = NULL;
     session->lg2_resources->fetch_head_oid_id[0] = '\0';
@@ -49,26 +51,6 @@ void gk_lg2_free_all_but_repository(gk_session *session) {
     gk_lg2_signature_free(session);
     gk_lg2_parents_free(session);
     gk_lg2_tree_free(session);
-}
-
-void gk_lg2_free_references(gk_session *session) {
-    if (session == NULL) {
-        log_error(COMP_SESSION, "gk_session_lg2_resources_free_references called on NULL session");
-        return;
-    }
-
-    git_reference_free(session->lg2_resources->repository_head_ref);
-    git_object_free(session->lg2_resources->repository_head_object);
-    
-    git_reference_free(session->lg2_resources->fetch_head_ref);
-    git_object_free(session->lg2_resources->fetch_head_object);
-    git_annotated_commit_free(session->lg2_resources->annotated_fetch_head_commit);
-
-    session->lg2_resources->repository_head_ref = NULL;
-    session->lg2_resources->repository_head_object = NULL;
-    session->lg2_resources->fetch_head_ref = NULL;
-    session->lg2_resources->fetch_head_object = NULL;
-    session->lg2_resources->annotated_fetch_head_commit = NULL;
 }
 
 int gk_lg2_load_references(gk_session *session, const char *from_ref_name, const char *purpose) {
@@ -105,8 +87,44 @@ int gk_lg2_load_references(gk_session *session, const char *from_ref_name, const
     session->lg2_resources->fetch_head_oid = git_object_id(session->lg2_resources->fetch_head_object);
     git_oid_tostr(session->lg2_resources->repository_head_oid_id, 41, session->lg2_resources->repository_head_oid);
     git_oid_tostr(session->lg2_resources->fetch_head_oid_id, 41, session->lg2_resources->fetch_head_oid);
+
+    rc = git_commit_lookup(&session->lg2_resources->repository_head_commit, session->lg2_resources->repository, session->lg2_resources->repository_head_oid);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot %s, error looking up repository head commit [%d] (%d): %s", purpose, session->lg2_resources->repository_head_oid_id, err->klass, err->message);
+    }
+
+    rc = git_commit_lookup(&session->lg2_resources->fetch_head_commit, session->lg2_resources->repository, session->lg2_resources->fetch_head_oid);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -5, "Cannot %s, error looking up fetch head commit [%d] for remote ref [%s] (%d): %s", purpose, session->lg2_resources->fetch_head_oid_id, from_ref_name, err->klass, err->message);
+    }
     
     return GK_SUCCESS;
+}
+
+void gk_lg2_free_references(gk_session *session) {
+    if (session == NULL) {
+        log_error(COMP_SESSION, "gk_session_lg2_resources_free_references called on NULL session");
+        return;
+    }
+
+    git_reference_free(session->lg2_resources->repository_head_ref);
+    git_object_free(session->lg2_resources->repository_head_object);
+    git_commit_free(session->lg2_resources->repository_head_commit);
+    
+    git_reference_free(session->lg2_resources->fetch_head_ref);
+    git_object_free(session->lg2_resources->fetch_head_object);
+    git_commit_free(session->lg2_resources->fetch_head_commit);
+    git_annotated_commit_free(session->lg2_resources->annotated_fetch_head_commit);
+
+    session->lg2_resources->repository_head_ref = NULL;
+    session->lg2_resources->repository_head_object = NULL;
+    session->lg2_resources->repository_head_commit = NULL;
+    session->lg2_resources->fetch_head_ref = NULL;
+    session->lg2_resources->fetch_head_object = NULL;
+    session->lg2_resources->fetch_head_commit = NULL;
+    session->lg2_resources->annotated_fetch_head_commit = NULL;
 }
 
 int gk_lg2_index_load(gk_session *session, const char *purpose) {
@@ -196,8 +214,8 @@ void gk_lg2_parents_free(gk_session *session) {
     session->lg2_resources->merge_parents = NULL;
 }
 
-int gk_lg2_index_write_tree(gk_session *session, const char *purpose) {
-    int rc = git_index_write_tree(&session->lg2_resources->tree_oid, session->lg2_resources->index);
+int gk_lg2_index_write_tree(gk_session *session, git_index *target_index, const char *purpose) {
+    int rc = git_index_write_tree(&session->lg2_resources->tree_oid, target_index);
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -5, "Cannot %s, error writing index tree (%d): %s", purpose, err->klass, err->message);
@@ -208,6 +226,9 @@ int gk_lg2_index_write_tree(gk_session *session, const char *purpose) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -5, "Cannot %s, error looking up tree (%d): %s", purpose, err->klass, err->message);
     }
+
+    git_oid_tostr(session->lg2_resources->tree_oid_id, 41, &session->lg2_resources->tree_oid);
+    log_info(COMP_MERGE, "while [%s], Wrote tree [%s]", purpose, session->lg2_resources->tree_oid_id);
 
     return GK_SUCCESS;
 }
@@ -249,6 +270,16 @@ int gk_lg2_status_list_load(gk_session *session, const char *purpose) {
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_STATUS, -2, "Cannot query status (%d): %s", err->klass, err->message);
+    }
+
+    return GK_SUCCESS;
+}
+
+int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_options, const char *purpose) {
+    int rc = git_checkout_tree(session->lg2_resources->repository, (git_object *)session->lg2_resources->tree, checkout_options);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error checking out tree [%s] (%d): %s", session->lg2_resources->tree_oid_id, err->klass, err->message);
     }
 
     return GK_SUCCESS;
