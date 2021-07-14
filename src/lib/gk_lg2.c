@@ -215,7 +215,7 @@ void gk_lg2_parents_free(gk_session *session) {
 }
 
 int gk_lg2_index_write_tree(gk_session *session, git_index *target_index, const char *purpose) {
-    int rc = git_index_write_tree(&session->lg2_resources->tree_oid, target_index);
+    int rc = git_index_write_tree_to(&session->lg2_resources->tree_oid, target_index, session->lg2_resources->repository);
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -5, "Cannot %s, error writing index tree (%d): %s", purpose, err->klass, err->message);

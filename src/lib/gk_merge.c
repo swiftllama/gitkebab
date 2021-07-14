@@ -108,7 +108,7 @@ static int merge_in_memory(gk_session *session, const char *from_ref_name) {
             git_index_free(new_index);
             return GK_FAILURE;
         }
-
+        
         if (gk_lg2_checkout_tree(session, &checkout_options, "merge in memory") != GK_SUCCESS) {
             git_index_free(new_index);
             return GK_FAILURE;
@@ -232,9 +232,9 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0) {
         log_info(COMP_MERGE, "will attempt a normal merge");
-        rc = merge_normal(session, from_ref_name);
+        rc = merge_in_memory(session, from_ref_name);
         if (rc == GK_FAILURE) {
-            log_info(COMP_MERGE, "normal merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
+            log_info(COMP_MERGE, "in-memory merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
             gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
             gk_lg2_free_all_but_repository(session);
             return GK_FAILURE;
