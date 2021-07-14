@@ -23,8 +23,6 @@ void gk_session_status_summary_close(gk_session *session) {
 }
 
 int gk_session_status_summary_query(gk_session *session) {
-    gk_result *result = NULL;
-
     if (gk_session_verify(session, &COMP_STATUS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "query status") != GK_SUCCESS) {
         return GK_FAILURE;
     }

@@ -249,6 +249,8 @@ int gk_lg2_signature_create(gk_session *session, log_Component *component, const
         const git_error *err = git_error_last();
         return gk_session_failure(session, component, -3, "Cannot %s, error creating signature (%d): %s", purpose, err->klass, err->message);
     }
+
+    return GK_SUCCESS;
 }
 
 void gk_lg2_signature_free(gk_session *session) {
@@ -274,7 +276,7 @@ int gk_lg2_status_list_load(gk_session *session, const char *purpose) {
     int rc = git_status_list_new(&session->lg2_resources->status_list, session->lg2_resources->repository, &status_options);
     if (rc != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_STATUS, -2, "Cannot query status (%d): %s", err->klass, err->message);
+        return gk_session_failure(session, &COMP_STATUS, -2, "Cannot %s, failed to  query status (%d): %s", purpose, err->klass, err->message);
     }
 
     return GK_SUCCESS;
@@ -284,7 +286,7 @@ int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_opt
     int rc = git_checkout_tree(session->lg2_resources->repository, (git_object *)session->lg2_resources->tree, checkout_options);
     if (rc != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error checking out tree [%s] (%d): %s", session->lg2_resources->tree_oid_id, err->klass, err->message);
+        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error checking out tree [%s] (%d): %s", purpose, session->lg2_resources->tree_oid_id, err->klass, err->message);
     }
 
     return GK_SUCCESS;

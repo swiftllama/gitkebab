@@ -202,7 +202,8 @@ int main(void) {
         cmocka_unit_test(test_fetch_init_fifty_percent_receiving_fifty_percent_indexing),
         cmocka_unit_test(test_fetch_init_one_hundred_percent_receiving_fifty_percent_indexing),
         cmocka_unit_test(test_fetch_init_one_hundred_percent_receiving_one_hundred_percent_indexing_zero_deltas),
-        cmocka_unit_test(test_fetch_init_one_hundred_percent_receiving_one_hundred_percent_indexing_half_deltas)
+        cmocka_unit_test(test_fetch_init_one_hundred_percent_receiving_one_hundred_percent_indexing_half_deltas),
+        cmocka_unit_test(test_fetch_init_one_hundred_percent_all)
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

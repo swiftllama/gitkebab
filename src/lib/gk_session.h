@@ -28,9 +28,9 @@ void gk_authenticated_session_init(gk_authenticated_session *authed_session, gk_
 
 
 // return true if ALL states are enabled
-int gk_session_state_enabled(gk_session *session, int states);
+int gk_session_state_enabled(gk_session *session, unsigned int states);
 // return true if ALL states are disabled
-int gk_session_state_disabled(gk_session *session, int states);
+int gk_session_state_disabled(gk_session *session, unsigned int states);
 void gk_session_state_set(gk_session *session, int states_enable);
 void gk_session_state_unset(gk_session *session, int states_disable);
 void gk_session_state_trigger_callback(gk_session *session);

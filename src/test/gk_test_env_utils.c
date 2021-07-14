@@ -55,6 +55,8 @@ void gk_test_delete_simplerepo1_dot_git() {
 }
 
 int gk_test_environment_setup(void **state) {
+    (void) state;
+    
     if (directory_exists("test-staging") == 0) {
         rm_rf("test-staging");
     }
@@ -64,6 +66,8 @@ int gk_test_environment_setup(void **state) {
 }
 
 int gk_test_environment_teardown(void **state) {
+    (void) state;
+    
     gk_session_credential_free_members(&g_empty_credential);
     return 0;
 }
@@ -79,6 +83,7 @@ void gk_test_session_progress_verbose(gk_session_progress *progress) {
 }
 
 void gk_test_session_progress_null(gk_session_progress *progress) {
+    (void) progress;
 }
 
 

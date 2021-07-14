@@ -19,7 +19,6 @@ gk_result *gk_result_new(int code, const char *message) {
 }
 
 gk_result *gk_result_v(int code, const char *message, ...) {
-    char formatted_message[512];
     va_list args;
     va_start(args, message);
     gk_result *result = gk_result_vargs(code, message, args);

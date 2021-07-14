@@ -8,7 +8,7 @@
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
 
-void session_progress(gk_session_progress *progress) { }
+void session_progress(gk_session_progress *progress) { (void) progress; }
 
 static int test_staging_setup(void **state) {
     gk_init();
@@ -22,9 +22,12 @@ static int test_staging_teardown(void **state) {
 static int test_staging_clean_repo_setup(void **state) {
     (void) state;
     gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak();
+    return 0;
 }
 
 static void test_status_without_open_repo(void **state) {
+    (void) state;
+    
     gk_session *session = gk_session_new();
     gk_session_init(session, "", "./test-staging/simple-repo1", "git", &session_progress, NULL);
     assert_int_equal(gk_result_code(session->last_result), 0);
@@ -37,6 +40,8 @@ static void test_status_without_open_repo(void **state) {
 }
 
 static void test_status_no_changes(void **state) {
+    (void) state;
+    
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
@@ -60,6 +65,8 @@ static void test_status_no_changes(void **state) {
 }
 
 static void test_status_new_file_modified_file_deleted_file(void **state) {
+    (void) state;
+    
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
@@ -92,6 +99,8 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
 }
 
 static void test_status_renamed_file(void **state) {
+    (void) state;
+    
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
     rm_rf("test-staging/simple-repo1/file1");
     

@@ -77,11 +77,6 @@ typedef enum {
     GK_SESSION_STATE_FETCH_IN_PROGRESS          = (1 << 6),
     GK_SESSION_STATE_MERGE_FINALIZATION_PENDING = (1 << 7),
 } gk_session_state;
-
-/*
-typedef struct {
-    int state;
-    } gk_session_state;*/
     
 typedef struct {
     const char *local_path;
@@ -101,7 +96,7 @@ typedef struct {
 
 typedef struct gk_session gk_session;
 
-typedef struct gk_lg2_resources gk_lg2_resources;;
+typedef struct gk_lg2_resources gk_lg2_resources;
 
 typedef void gk_session_state_changed_callback(gk_session *session);
 

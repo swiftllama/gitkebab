@@ -35,13 +35,13 @@ void gk_init() {
     }
 
     int features = git_libgit2_features();
-    if (features & GIT_FEATURE_SSH != GIT_FEATURE_SSH) {
+    if ((features & GIT_FEATURE_SSH) != GIT_FEATURE_SSH) {
         log_warn(COMP_INIT, "libgit2 was not compiled with ssh support!");
     }
-    if (features & GIT_FEATURE_HTTPS != GIT_FEATURE_HTTPS) {
+    if ((features & GIT_FEATURE_HTTPS) != GIT_FEATURE_HTTPS) {
         log_warn(COMP_INIT, "libgit2 was not compiled with https support!");
     }
-    if (features & GIT_FEATURE_THREADS != GIT_FEATURE_THREADS) {
+    if ((features & GIT_FEATURE_THREADS) != GIT_FEATURE_THREADS) {
         log_warn(COMP_INIT, "libgit2 was not compiled with thread support!");
     }
 }

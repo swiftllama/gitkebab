@@ -141,7 +141,7 @@ void gk_session_free(gk_session *session) {
     free(session);
 }
 
-int gk_session_state_enabled(gk_session *session, int states) {
+int gk_session_state_enabled(gk_session *session, unsigned int states) {
     if (session == NULL) {
         log_warn(COMP_SESSION, "gk_session_state_enabled called on NULL session");
         return 0;
@@ -149,7 +149,7 @@ int gk_session_state_enabled(gk_session *session, int states) {
     return (session->state & states) == states;
 }
 
-int gk_session_state_disabled(gk_session *session, int states) {
+int gk_session_state_disabled(gk_session *session, unsigned int states) {
     if (session == NULL) {
         log_warn(COMP_SESSION, "gk_session_state_disabled called on NULL session");
         return 0;

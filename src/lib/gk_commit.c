@@ -8,10 +8,6 @@
 #include "git2.h"
 
 size_t gk_session_count_reflog_entries(gk_session *session, const char* ref_name) {
-    gk_result *result = NULL;
-    git_index *index = NULL;
-    int rc;
-
     if (gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "count reflog entries") != GK_SUCCESS) {
         return 0;
     }
@@ -33,7 +29,6 @@ size_t gk_session_count_reflog_entries(gk_session *session, const char* ref_name
 }
 
 int gk_session_commit(gk_session *session, const char *ref_name, const char* commit_message, gk_object_id *out_commit_id) {
-    gk_result *result = NULL;
     git_oid commit_oid,tree_oid;
     git_tree *tree;
     git_index *index;	
@@ -41,7 +36,6 @@ int gk_session_commit(gk_session *session, const char *ref_name, const char* com
     git_reference *ref = NULL;
     git_signature *signature;
     int rc;
-    char message[256] = {0};
         
     if (session == NULL) {
         log_error(COMP_COMMIT, "Cannot commit, session is NULL");

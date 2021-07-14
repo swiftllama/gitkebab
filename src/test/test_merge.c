@@ -126,7 +126,9 @@ static void test_merge_one_commit(void **state) {
     gk_session_free(session2);
 }
 
-static void test_merge_divergent_commits_no_conflict(void **state) {    
+static void test_merge_divergent_commits_no_conflict(void **state) {
+    (void) state;
+    
     // Clone repo to two different locations
     gk_session *session1 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A");
     assert_non_null(session1);
@@ -205,6 +207,8 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
 }
 
 static void test_merge_divergent_commits_with_conflict(void **state) {
+    (void) state;
+
     // Clone repo to two different locations
     gk_session *session1 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A");
     assert_non_null(session1);
@@ -285,6 +289,8 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
 
 
 static void test_merge_open_existing_merge_conflicted_repo(void **state) {
+    (void) state;
+
     // Open pre-merge conflicted repo
     gk_session *session2 = gk_test_session_from_local_path("test-staging/simple-repo1-B_merge-conflicts");
 

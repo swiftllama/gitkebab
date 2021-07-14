@@ -34,6 +34,10 @@ int parent_directory_exists(const char* path) {
 }
 
 static int rm_rf_unlink_path(const char *path, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+    (void) sb;
+    (void) typeflag;
+    (void) ftwbuf;
+
     int rc = remove(path);
     if (rc != 0) {
         log_error(COMP_TEST, "Error (%d) removing path '%s': %s", errno, path, strerror(errno));

@@ -108,8 +108,6 @@ static int gk_session_credential_callback(git_credential **out,
 }
 
 int gk_session_clone(gk_session *session, gk_session_credential *credential) {
-    gk_result *result = NULL;
-    
     if ((session == NULL)) {
         log_error(COMP_CLONE, "Cannot clone, session is NULL");
         return GK_FAILURE;

@@ -8,7 +8,7 @@
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
 
-void session_progress(gk_session_progress *progress) { }
+void session_progress(gk_session_progress *progress) { (void) progress; }
 
 static int test_staging_setup(void **state) {
     gk_init();
@@ -22,10 +22,13 @@ static int test_staging_teardown(void **state) {
 static int test_staging_clean_repo_setup(void **state) {
     (void) state;
     gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak();
+    return 0;
 }
 
 
 static void test_index_add_remove_individual_files(void **state) {
+    (void) state;
+    
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file1");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file2");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");

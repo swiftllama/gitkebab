@@ -7,9 +7,11 @@
 #include "gk_test_filesystem_utils.h"
 
 gk_session_credential g_empty_credential;
-void session_progress(gk_session_progress *progress) { }
+void session_progress(gk_session_progress *progress) { (void) progress; }
 
 static int test_staging_setup(void **state) {
+    (void) state;
+    
     gk_init();
         
     if (directory_exists("test-staging") == 0) {

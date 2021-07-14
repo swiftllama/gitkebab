@@ -7,24 +7,6 @@
 #include "gk_logging.h"
 #include "gk_lg2_private.h"
 
-static git_index *index_for_session(gk_session *session, const char* purpose, const char *path) {
-    if (gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
-        return NULL;
-    }
-    else if (path == NULL) {
-        gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, path/pattern is NULL", purpose);
-        return NULL;
-    }
-    else if (path == "") {
-        gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, path/pattern is empty", purpose);
-        return NULL;
-    }
-
-    if (gk_lg2_index_load(session, purpose) == GK_FAILURE) {
-        return NULL;
-    }
-}
-
 static int verify_session_and_path(gk_session *session, const char* purpose, const char *path) {
     if (gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -32,7 +14,7 @@ static int verify_session_and_path(gk_session *session, const char* purpose, con
     if (path == NULL) {
         return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, path/pattern is NULL", purpose);
     }
-    else if (path == "") {
+    else if (path[0] == '\0') {
         return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, path/pattern is empty", purpose);
     }
     return GK_SUCCESS;
