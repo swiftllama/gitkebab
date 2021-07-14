@@ -92,16 +92,17 @@ static int merge_in_memory(gk_session *session) {
     checkout_options.progress_cb = gk_session_checkout_progress_callback;
     checkout_options.progress_payload = &authed_session;
 
-    git_index *new_index = NULL;
-    int rc = git_merge_commits(&new_index, session->lg2_resources->repository, session->lg2_resources->repository_head_commit, session->lg2_resources->fetch_head_commit, &merge_options);
+    gk_lg2_merge_index_free(session);
+    int rc = git_merge_commits(&session->lg2_resources->merge_index, session->lg2_resources->repository, session->lg2_resources->repository_head_commit, session->lg2_resources->fetch_head_commit, &merge_options);
     if (rc != 0) {
+        gk_lg2_merge_index_free(session);
         const git_error *err = git_error_last();
         gk_session_failure(session, &COMP_MERGE, -5, "Error performing in-memory merge (%d): %s", err->klass, err->message);
         return GK_FAILURE;
     }
 
-    gk_lg2_update_index(session, new_index);
-    if (git_index_has_conflicts(new_index) == 0) {
+    gk_lg2_promote_merge_index(session);
+    if (git_index_has_conflicts(session->lg2_resources->index) == 0) {
         if (gk_lg2_index_write_tree(session, session->lg2_resources->index, "merge in memory") != GK_SUCCESS) {
             return GK_FAILURE;
         }
@@ -111,6 +112,7 @@ static int merge_in_memory(gk_session *session) {
         }
 
         rc = create_merge_commit(session);
+        gk_lg2_merge_index_free(session);
         if (rc != GK_SUCCESS) {
             return GK_FAILURE;
         }

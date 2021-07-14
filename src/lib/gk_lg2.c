@@ -29,6 +29,7 @@ void gk_lg2_resources_init(gk_session *session) {
     session->lg2_resources->fetch_head_oid_id[0] = '\0';
 
     session->lg2_resources->index = NULL;
+    session->lg2_resources->merge_index = NULL;
     session->lg2_resources->tree = NULL;
     session->lg2_resources->reflog = NULL;
 
@@ -152,9 +153,20 @@ void gk_lg2_index_free(gk_session *session) {
     session->lg2_resources->index = NULL;
 }
 
-void gk_lg2_update_index(gk_session *session, git_index *new_index) {
+void gk_lg2_merge_index_free(gk_session *session) {
+    if (session->lg2_resources == NULL) {
+        return;
+    }
+
+    git_index_free(session->lg2_resources->merge_index);
+    session->lg2_resources->merge_index = NULL;
+}
+
+void gk_lg2_promote_merge_index(gk_session *session) {
     gk_lg2_index_free(session);
-    session->lg2_resources->index = new_index;
+    session->lg2_resources->index = session->lg2_resources->merge_index;
+    session->lg2_resources->merge_index = NULL;
+    
 }
 
 int gk_lg2_repository_open(gk_session *session, const char *purpose) {
@@ -292,11 +304,7 @@ int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_opt
     return GK_SUCCESS;
 }
 
-int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
-    const git_index_entry *ancestor;
-    const git_index_entry *ours;
-    const git_index_entry *theirs;
-
+int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {    
     log_info(COMP_CONFLICTS, "Iterating over conflicts");
     git_index_conflict_iterator *conflicts = NULL;  
     int rc = git_index_conflict_iterator_new(&conflicts, session->lg2_resources->index);
@@ -307,51 +315,40 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
     }
 
     int index = 0;
-    while ((rc = git_index_conflict_next(&ancestor, &ours, &theirs, conflicts)) == 0) {
+    gk_lg2_conflict_entry conflict_entry;
+    gk_lg2_conflict_entry_init(&conflict_entry);
+    
+    while ((rc = git_index_conflict_next(&conflict_entry.ancestor, &conflict_entry.ours, &conflict_entry.theirs, conflicts)) == 0) {
         fprintf(stderr, "conflict: a:%s o:%s t:%s\n",
-                ancestor ? ancestor->path : "NULL",
-                ours->path ? ours->path : "NULL",
-                theirs->path ? theirs->path : "NULL");
+                conflict_entry.ancestor ? conflict_entry.ancestor->path : "NULL",
+                conflict_entry.ours->path ? conflict_entry.ours->path : "NULL",
+                conflict_entry.theirs->path ? conflict_entry.theirs->path : "NULL");
 
-        git_blob *ancestor_blob = NULL;
-        git_blob *ours_blob = NULL;
-        git_blob *theirs_blob = NULL;
-
-        char ancestor_oid_id[41];
-        char ours_oid_id[41];
-        char theirs_oid_id[41];
-
-        git_oid_tostr(ancestor_oid_id, 41, &ancestor->id);
-        git_oid_tostr(ours_oid_id, 41, &ours->id);
-        git_oid_tostr(theirs_oid_id, 41, &theirs->id);
+        git_oid_tostr(conflict_entry.ancestor_oid_id, 41, &conflict_entry.ancestor->id);
+        git_oid_tostr(conflict_entry.ours_oid_id, 41, &conflict_entry.ours->id);
+        git_oid_tostr(conflict_entry.theirs_oid_id, 41, &conflict_entry.theirs->id);
         
-        log_info(COMP_CONFLICTS, "Conflict at index #%d has ancestor [%s], ours [%s], theirs [%s]", index, ancestor_oid_id, ours_oid_id, theirs_oid_id);
+        log_info(COMP_CONFLICTS, "Conflict at index #%d has ancestor [%s], ours [%s], theirs [%s]", index, conflict_entry.ancestor_oid_id, conflict_entry.ours_oid_id, conflict_entry.theirs_oid_id);
         
-        rc = git_blob_lookup(&ancestor_blob, session->lg2_resources->repository, &ancestor->id);
+        rc = git_blob_lookup(&conflict_entry.ancestor_blob, session->lg2_resources->repository, &conflict_entry.ancestor->id);
         if (rc != 0) {
-            git_blob_free(ancestor_blob);
-            git_blob_free(ours_blob);
-            git_blob_free(theirs_blob);
+            gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ancestor blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
         }
 
-        rc = git_blob_lookup(&ours_blob, session->lg2_resources->repository, &ours->id);
+        rc = git_blob_lookup(&conflict_entry.ours_blob, session->lg2_resources->repository, &conflict_entry.ours->id);
         if (rc != 0) {
-            git_blob_free(ancestor_blob);
-            git_blob_free(ours_blob);
-            git_blob_free(theirs_blob);
+            gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ours blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
         }
 
-        rc = git_blob_lookup(&theirs_blob, session->lg2_resources->repository, &theirs->id);
+        rc = git_blob_lookup(&conflict_entry.theirs_blob, session->lg2_resources->repository, &conflict_entry.theirs->id);
         if (rc != 0) {
-            git_blob_free(ancestor_blob);
-            git_blob_free(ours_blob);
-            git_blob_free(theirs_blob);
+            gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting theirs blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
@@ -362,23 +359,19 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
 
         git_diff_options diff_options = GIT_DIFF_OPTIONS_INIT;
         
-        rc = git_patch_from_blobs(&ancestor_to_ours_patch, ancestor_blob, ancestor->path, ours_blob, ours->path, &diff_options);
+        rc = git_patch_from_blobs(&ancestor_to_ours_patch, conflict_entry.ancestor_blob, conflict_entry.ancestor->path, conflict_entry.ours_blob, conflict_entry.ours->path, &diff_options);
         if (rc != 0) {
-            git_blob_free(ancestor_blob);
-            git_blob_free(ours_blob);
-            git_blob_free(theirs_blob);
+            gk_lg2_conflict_entry_free_members(&conflict_entry);
+            git_index_conflict_iterator_free(conflicts);
             git_patch_free(ancestor_to_theirs_patch);
             git_patch_free(ancestor_to_ours_patch);
-            git_index_conflict_iterator_free(conflicts);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error generating ancestor to ours patch for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
         }
 
-        rc = git_patch_from_blobs(&ancestor_to_theirs_patch, ancestor_blob, ancestor->path, ours_blob, ours->path, &diff_options);
+        rc = git_patch_from_blobs(&ancestor_to_theirs_patch, conflict_entry.ancestor_blob, conflict_entry.ancestor->path, conflict_entry.theirs_blob, conflict_entry.theirs->path, &diff_options);
         if (rc != 0) {
-            git_blob_free(ancestor_blob);
-            git_blob_free(ours_blob);
-            git_blob_free(theirs_blob);
+            gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
             git_patch_free(ancestor_to_theirs_patch);
             git_patch_free(ancestor_to_ours_patch);
@@ -391,9 +384,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
 
         rc = git_patch_to_buf(&ancestor_to_ours_buf, ancestor_to_ours_patch);
         if (rc != 0) {
-            git_blob_free(ancestor_blob);
-            git_blob_free(ours_blob);
-            git_blob_free(theirs_blob);
+            gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
             git_patch_free(ancestor_to_theirs_patch);
             git_patch_free(ancestor_to_ours_patch);
@@ -404,9 +395,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
 
         rc = git_patch_to_buf(&ancestor_to_theirs_buf, ancestor_to_theirs_patch);
         if (rc != 0) {
-            git_blob_free(ancestor_blob);
-            git_blob_free(ours_blob);
-            git_blob_free(theirs_blob);
+            gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
             git_patch_free(ancestor_to_theirs_patch);
             git_patch_free(ancestor_to_ours_patch);
@@ -419,13 +408,12 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         log_error(COMP_CONFLICTS, "DBG C0 found ancestor-to-ours diff: -------\n%s\n---------", ancestor_to_ours_buf.ptr);
         log_error(COMP_CONFLICTS, "DBG C1 found ancestor-to-theirs diff: -------\n%s\n---------", ancestor_to_theirs_buf.ptr);
 
-        git_blob_free(ancestor_blob);
-        git_blob_free(ours_blob);
-        git_blob_free(theirs_blob);
         git_patch_free(ancestor_to_theirs_patch);
         git_patch_free(ancestor_to_ours_patch);
         git_buf_dispose(&ancestor_to_ours_buf);
         git_buf_dispose(&ancestor_to_theirs_buf);
+        
+        gk_lg2_conflict_entry_free_members(&conflict_entry);
         index += 1;
     }
 
@@ -441,4 +429,31 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
 
     git_index_conflict_iterator_free(conflicts);
     return GK_SUCCESS;
+}
+
+void gk_lg2_conflict_entry_init(gk_lg2_conflict_entry *entry) {
+    entry->ancestor = NULL;
+    entry->ours = NULL;
+    entry->theirs = NULL;
+    entry->ancestor_blob = NULL;
+    entry->ours_blob = NULL;
+    entry->theirs_blob = NULL;
+    entry->ancestor_oid_id[0] = '\0';
+    entry->ours_oid_id[0] = '\0';
+    entry->theirs_oid_id[0] = '\0';
+}
+
+void gk_lg2_conflict_entry_free_members(gk_lg2_conflict_entry *entry) {
+    git_blob_free(entry->ancestor_blob);
+    git_blob_free(entry->ours_blob);
+    git_blob_free(entry->theirs_blob);
+    entry->ancestor = NULL;
+    entry->ours = NULL;
+    entry->theirs = NULL;
+    entry->ancestor_blob = NULL;
+    entry->ours_blob = NULL;
+    entry->theirs_blob = NULL;
+    entry->ancestor_oid_id[0] = '\0';
+    entry->ours_oid_id[0] = '\0';
+    entry->theirs_oid_id[0] = '\0';
 }

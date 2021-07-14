@@ -7,6 +7,8 @@ add_library(gitkebab
   gitkebab.h
   gk_commit.c
   gk_commit.h
+  gk_conflicts.c
+  gk_conflicts.h
   gk_credentials.c
   gk_credentials.h
   gk_index.c

@@ -23,6 +23,7 @@ struct gk_lg2_resources {
     
     git_reflog *reflog;
     git_index *index;
+    git_index *merge_index;
     git_tree *tree;
 
     git_signature *signature;
@@ -33,6 +34,23 @@ struct gk_lg2_resources {
     git_repository *repository;    
 };
 
+typedef struct {
+    const git_index_entry *ancestor;
+    const git_index_entry *ours;
+    const git_index_entry *theirs;
+    
+    git_blob *ancestor_blob;
+    git_blob *ours_blob;
+    git_blob *theirs_blob;
+
+    char ancestor_oid_id[41];
+    char ours_oid_id[41];
+    char theirs_oid_id[41];
+}  gk_lg2_conflict_entry;
+
+void gk_lg2_conflict_entry_init(gk_lg2_conflict_entry *entry);
+void gk_lg2_conflict_entry_free_members(gk_lg2_conflict_entry *entry);
+    
 void gk_lg2_resources_init(gk_session *session);
 
 void gk_lg2_free_all_but_repository(gk_session *session);
@@ -42,7 +60,8 @@ void gk_lg2_free_references(gk_session *session);
 
 int gk_lg2_index_load(gk_session *session, const char *purpose);
 void gk_lg2_index_free(gk_session *session);
-void gk_lg2_update_index(gk_session *session, git_index *new_index);
+void gk_lg2_promote_merge_index(gk_session *session);
+void gk_lg2_merge_index_free(gk_session *session);
 
 int gk_lg2_repository_open(gk_session *session, const char *purpose);
 void gk_lg2_repository_free(gk_session *session);

@@ -33,6 +33,18 @@ typedef struct {
 } gk_checkout_progress;
 
 typedef struct {
+    char *path;
+    void *ancestor_oid;
+    void *ours_oid;
+    void *theirs_oid;
+} gk_merge_conflict_entry;
+
+typedef struct {
+    size_t num_conflicts;
+    gk_merge_conflict_entry **conflicts;
+} gk_merge_conflict_summary;
+    
+typedef struct {
     unsigned int current;
     unsigned int total;
     size_t bytes;
@@ -111,7 +123,8 @@ struct gk_session {
     gk_session_callbacks callbacks;
     gk_session_state state;
     gk_status_summary status_summary;
-
+    gk_merge_conflict_summary conflict_summary;
+    
     gk_lg2_resources *lg2_resources;
 };
 
