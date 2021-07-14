@@ -103,28 +103,28 @@ static int merge_in_memory(gk_session *session, const char *from_ref_name) {
         return GK_FAILURE;
     }
 
+    gk_lg2_update_index(session, new_index);
     if (git_index_has_conflicts(new_index) == 0) {
-        if (gk_lg2_index_write_tree(session, new_index, "merge in memory") != GK_SUCCESS) {
-            git_index_free(new_index);
+        if (gk_lg2_index_write_tree(session, session->lg2_resources->index, "merge in memory") != GK_SUCCESS) {
             return GK_FAILURE;
         }
         
         if (gk_lg2_checkout_tree(session, &checkout_options, "merge in memory") != GK_SUCCESS) {
-            git_index_free(new_index);
             return GK_FAILURE;
         }
 
         rc = create_merge_commit(session, session->lg2_resources->fetch_head_ref, session->lg2_resources->fetch_head_object);
         if (rc != GK_SUCCESS) {
-            git_index_free(new_index);
             return GK_FAILURE;
         }
     }
     else { // has conflicts
         log_error(COMP_MERGE, "detected conflicts after merge");
+        if (gk_lg2_iterate_conflicts(session, "merge in memory") != GK_SUCCESS) {;
+            return GK_FAILURE;
+        }
     }
 
-    git_index_free(new_index);
     return GK_SUCCESS;
 }
 

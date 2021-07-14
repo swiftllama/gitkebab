@@ -152,6 +152,11 @@ void gk_lg2_index_free(gk_session *session) {
     session->lg2_resources->index = NULL;
 }
 
+void gk_lg2_update_index(gk_session *session, git_index *new_index) {
+    gk_lg2_index_free(session);
+    session->lg2_resources->index = new_index;
+}
+
 int gk_lg2_repository_open(gk_session *session, const char *purpose) {
     int rc = git_repository_open(&session->lg2_resources->repository, session->repository.local_path);
     if (rc != 0) {
@@ -282,5 +287,156 @@ int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_opt
         return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error checking out tree [%s] (%d): %s", session->lg2_resources->tree_oid_id, err->klass, err->message);
     }
 
+    return GK_SUCCESS;
+}
+
+int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
+    const git_index_entry *ancestor;
+    const git_index_entry *ours;
+    const git_index_entry *theirs;
+
+    log_info(COMP_CONFLICTS, "Iterating over conflicts");
+    git_index_conflict_iterator *conflicts = NULL;  
+    int rc = git_index_conflict_iterator_new(&conflicts, session->lg2_resources->index);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error getting conflict iterator (%d): %s", purpose, err->klass, err->message);
+        git_index_conflict_iterator_free(conflicts);
+    }
+
+    int index = 0;
+    while ((rc = git_index_conflict_next(&ancestor, &ours, &theirs, conflicts)) == 0) {
+        fprintf(stderr, "conflict: a:%s o:%s t:%s\n",
+                ancestor ? ancestor->path : "NULL",
+                ours->path ? ours->path : "NULL",
+                theirs->path ? theirs->path : "NULL");
+
+        git_blob *ancestor_blob = NULL;
+        git_blob *ours_blob = NULL;
+        git_blob *theirs_blob = NULL;
+
+        char ancestor_oid_id[41];
+        char ours_oid_id[41];
+        char theirs_oid_id[41];
+
+        git_oid_tostr(ancestor_oid_id, 41, &ancestor->id);
+        git_oid_tostr(ours_oid_id, 41, &ours->id);
+        git_oid_tostr(theirs_oid_id, 41, &theirs->id);
+        
+        log_info(COMP_CONFLICTS, "Conflict at index #%d has ancestor [%s], ours [%s], theirs [%s]", index, ancestor_oid_id, ours_oid_id, theirs_oid_id);
+        
+        rc = git_blob_lookup(&ancestor_blob, session->lg2_resources->repository, &ancestor->id);
+        if (rc != 0) {
+            git_blob_free(ancestor_blob);
+            git_blob_free(ours_blob);
+            git_blob_free(theirs_blob);
+            git_index_conflict_iterator_free(conflicts);
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ancestor blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        }
+
+        rc = git_blob_lookup(&ours_blob, session->lg2_resources->repository, &ours->id);
+        if (rc != 0) {
+            git_blob_free(ancestor_blob);
+            git_blob_free(ours_blob);
+            git_blob_free(theirs_blob);
+            git_index_conflict_iterator_free(conflicts);
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ours blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        }
+
+        rc = git_blob_lookup(&theirs_blob, session->lg2_resources->repository, &theirs->id);
+        if (rc != 0) {
+            git_blob_free(ancestor_blob);
+            git_blob_free(ours_blob);
+            git_blob_free(theirs_blob);
+            git_index_conflict_iterator_free(conflicts);
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting theirs blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        }
+
+        git_patch *ancestor_to_ours_patch = NULL;
+        git_patch *ancestor_to_theirs_patch = NULL;
+
+        git_diff_options diff_options = GIT_DIFF_OPTIONS_INIT;
+        
+        rc = git_patch_from_blobs(&ancestor_to_ours_patch, ancestor_blob, ancestor->path, ours_blob, ours->path, &diff_options);
+        if (rc != 0) {
+            git_blob_free(ancestor_blob);
+            git_blob_free(ours_blob);
+            git_blob_free(theirs_blob);
+            git_patch_free(ancestor_to_theirs_patch);
+            git_patch_free(ancestor_to_ours_patch);
+            git_index_conflict_iterator_free(conflicts);
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error generating ancestor to ours patch for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        }
+
+        rc = git_patch_from_blobs(&ancestor_to_theirs_patch, ancestor_blob, ancestor->path, ours_blob, ours->path, &diff_options);
+        if (rc != 0) {
+            git_blob_free(ancestor_blob);
+            git_blob_free(ours_blob);
+            git_blob_free(theirs_blob);
+            git_index_conflict_iterator_free(conflicts);
+            git_patch_free(ancestor_to_theirs_patch);
+            git_patch_free(ancestor_to_ours_patch);
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error generating ancestor to theirs patch for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        }
+
+        git_buf ancestor_to_ours_buf = {0};
+        git_buf ancestor_to_theirs_buf = {0};
+
+        rc = git_patch_to_buf(&ancestor_to_ours_buf, ancestor_to_ours_patch);
+        if (rc != 0) {
+            git_blob_free(ancestor_blob);
+            git_blob_free(ours_blob);
+            git_blob_free(theirs_blob);
+            git_index_conflict_iterator_free(conflicts);
+            git_patch_free(ancestor_to_theirs_patch);
+            git_patch_free(ancestor_to_ours_patch);
+            git_buf_dispose(&ancestor_to_ours_buf);
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting buf for ancestor to ours patch for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        }
+
+        rc = git_patch_to_buf(&ancestor_to_theirs_buf, ancestor_to_theirs_patch);
+        if (rc != 0) {
+            git_blob_free(ancestor_blob);
+            git_blob_free(ours_blob);
+            git_blob_free(theirs_blob);
+            git_index_conflict_iterator_free(conflicts);
+            git_patch_free(ancestor_to_theirs_patch);
+            git_patch_free(ancestor_to_ours_patch);
+            git_buf_dispose(&ancestor_to_ours_buf);
+            git_buf_dispose(&ancestor_to_theirs_buf);
+            const git_error *err = git_error_last();
+            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting buf for ancestor to theis patch for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        }
+
+        log_error(COMP_CONFLICTS, "DBG C0 found ancestor-to-ours diff: -------\n%s\n---------", ancestor_to_ours_buf.ptr);
+        log_error(COMP_CONFLICTS, "DBG C1 found ancestor-to-theirs diff: -------\n%s\n---------", ancestor_to_theirs_buf.ptr);
+
+        git_blob_free(ancestor_blob);
+        git_blob_free(ours_blob);
+        git_blob_free(theirs_blob);
+        git_patch_free(ancestor_to_theirs_patch);
+        git_patch_free(ancestor_to_ours_patch);
+        git_buf_dispose(&ancestor_to_ours_buf);
+        git_buf_dispose(&ancestor_to_theirs_buf);
+        index += 1;
+    }
+
+    log_info(COMP_MERGE, "Done iteratoring over conflicts (err: %d)", (rc != GIT_ITEROVER ? rc : 0));
+    
+    if (rc != GIT_ITEROVER) {
+        git_index_conflict_iterator_free(conflicts);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error getting next conflict from iterator (%d): %s", purpose, err->klass, err->message);
+        git_index_conflict_iterator_free(conflicts);
+        return GK_FAILURE;
+    }
+
+    git_index_conflict_iterator_free(conflicts);
     return GK_SUCCESS;
 }

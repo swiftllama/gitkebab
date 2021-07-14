@@ -30,7 +30,7 @@ struct gk_lg2_resources {
     git_commit **merge_parents;
 
     git_status_list *status_list;
-    git_repository *repository;
+    git_repository *repository;    
 };
 
 void gk_lg2_resources_init(gk_session *session);
@@ -42,6 +42,7 @@ void gk_lg2_free_references(gk_session *session);
 
 int gk_lg2_index_load(gk_session *session, const char *purpose);
 void gk_lg2_index_free(gk_session *session);
+void gk_lg2_update_index(gk_session *session, git_index *new_index);
 
 int gk_lg2_repository_open(gk_session *session, const char *purpose);
 void gk_lg2_repository_free(gk_session *session);
@@ -62,5 +63,7 @@ int gk_lg2_status_list_load(gk_session *session, const char *purpose);
 void gk_lg2_status_list_free(gk_session *session);
 
 int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_options, const char *purpose);
+
+int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose);
 
 #endif // _GK_LG2_PRIVATE_H__
