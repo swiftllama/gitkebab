@@ -34,16 +34,21 @@ typedef struct {
 
 typedef struct {
     char *path;
-    void *ancestor_oid;
-    void *ours_oid;
-    void *theirs_oid;
+    char ancestor_oid_id[41];
+    char ours_oid_id[41];
+    char theirs_oid_id[41];
 } gk_merge_conflict_entry;
 
 typedef struct {
     size_t num_conflicts;
     gk_merge_conflict_entry **conflicts;
 } gk_merge_conflict_summary;
-    
+
+typedef struct {
+    const char *ancestor_to_ours_diff;
+    const char *ancestor_to_theirs_diff;
+} gk_conflict_diff_summary;
+
 typedef struct {
     unsigned int current;
     unsigned int total;
@@ -134,5 +139,13 @@ typedef struct {
 } gk_authenticated_session;
 
 
+typedef struct void_linked_node void_linked_node;
+
+struct void_linked_node {
+    void *data;
+    void_linked_node *next;
+};
+
+    
 
 #endif // __GK_TYPES_H__

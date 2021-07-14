@@ -84,5 +84,6 @@ void gk_lg2_status_list_free(gk_session *session);
 int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_options, const char *purpose);
 
 int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose);
+gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_merge_conflict_entry *entry, const char *purpose);
 
 #endif // _GK_LG2_PRIVATE_H__
