@@ -309,8 +309,8 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
     log_info(COMP_CONFLICTS, "Iterating over conflicts");
     git_index_conflict_iterator *conflicts = NULL;
 
-    void_linked_node *conflict_chain = void_linked_node_new();
-    void_linked_node *next_conflict_node = conflict_chain;
+    gk_void_linked_node *conflict_chain = gk_void_linked_node_new();
+    gk_void_linked_node *next_conflict_node = conflict_chain;
         
     int rc = git_index_conflict_iterator_new(&conflicts, session->lg2_resources->index);
     if (rc != 0) {
@@ -340,7 +340,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         if (rc != 0) {
             gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
-            free_void_node_chain(conflict_chain, 1);
+            gk_free_void_node_chain(conflict_chain, 1);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ancestor blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
         }
@@ -349,7 +349,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         if (rc != 0) {
             gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
-            free_void_node_chain(conflict_chain, 1);
+            gk_free_void_node_chain(conflict_chain, 1);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ours blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
         }
@@ -358,7 +358,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         if (rc != 0) {
             gk_lg2_conflict_entry_free_members(&conflict_entry);
             git_index_conflict_iterator_free(conflicts);
-            free_void_node_chain(conflict_chain, 1);
+            gk_free_void_node_chain(conflict_chain, 1);
             const git_error *err = git_error_last();
             return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting theirs blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
         }
@@ -371,7 +371,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         strncpy(entry->theirs_oid_id, conflict_entry.theirs_oid_id, 41);
 
         next_conflict_node->data = (void *)entry;
-        next_conflict_node->next = void_linked_node_new();
+        next_conflict_node->next = gk_void_linked_node_new();
         next_conflict_node = next_conflict_node->next;
 
         /*
@@ -396,7 +396,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
     
     if (rc != GIT_ITEROVER) {
         git_index_conflict_iterator_free(conflicts);
-        free_void_node_chain(conflict_chain, 1);
+        gk_free_void_node_chain(conflict_chain, 1);
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error getting next conflict from iterator (%d): %s", purpose, err->klass, err->message);
     }
@@ -409,7 +409,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         next_conflict_node = next_conflict_node->next;
     }
     
-    free_void_node_chain(conflict_chain, 0);
+    gk_free_void_node_chain(conflict_chain, 0);
     git_index_conflict_iterator_free(conflicts);
     return GK_SUCCESS;
 }

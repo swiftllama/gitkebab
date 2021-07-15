@@ -34,18 +34,18 @@ void gk_conflict_diff_summary_free(gk_conflict_diff_summary *summary) {
 }
 
 
-void_linked_node *void_linked_node_new() {
-    void_linked_node *new_node = malloc(sizeof(void_linked_node));
+gk_void_linked_node *gk_void_linked_node_new() {
+    gk_void_linked_node *new_node = malloc(sizeof(gk_void_linked_node));
     new_node->data = NULL;
     new_node->next = NULL;
     return new_node;
 }
 
-void free_void_node_chain(void_linked_node *chain, int free_data) {
+void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data) {
     if (chain == NULL) {
         return;
     }
-    free_void_node_chain(chain->next, free_data);
+    gk_free_void_node_chain(chain->next, free_data);
     chain->next = NULL;
     if (free_data == 1) {
         free(chain->data);

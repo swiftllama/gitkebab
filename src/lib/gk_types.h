@@ -139,11 +139,11 @@ typedef struct {
 } gk_authenticated_session;
 
 
-typedef struct void_linked_node void_linked_node;
+typedef struct gk_void_linked_node gk_void_linked_node;
 
-struct void_linked_node {
+struct gk_void_linked_node {
     void *data;
-    void_linked_node *next;
+    gk_void_linked_node *next;
 };
 
     
