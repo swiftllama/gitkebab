@@ -65,7 +65,7 @@ static void test_merge_no_changes(void **state) {
 
     assert_int_equal(0, gk_session_state_enabled(session1, GK_SESSION_STATE_MERGE_IN_PROGRESS));
     assert_int_equal(0, gk_session_state_enabled(session1, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(0, gk_session_state_enabled(session1, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
+    assert_int_equal(0, gk_session_state_enabled(session1, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
 
     gk_session_free(session1);
 }
@@ -120,7 +120,7 @@ static void test_merge_one_commit(void **state) {
 
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -200,7 +200,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
 
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -257,7 +257,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     gk_session_merge_into_head(session2, "refs/remotes/origin/master");
 
     assert_int_equal(gk_result_code(session2->last_result), 0);
-    assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_head_after_merge = {0};
     gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
@@ -281,7 +281,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
 
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
     assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
+    assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -297,7 +297,9 @@ static void test_merge_open_existing_merge_conflicted_repo(void **state) {
     // Compare
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
     assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING));
+    assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
+
+    // TODO: test resolving on-disk merge
     
     gk_session_free(session2);
 }

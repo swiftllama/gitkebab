@@ -80,7 +80,7 @@ int gk_session_open_local_repository(gk_session *session) {
 
     if (git_repository_is_bare(session->lg2_resources->repository) == 1) {
         gk_session_state_unset(session, GK_SESSION_STATE_HAS_CONFLICTS);
-        gk_session_state_unset(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
+        gk_session_state_unset(session, GK_SESSION_STATE_MERGE_PENDING_ON_DISK);
     }
     else {
         int rc = gk_session_status_summary_query(session);

@@ -88,11 +88,11 @@ typedef enum {
     GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS      = (1 << 0),
     GK_SESSION_STATE_HAS_CONFLICTS              = (1 << 1),
     GK_SESSION_STATE_HAS_CHANGES_TO_MERGE       = (1 << 2),
-    GK_SESSION_STATE_MERGE_IN_PROGRESS          = (1 << 3),
-    GK_SESSION_STATE_CLONE_IN_PROGRESS          = (1 << 4),
-    GK_SESSION_STATE_PUSH_IN_PROGRESS           = (1 << 5),
-    GK_SESSION_STATE_FETCH_IN_PROGRESS          = (1 << 6),
-    GK_SESSION_STATE_MERGE_FINALIZATION_PENDING = (1 << 7),
+    GK_SESSION_STATE_CLONE_IN_PROGRESS          = (1 << 3),
+    GK_SESSION_STATE_PUSH_IN_PROGRESS           = (1 << 4),
+    GK_SESSION_STATE_FETCH_IN_PROGRESS          = (1 << 5),
+    GK_SESSION_STATE_MERGE_IN_PROGRESS          = (1 << 6),
+    GK_SESSION_STATE_MERGE_PENDING_ON_DISK      = (1 << 7),
 } gk_session_state;
     
 typedef struct {

@@ -116,12 +116,16 @@ static int merge_in_memory(gk_session *session) {
         if (rc != GK_SUCCESS) {
             return GK_FAILURE;
         }
+        gk_session_state_unset(session, GK_SESSION_STATE_HAS_CONFLICTS);
+        gk_session_state_unset(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
     }
     else { // has conflicts
         log_error(COMP_MERGE, "detected conflicts after merge");
         if (gk_lg2_iterate_conflicts(session, "merge in memory") != GK_SUCCESS) {;
             return GK_FAILURE;
         }
+        gk_session_state_set(session, GK_SESSION_STATE_HAS_CONFLICTS);
+        gk_session_state_set(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
     }
 
     return GK_SUCCESS;
@@ -200,6 +204,9 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
         return gk_session_failure(session, &COMP_MERGE, -6, "Error preforming fast-forward merge, failed to advance head to oid '%s' (%d): %s", session->lg2_resources->fetch_head_oid_id, err->klass, err->message);
     }
 
+    gk_session_state_unset(session, GK_SESSION_STATE_HAS_CONFLICTS);
+    gk_session_state_unset(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
+    
     return gk_session_success(session);
 }
 
@@ -211,6 +218,10 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     if (gk_lg2_load_references(session, from_ref_name, "analyze merge for fetch") != GK_SUCCESS) {
         gk_lg2_free_all_but_repository(session);
         return GK_FAILURE;
+    }
+
+    if (gk_session_state_enabled(session, GK_SESSION_STATE_MERGE_PENDING_ON_DISK)) {
+        return gk_session_failure(session, &COMP_MERGE, -5, "UNIMPLEMENTED: merge pending on disk");
     }
     
     int rc = gk_session_analyze_merge_into_head(session, from_ref_name, &merge_analysis);
@@ -231,7 +242,7 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0) {
-        log_info(COMP_MERGE, "will attempt a normal merge");
+        log_info(COMP_MERGE, "will attempt an in-memory merge");
         rc = merge_in_memory(session);
         if (rc == GK_FAILURE) {
             log_info(COMP_MERGE, "in-memory merge failed: %s (%d)", gk_result_message(session->last_result), gk_result_code(session->last_result));
@@ -254,8 +265,16 @@ int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
     }
 
     gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
-    gk_session_state_unset(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
-    log_info(COMP_MERGE, "merge succeeded");
+
+    if (gk_session_state_enabled(session, GK_SESSION_STATE_HAS_CONFLICTS)) {
+        log_info(COMP_MERGE, "merge attemt ended with conflicts");
+    }
+    else if (gk_session_state_enabled(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE)) {
+        log_info(COMP_MERGE, "merge attemt ended without conflicts but merge still pending");
+    }
+    else {
+        log_info(COMP_MERGE, "merge attemt ended, all changes merged");
+    }
 
     gk_lg2_free_all_but_repository(session);
     return gk_session_success(session);

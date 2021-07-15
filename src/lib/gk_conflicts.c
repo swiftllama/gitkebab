@@ -9,6 +9,10 @@ int gk_conflicts_allocate(gk_session *session, size_t num_conflicts) {
 }
 
 void gk_conflicts_free(gk_session *session) {
+    for (size_t i = 0; i < session->conflict_summary.num_conflicts; i += 1) {
+        free(session->conflict_summary.conflicts[i]);
+        session->conflict_summary.conflicts[i] = NULL;
+    }
     free(session->conflict_summary.conflicts);
     // TODO free indifivual conflicts?
     session->conflict_summary.conflicts = NULL;

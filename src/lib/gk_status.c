@@ -75,10 +75,10 @@ int gk_session_status_summary_query(gk_session *session) {
         
     int status = git_repository_state(session->lg2_resources->repository);
     if (status == GIT_REPOSITORY_STATE_MERGE) {
-        gk_session_state_set(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
+        gk_session_state_set(session, GK_SESSION_STATE_MERGE_PENDING_ON_DISK);
     }
     else {
-        gk_session_state_unset(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
+        gk_session_state_unset(session, GK_SESSION_STATE_MERGE_PENDING_ON_DISK);
     }
 
     return gk_session_success(session);
