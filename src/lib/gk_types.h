@@ -146,6 +146,8 @@ struct gk_void_linked_node {
     gk_void_linked_node *next;
 };
 
-    
+typedef enum {
+    GK_CONFLICT_RESOLUTION_OURS, GK_CONFLICT_RESOLUTION_THEIRS
+} gk_conflict_resolution;
 
 #endif // __GK_TYPES_H__

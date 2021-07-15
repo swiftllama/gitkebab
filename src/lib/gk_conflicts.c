@@ -1,6 +1,12 @@
 
-#include "gk_conflicts.h"
 #include <stdlib.h>
+#include "git2.h"
+
+#include "gk_conflicts.h"
+#include "gk_session.h"
+#include "gk_lg2_private.h"
+
+
 
 int gk_conflicts_allocate(gk_session *session, size_t num_conflicts) {
     session->conflict_summary.num_conflicts = num_conflicts;
@@ -52,4 +58,56 @@ void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data) {
     }
     chain->data = NULL;
     free(chain);
+}
+
+int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resolution accept) {
+    if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, "resolve conflict") != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    if (path == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -5, "Cannot %s for NULL path", "resolve conflict");
+    }
+    const char *purpose = "";
+    if (accept == GK_CONFLICT_RESOLUTION_OURS) {
+        purpose = "resolve conflict (accept ours)";
+    }
+    else if (accept == GK_CONFLICT_RESOLUTION_THEIRS) {
+        purpose = "resolve conflict (accept theirs)";
+    }
+    else {
+        return gk_session_failure(session, &COMP_CONFLICTS, -6, "Canont resolve conflict for path '%s', unknown resolution type '%d' (expected ours '%d' or theirs '%d')", accept, GK_CONFLICT_RESOLUTION_OURS, GK_CONFLICT_RESOLUTION_THEIRS);
+    }
+
+    const git_index_entry *conflicted_entry = git_index_get_bypath(session->lg2_resources->merge_index, path, GIT_INDEX_STAGE_NORMAL);
+    if (conflicted_entry == NULL) {
+        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, file not found in index at path %s", path);
+    }
+
+    const git_index_entry *ancestor_entry = NULL;
+    const git_index_entry *ours_entry = NULL;
+    const git_index_entry *theirs_entry = NULL;
+
+    if (gk_lg2_index_conflict_get(session, &ancestor_entry, &ours_entry, &theirs_entry, session->lg2_resources->merge_index, path, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    git_index_entry clean_entry = *conflicted_entry;
+
+    if (accept == GK_CONFLICT_RESOLUTION_OURS) {
+        clean_entry.id = ours_entry->id;
+    }
+    else if (accept == GK_CONFLICT_RESOLUTION_THEIRS) {
+        clean_entry.id = theirs_entry->id;
+    }
+
+    if (gk_lg2_index_add(session, &clean_entry, path, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+            
+    if (git_index_conflict_remove(session->lg2_resources->merge_index, path) != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -11, "Cannot %s, error removing conflicts for entry '%s' (%d): %s", purpose, path, err->klass, err->message);
+    }
+
+    return GK_SUCCESS;
 }

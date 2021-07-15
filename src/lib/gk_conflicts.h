@@ -13,4 +13,6 @@ gk_conflict_diff_summary *gk_conflict_diff_summary_new();
 void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data);
 gk_void_linked_node *gk_void_linked_node_new();
 
+int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resolution accept);
+
 #endif // __GK_CONFLICTS_H__

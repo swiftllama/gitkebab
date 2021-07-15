@@ -554,3 +554,21 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
 
     return summary;
 }
+
+int gk_lg2_index_conflict_get(gk_session *session, const git_index_entry **ancestor_entry, const git_index_entry **ours_entry, const git_index_entry **theirs_entry, git_index *index, const char *path, const char *purpose) {
+    int rc = git_index_conflict_get(ancestor_entry, ours_entry, theirs_entry, index, path);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -10, "Cannot %s, error obtaining conflict entries for path '%s' (%d): %s", purpose, path, err->klass, err->message);
+    }
+    return GK_SUCCESS;
+}
+
+int gk_lg2_index_add(gk_session *session, const git_index_entry *entry, const char *path, const char *purpose) {
+    int rc = git_index_add(session->lg2_resources->merge_index, entry);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -10, "Cannot %s, error adding entry for path '%s' (%d): %s", purpose, path, err->klass, err->message);
+    }
+    return GK_SUCCESS;
+}

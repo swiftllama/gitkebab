@@ -203,5 +203,11 @@ int gk_session_verify(gk_session *session, log_Component *component, int conditi
         }
     }
 
+    if (condition & GK_SESSION_VERIFY_MERGE_IN_PROGRESS) {
+        if (session->lg2_resources->merge_index == NULL) {
+            return gk_session_failure(session, component, -5, "Cannot %s, no merge is in progress", purpose);
+        }
+    }
+
     return GK_SUCCESS;
 }
