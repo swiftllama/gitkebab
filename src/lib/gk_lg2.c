@@ -374,16 +374,17 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         next_conflict_node->next = gk_void_linked_node_new();
         next_conflict_node = next_conflict_node->next;
 
+        
+        // DBG
         /*
+        gk_conflict_diff_summary *summary = NULL;
+        summary = gk_lg2_conflict_diff_summary(session, entry, purpose);
+
         log_error(COMP_CONFLICTS, "DBG C0x found ancestor-to-ours diff: -------\n%s\n---------", summary->ancestor_to_ours_diff);
         log_error(COMP_CONFLICTS, "DBG C1x found ancestor-to-theirs diff: -------\n%s\n---------", summary->ancestor_to_theirs_diff);
 
-        gk_conflict_diff_summar_free(summary);
-
-        git_patch_free(ancestor_to_theirs_patch);
-        git_patch_free(ancestor_to_ours_patch);
-        git_buf_dispose(&ancestor_to_ours_buf);
-        git_buf_dispose(&ancestor_to_theirs_buf);*/
+        gk_conflict_diff_summary_free(summary);*/
+        // END DBG
 
 
         
