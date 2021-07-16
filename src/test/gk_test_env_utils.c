@@ -3,6 +3,11 @@
 #include "gk_test_filesystem_utils.h"
 #include "gitkebab.h"
 
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <cmocka.h>
+
 gk_session_credential g_empty_credential;
 
 void gk_test_copy_source_repo_simplerepo1_dot_git() {
@@ -129,4 +134,120 @@ gk_session *gk_test_session_from_clone(const char *remote_repo, const char *loca
     }
 
     return session;
+}
+
+void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **session1_ptr, gk_session **session2_ptr, void **state) {
+    (void) state;
+    int rc;
+    
+    // Clone repo to two different locations
+    *session1_ptr =  gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-A");
+    gk_session *session1 = *session1_ptr;
+    assert_non_null(session1);
+    
+    *session2_ptr = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-B");
+    gk_session *session2 = *session2_ptr;
+    assert_non_null(session2);
+
+    ////
+    //// Modify repo-A, commit and push
+    ////
+    
+    // modify file1 (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+    assert_int_equal(rc, 0);
+    
+    // delete file2 (should conflict)
+    rc = rm_rf("test-staging/simple-repo1-A/file2");
+    assert_int_equal(rc, 0);
+    
+    // modify file 3 in incomptabile ways (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file3-mod-incompatible-a", "test-staging/simple-repo1-A/file3");
+    assert_int_equal(rc, 0);
+    
+    // modify file 4 in incompatible ways (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file4-mod-incompatible-a", "test-staging/simple-repo1-A/file4");
+    assert_int_equal(rc, 0);
+    
+    // modify file 5 (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file5-mod-compatible-a", "test-staging/simple-repo1-A/file5");
+    assert_int_equal(rc, 0);
+
+    // create binary file 6 (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/green.png", "test-staging/simple-repo1-A/file6");
+    assert_int_equal(rc, 0);
+
+    // create same new file 7 (should NOT conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file7");
+    assert_int_equal(rc, 0);
+
+    // commit and push
+    gk_session_index_add_path(session1, "file1");
+    gk_session_index_remove_path(session1, "file2");
+    gk_session_index_add_path(session1, "file3");
+    gk_session_index_add_path(session1, "file4");
+    gk_session_index_add_path(session1, "file5");
+    gk_session_index_add_path(session1, "file6");
+    gk_session_index_add_path(session1, "file7");
+    gk_session_commit(session1, "HEAD", "commit repo A modifications", NULL);
+    assert_int_equal(gk_result_code(session1->last_result), 0);
+
+    gk_session_push(session1, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session1->last_result), 0);
+
+    ////
+    //// Modify repo-B, commit
+    ////
+    
+    // delete file1 (should conflict)
+    rc = rm_rf("test-staging/simple-repo1-B/file1");
+    assert_int_equal(rc, 0);
+    
+    // modify file2 (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file2");
+    assert_int_equal(rc, 0);
+
+    // modify file 3 in incomptabile ways (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file3-mod-incompatible-b", "test-staging/simple-repo1-B/file3");
+    assert_int_equal(rc, 0);
+
+    // modify file 4 in incompatible ways (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file4-mod-incompatible-b", "test-staging/simple-repo1-B/file4");
+    assert_int_equal(rc, 0);
+
+    // Delete file5 and create a directory in its place (should conflict)
+    rc = rm_rf("test-staging/simple-repo1-B/file5");
+    assert_int_equal(rc, 0);
+    rc = create_directory("test-staging/simple-repo1-B/file5");    
+    assert_int_equal(rc, 0);
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file5/child1");
+    
+    // create text file 6 (should conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file6");
+    assert_int_equal(rc, 0);
+
+    // create same new file 7 (should NOT conflict)
+    rc = copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file7");
+    assert_int_equal(rc, 0);
+
+    // commit but don't push
+    gk_session_index_remove_path(session2, "file1");
+    gk_session_index_add_path(session2, "file2");
+    gk_session_index_add_path(session2, "file3");
+    gk_session_index_add_path(session2, "file4");
+    gk_session_index_add_path(session2, "file5/child1");
+    gk_session_index_add_path(session2, "file6");
+    gk_session_index_add_path(session2, "file7");
+    gk_session_commit(session2, "HEAD", "commit repo B modifications", NULL);
+    assert_int_equal(gk_result_code(session2->last_result), 0);// commit and push
+
+    ////
+    //// Repo B fetch
+    ////
+
+    // Repo-B fetch
+    gk_session_fetch(session2, &g_empty_credential, "origin");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    
+    // there should now be conflicts in repo B upon merging
 }

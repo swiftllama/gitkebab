@@ -58,12 +58,14 @@ static int create_merge_commit(gk_session *session) {
     if (gk_lg2_signature_create(session, &COMP_MERGE, "create merge commit") != GK_SUCCESS) {
         return GK_FAILURE;
     }
-    
+
+    char commit_message[128];
+    snprintf(commit_message, 128, "Merge %s into %s", session->repository.remote_ref_name, session->repository.main_branch_name);
     git_oid commit_oid;
     int rc = git_commit_create(&commit_oid,
                            session->lg2_resources->repository, git_reference_name(session->lg2_resources->repository_head_ref),
                            session->lg2_resources->signature, session->lg2_resources->signature,
-                           NULL, "Merge refs/remotes/origin/master into master",
+                           NULL, commit_message,
                            session->lg2_resources->tree,
                            2, (const git_commit **)session->lg2_resources->merge_parents);
     if (rc != 0) {
@@ -209,8 +211,9 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     
     return gk_session_success(session);
 }
-
-int gk_session_merge_into_head(gk_session *session, const char* from_ref_name) {
+    
+int gk_session_merge_into_head(gk_session *session) {
+    const char* from_ref_name = session->repository.remote_ref_name;
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging '%s' into HEAD", from_ref_name);
     gk_session_state_set(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);

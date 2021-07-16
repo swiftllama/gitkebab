@@ -24,6 +24,7 @@ void gk_test_delete_simplerepo1B_mergeconflicts();
 gk_session *gk_test_session_from_local_path(const char *repo_path);
 gk_session *gk_test_session_from_clone(const char *remote_repo, const char *local_path);
 
+void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **session1_ptr, gk_session **session2_ptr, void **state);
 
 
 #endif // __GK_TEST_HELPERS_H__

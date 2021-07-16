@@ -68,14 +68,17 @@ int gk_session_status_summary_query(gk_session *session) {
 
     if (session->status_summary.count_conflicted > 0) {
         gk_session_state_set(session, GK_SESSION_STATE_HAS_CONFLICTS);
+        log_info(COMP_STATUS, "Repository has conflicts");
     }
     else {
         gk_session_state_unset(session, GK_SESSION_STATE_HAS_CONFLICTS);
+        log_info(COMP_STATUS, "Repository is conflict free");
     }
         
     int status = git_repository_state(session->lg2_resources->repository);
     if (status == GIT_REPOSITORY_STATE_MERGE) {
         gk_session_state_set(session, GK_SESSION_STATE_MERGE_PENDING_ON_DISK);
+        log_info(COMP_STATUS, "Repository is has a pending merge on disk");
     }
     else {
         gk_session_state_unset(session, GK_SESSION_STATE_MERGE_PENDING_ON_DISK);

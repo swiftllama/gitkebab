@@ -25,6 +25,10 @@ static void gk_repository_init(gk_repository *repository, const char *remote_url
     repository->local_path = local_path != NULL ? strdup(local_path) : strdup("");
     repository->remote_url = remote_url != NULL ? strdup(remote_url) : strdup("");
     repository->user = usr != NULL ? strdup(usr) : strdup("");
+    repository->main_branch_name = "master";
+    repository->remote_ref_name = "refs/remotes/origin/master";
+    repository->remote_name = "origin";
+    repository->push_refspec = "refs/heads/master:refs/heads/master";
 }
 
 static void gk_repository_free_members(gk_repository *repository) {

@@ -46,13 +46,13 @@ static void test_merge_no_changes(void **state) {
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id fetched_commit = {0};
-    gk_session_resolve_reference(session1, "refs/remotes/origin/master", &fetched_commit);
+    gk_session_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
 
     gk_object_id new_head_before_merge = {0};
     gk_session_resolve_reference(session1, "HEAD", &new_head_before_merge);
 
     // Merge
-    gk_session_merge_into_head(session1, "refs/remotes/origin/master");
+    gk_session_merge_into_head(session1);
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id new_head_after_merge = {0};
@@ -105,7 +105,7 @@ static void test_merge_one_commit(void **state) {
     gk_session_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
         
     // Merge in repo-B
-    gk_session_merge_into_head(session2, "refs/remotes/origin/master");
+    gk_session_merge_into_head(session2);
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
@@ -174,7 +174,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);
 
     // Merge
-    gk_session_merge_into_head(session2, "refs/remotes/origin/master");
+    gk_session_merge_into_head(session2);
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
@@ -254,7 +254,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);
 
     // Merge
-    gk_session_merge_into_head(session2, "refs/remotes/origin/master");
+    gk_session_merge_into_head(session2);
 
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);

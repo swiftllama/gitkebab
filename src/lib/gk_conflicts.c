@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <string.h>
 #include "git2.h"
 
 #include "gk_conflicts.h"
@@ -7,7 +8,42 @@
 #include "gk_lg2_private.h"
 
 
+gk_merge_conflict_entry *gk_merge_conflict_entry_new() {
+    gk_merge_conflict_entry *entry = malloc(sizeof(gk_merge_conflict_entry));
+    if (entry == NULL) {
+        log_error(COMP_CONFLICTS, "Error allocating merge conflict entry");
+        return entry;
+    }
+    memset((void *)entry, 0, sizeof(gk_merge_conflict_entry));
+    return entry;
+}
 
+void gk_merge_conflict_entry_free(gk_merge_conflict_entry *entry) {
+    if (entry == NULL) {
+        return;
+    }
+    free(entry->path);
+    entry->path = NULL;
+    free(entry);
+}
+
+const char *gk_merge_conflict_entry_type_string(gk_merge_conflict_entry_type entry_type) {
+    if (entry_type == GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT) {
+        return "incompatible two sided edit";
+    }
+    else if (entry_type == GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE) {
+        return "incompatible two sided create";
+    }
+    else if (entry_type == GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE) {
+        return "local edit remote delete";
+    }
+    else  if (entry_type == GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT) {
+        return "local delete remote edit";
+    }
+    log_error(COMP_CONFLICTS, "Unknown conflict type %d, expected one of [GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT=%d], [GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE=%d], [GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT=%d] or [GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE=%d]", GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE, GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT, GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE);
+    return "unknown conflict entry type";
+}
+    
 int gk_conflicts_allocate(gk_session *session, size_t num_conflicts) {
     session->conflict_summary.num_conflicts = num_conflicts;
     session->conflict_summary.conflicts = (gk_merge_conflict_entry **)calloc(sizeof(gk_merge_conflict_entry *), num_conflicts);

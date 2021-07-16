@@ -4,6 +4,10 @@
 
 #include "gk_types.h"
 
+gk_merge_conflict_entry *gk_merge_conflict_entry_new();
+void gk_merge_conflict_entry_free(gk_merge_conflict_entry *entry);
+const char *gk_merge_conflict_entry_type_string(gk_merge_conflict_entry_type entry_type);
+
 void gk_conflicts_free(gk_session *session);
 int gk_conflicts_allocate(gk_session *session, size_t num_conflicts);
 

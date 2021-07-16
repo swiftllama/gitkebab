@@ -325,55 +325,68 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
     gk_lg2_conflict_entry_init(&conflict_entry);
     
     while ((rc = git_index_conflict_next(&conflict_entry.ancestor, &conflict_entry.ours, &conflict_entry.theirs, conflicts)) == 0) {
-        fprintf(stderr, "conflict: a:%s o:%s t:%s\n",
-                conflict_entry.ancestor ? conflict_entry.ancestor->path : "NULL",
-                conflict_entry.ours->path ? conflict_entry.ours->path : "NULL",
-                conflict_entry.theirs->path ? conflict_entry.theirs->path : "NULL");
-
-        git_oid_tostr(conflict_entry.ancestor_oid_id, 41, &conflict_entry.ancestor->id);
-        git_oid_tostr(conflict_entry.ours_oid_id, 41, &conflict_entry.ours->id);
-        git_oid_tostr(conflict_entry.theirs_oid_id, 41, &conflict_entry.theirs->id);
-        
-        log_info(COMP_CONFLICTS, "Conflict at index #%d has ancestor [%s], ours [%s], theirs [%s]", index, conflict_entry.ancestor_oid_id, conflict_entry.ours_oid_id, conflict_entry.theirs_oid_id);
-        
-        rc = git_blob_lookup(&conflict_entry.ancestor_blob, session->lg2_resources->repository, &conflict_entry.ancestor->id);
-        if (rc != 0) {
-            gk_lg2_conflict_entry_free_members(&conflict_entry);
-            git_index_conflict_iterator_free(conflicts);
-            gk_free_void_node_chain(conflict_chain, 1);
-            const git_error *err = git_error_last();
-            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ancestor blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        const char *entry_path = "";
+        if (conflict_entry.ours != NULL) {
+            git_oid_tostr(conflict_entry.ours_oid_id, 41, &conflict_entry.ours->id);
+            rc = git_blob_lookup(&conflict_entry.ours_blob, session->lg2_resources->repository, &conflict_entry.ours->id);
+            if (rc != 0) {
+                gk_lg2_conflict_entry_free_members(&conflict_entry);
+                git_index_conflict_iterator_free(conflicts);
+                gk_free_void_node_chain(conflict_chain, 1);
+                const git_error *err = git_error_last();
+                return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ours blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+            }
+            entry_path = conflict_entry.ours->path;
         }
-
-        rc = git_blob_lookup(&conflict_entry.ours_blob, session->lg2_resources->repository, &conflict_entry.ours->id);
-        if (rc != 0) {
-            gk_lg2_conflict_entry_free_members(&conflict_entry);
-            git_index_conflict_iterator_free(conflicts);
-            gk_free_void_node_chain(conflict_chain, 1);
-            const git_error *err = git_error_last();
-            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ours blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        if (conflict_entry.theirs != NULL) {
+            git_oid_tostr(conflict_entry.theirs_oid_id, 41, &conflict_entry.theirs->id);
+            rc = git_blob_lookup(&conflict_entry.theirs_blob, session->lg2_resources->repository, &conflict_entry.theirs->id);
+            if (rc != 0) {
+                gk_lg2_conflict_entry_free_members(&conflict_entry);
+                git_index_conflict_iterator_free(conflicts);
+                gk_free_void_node_chain(conflict_chain, 1);
+                const git_error *err = git_error_last();
+                return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting theirs blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+            }
+            entry_path = conflict_entry.theirs->path;
         }
-
-        rc = git_blob_lookup(&conflict_entry.theirs_blob, session->lg2_resources->repository, &conflict_entry.theirs->id);
-        if (rc != 0) {
-            gk_lg2_conflict_entry_free_members(&conflict_entry);
-            git_index_conflict_iterator_free(conflicts);
-            gk_free_void_node_chain(conflict_chain, 1);
-            const git_error *err = git_error_last();
-            return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting theirs blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+        if (conflict_entry.ancestor != NULL) {
+            git_oid_tostr(conflict_entry.ancestor_oid_id, 41, &conflict_entry.ancestor->id);
+            rc = git_blob_lookup(&conflict_entry.ancestor_blob, session->lg2_resources->repository, &conflict_entry.ancestor->id);
+            if (rc != 0) {
+                gk_lg2_conflict_entry_free_members(&conflict_entry);
+                git_index_conflict_iterator_free(conflicts);
+                gk_free_void_node_chain(conflict_chain, 1);
+                const git_error *err = git_error_last();
+                return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ancestor blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+            }
+            entry_path = conflict_entry.ancestor->path;
         }
+        gk_merge_conflict_entry *ext_entry = gk_merge_conflict_entry_new();
 
-        gk_merge_conflict_entry *entry = malloc(sizeof(gk_merge_conflict_entry));
+        ext_entry->path = strdup(entry_path);
+        ext_entry->conflict_type = GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT;
+        if (conflict_entry.ancestor != NULL) {
+            if (conflict_entry.ours == NULL) {
+                ext_entry->conflict_type = GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT;
+            }
+            else if (conflict_entry.theirs == NULL) {
+                ext_entry->conflict_type = GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE;
+            }
+        }
+        else {
+            ext_entry->conflict_type = GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE;
+        }
         
-        entry->path = strdup(conflict_entry.ancestor->path);
-        strncpy(entry->ancestor_oid_id, conflict_entry.ancestor_oid_id, 41);
-        strncpy(entry->ours_oid_id, conflict_entry.ours_oid_id, 41);
-        strncpy(entry->theirs_oid_id, conflict_entry.theirs_oid_id, 41);
+        strncpy(ext_entry->ancestor_oid_id, conflict_entry.ancestor_oid_id, 41);
+        strncpy(ext_entry->ours_oid_id, conflict_entry.ours_oid_id, 41);
+        strncpy(ext_entry->theirs_oid_id, conflict_entry.theirs_oid_id, 41);
 
-        next_conflict_node->data = (void *)entry;
+        next_conflict_node->data = (void *)ext_entry;
         next_conflict_node->next = gk_void_linked_node_new();
         next_conflict_node = next_conflict_node->next;
 
+        log_info(COMP_CONFLICTS, "Conflict #%d at file [%s], of type [%s] has ancestor [%s], ours [%s], theirs [%s]", index, entry_path, gk_merge_conflict_entry_type_string(ext_entry->conflict_type), ext_entry->ancestor_oid_id, ext_entry->ours_oid_id, ext_entry->theirs_oid_id);
         
         // DBG
         /*

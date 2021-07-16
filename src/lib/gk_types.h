@@ -8,6 +8,13 @@ enum GK_RESULT_CODE {
     GK_SUCCESS, GK_FAILURE
 };
 
+typedef enum {
+    GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT,
+    GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE,
+    GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE,
+    GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT
+} gk_merge_conflict_entry_type;
+
 typedef struct {
     int code;
     char *message;
@@ -33,6 +40,7 @@ typedef struct {
 } gk_checkout_progress;
 
 typedef struct {
+    gk_merge_conflict_entry_type conflict_type;
     char *path;
     char ancestor_oid_id[41];
     char ours_oid_id[41];
@@ -99,6 +107,10 @@ typedef struct {
     const char *local_path;
     const char *remote_url;
     const char *user;
+    const char *main_branch_name;
+    const char *remote_ref_name;
+    const char *remote_name;
+    const char *push_refspec;
 } gk_repository;
 
 typedef struct {

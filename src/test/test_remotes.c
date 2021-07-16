@@ -113,7 +113,7 @@ static void test_fetch_no_changes(void **state) {
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id fetched_commit = {0};
-    gk_session_resolve_reference(session1, "refs/remotes/origin/master", &fetched_commit);
+    gk_session_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
 
     gk_object_id repo_new_commit = {0};
     gk_session_resolve_reference(session1, "HEAD", &repo_new_commit);

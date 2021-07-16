@@ -149,10 +149,10 @@ int gk_session_clone(gk_session *session, gk_session_credential *credential) {
         return gk_session_failure(session, &COMP_CLONE, -1, "Clone failed (%d): %s", err->klass, err->message);
     }
 
-    rc = git_remote_add_push(session->lg2_resources->repository, "origin", "refs/heads/master:refs/heads/master");
+    rc = git_remote_add_push(session->lg2_resources->repository, session->repository.remote_name, session->repository.push_refspec);
     if (rc != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_CLONE, -1, "Error adding push refspec to remote 'origin'  (%d): %s", err->klass, err->message);
+        return gk_session_failure(session, &COMP_CLONE, -1, "Error adding push refspec '%s' to remote '%s'  (%d): %s", session->repository.remote_name, session->repository.push_refspec, err->klass, err->message);
     }
 
     gk_session_state_set(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS);
@@ -186,14 +186,12 @@ int gk_session_fetch(gk_session *session, gk_session_credential *credential, con
         return gk_session_failure(session, &COMP_REMOTE, -3, "Error fetching from remote '%s' (%d): %s", remote_name, err->klass, err->message);
     }
 
-    const char *from_ref_name = "refs/remotes/origin/master";
-
-    rc = gk_lg2_load_references(session, from_ref_name, "analyze merge for fetch");
+    rc = gk_lg2_load_references(session, session->repository.remote_ref_name, "analyze merge for fetch");
     if (rc != 0) {
         gk_lg2_free_references(session);
         return GK_FAILURE;
     }
-    rc = gk_session_analyze_merge_into_head(session, from_ref_name, NULL);
+    rc = gk_session_analyze_merge_into_head(session, session->repository.remote_ref_name, NULL);
     gk_lg2_free_references(session);
 
     if (rc != 0) {
