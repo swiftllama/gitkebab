@@ -68,6 +68,9 @@ void gk_session_init(gk_session *session, const char *remote_url, const char *lo
     gk_status_summary_reset(&session->status_summary);
     
     gk_lg2_resources_init(session);
+
+    session->conflict_summary.num_conflicts = 0;
+    session->conflict_summary.conflicts = NULL;
 }
 
 int gk_session_open_local_repository(gk_session *session) {

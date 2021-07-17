@@ -312,7 +312,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
     gk_void_linked_node *conflict_chain = gk_void_linked_node_new();
     gk_void_linked_node *next_conflict_node = conflict_chain;
         
-    int rc = git_index_conflict_iterator_new(&conflicts, session->lg2_resources->index);
+    int rc = git_index_conflict_iterator_new(&conflicts, session->lg2_resources->merge_index);
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error getting conflict iterator (%d): %s", purpose, err->klass, err->message);
@@ -328,37 +328,31 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         const char *entry_path = "";
         if (conflict_entry.ours != NULL) {
             git_oid_tostr(conflict_entry.ours_oid_id, 41, &conflict_entry.ours->id);
-            rc = git_blob_lookup(&conflict_entry.ours_blob, session->lg2_resources->repository, &conflict_entry.ours->id);
-            if (rc != 0) {
+            if (gk_lg2_blob_lookup(session, &conflict_entry.ours_blob, &conflict_entry.ours->id, purpose) != GK_SUCCESS) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                const git_error *err = git_error_last();
-                return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ours blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+                return GK_FAILURE;
             }
             entry_path = conflict_entry.ours->path;
         }
         if (conflict_entry.theirs != NULL) {
             git_oid_tostr(conflict_entry.theirs_oid_id, 41, &conflict_entry.theirs->id);
-            rc = git_blob_lookup(&conflict_entry.theirs_blob, session->lg2_resources->repository, &conflict_entry.theirs->id);
-            if (rc != 0) {
+            if (gk_lg2_blob_lookup(session, &conflict_entry.theirs_blob, &conflict_entry.theirs->id, purpose) != GK_SUCCESS) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                const git_error *err = git_error_last();
-                return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting theirs blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+                return GK_FAILURE;
             }
             entry_path = conflict_entry.theirs->path;
         }
         if (conflict_entry.ancestor != NULL) {
             git_oid_tostr(conflict_entry.ancestor_oid_id, 41, &conflict_entry.ancestor->id);
-            rc = git_blob_lookup(&conflict_entry.ancestor_blob, session->lg2_resources->repository, &conflict_entry.ancestor->id);
-            if (rc != 0) {
+            if (gk_lg2_blob_lookup(session, &conflict_entry.ancestor_blob, &conflict_entry.ancestor->id,  purpose) != GK_SUCCESS) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                const git_error *err = git_error_last();
-                return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error getting ancestor blob for conflict at index %d (%d): %s", purpose, index, err->klass, err->message);
+                return GK_FAILURE;
             }
             entry_path = conflict_entry.ancestor->path;
         }
@@ -415,6 +409,7 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, error getting next conflict from iterator (%d): %s", purpose, err->klass, err->message);
     }
 
+    gk_conflicts_free(session);
     gk_conflicts_allocate(session, num_conflicts);
     next_conflict_node = conflict_chain;
     index = 0;
@@ -472,46 +467,28 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
     git_blob *ancestor_blob = NULL;
     git_blob *ours_blob = NULL;
     git_blob *theirs_blob = NULL;
-    
-    int rc = git_oid_fromstr(&ancestor_oid, entry->ancestor_oid_id);
-    if (rc != 0) {
-        const git_error *err = git_error_last();
-        gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding ancestor oid corresponding to id '%s' (%d): %s", purpose, entry->ancestor_oid_id, err->klass, err->message);
+
+    if (gk_lg2_oid_from_id(session, &ancestor_oid, entry->ancestor_oid_id, "retrieve ancestor oid for conflict summary") != GK_SUCCESS) {
         return NULL;
     }
 
-    rc = git_oid_fromstr(&ours_oid, entry->ours_oid_id);
-    if (rc != 0) {
-        const git_error *err = git_error_last();
-        gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding ours oid corresponding to id '%s' (%d): %s", purpose, entry->ours_oid_id, err->klass, err->message);
+    if (gk_lg2_oid_from_id(session, &ours_oid, entry->ours_oid_id, "retrieve ours oid for conflict summary") != GK_SUCCESS) {
         return NULL;
     }
 
-    rc = git_oid_fromstr(&theirs_oid, entry->theirs_oid_id);
-    if (rc != 0) {
-        const git_error *err = git_error_last();
-        gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding theirs oid corresponding to id '%s' (%d): %s", purpose, entry->theirs_oid_id, err->klass, err->message);
+    if (gk_lg2_oid_from_id(session, &theirs_oid, entry->theirs_oid_id, "retrieve theirs oid for conflict summary") != GK_SUCCESS) {
         return NULL;
     }
 
-    rc = git_blob_lookup(&ancestor_blob, session->lg2_resources->repository, &ancestor_oid);
-    if (rc != 0) {
-        const git_error *err = git_error_last();
-        gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding ancestor blob corresponding to id '%s' (%d): %s", purpose, entry->ancestor_oid_id, err->klass, err->message);
+    if (gk_lg2_blob_lookup(session, &ancestor_blob, &ancestor_oid, purpose) != GK_SUCCESS) {
         return NULL;
     }
 
-    rc = git_blob_lookup(&ours_blob, session->lg2_resources->repository, &ours_oid);
-    if (rc != 0) {
-        const git_error *err = git_error_last();
-        gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding ours blob corresponding to id '%s' (%d): %s", purpose, entry->ours_oid_id, err->klass, err->message);
+    if (gk_lg2_blob_lookup(session, &ours_blob, &ours_oid, purpose) != GK_SUCCESS) {
         return NULL;
     }
 
-    rc = git_blob_lookup(&theirs_blob, session->lg2_resources->repository, &theirs_oid);
-    if (rc != 0) {
-        const git_error *err = git_error_last();
-        gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding theirs blob corresponding to id '%s' (%d): %s", purpose, entry->theirs_oid_id, err->klass, err->message);
+    if (gk_lg2_blob_lookup(session, &theirs_blob, &theirs_oid, purpose) != GK_SUCCESS) {
         return NULL;
     }
     
@@ -525,7 +502,7 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
         
     gk_conflict_diff_summary *summary = gk_conflict_diff_summary_new();
     
-    rc = git_patch_from_blobs(&ancestor_to_ours_patch, ancestor_blob, entry->path, ours_blob, entry->path, &diff_options);
+    int rc = git_patch_from_blobs(&ancestor_to_ours_patch, ancestor_blob, entry->path, ours_blob, entry->path, &diff_options);
     if (rc != 0) {
         git_patch_free(ancestor_to_ours_patch);
         const git_error *err = git_error_last();
@@ -583,6 +560,27 @@ int gk_lg2_index_add(gk_session *session, const git_index_entry *entry, const ch
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_CONFLICTS, -10, "Cannot %s, error adding entry for path '%s' (%d): %s", purpose, path, err->klass, err->message);
+    }
+    return GK_SUCCESS;
+}
+
+int gk_lg2_oid_from_id(gk_session *session, git_oid *oid, const char *oid_id, const char *purpose) {
+    int rc = git_oid_fromstr(oid, oid_id);
+    if (rc != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding oid corresponding to id '%s' (%d): %s", purpose, oid_id, err->klass, err->message);
+    }
+    return GK_SUCCESS;
+}
+
+int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid, const char *purpose) {
+    int rc = git_blob_lookup(blob, session->lg2_resources->repository, oid);
+    if (rc != 0) {
+        if (blob != NULL) {
+            git_blob_free(*blob);
+        }
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error finding blob corresponding to id '%s' (%d): %s", purpose, git_oid_tostr_s(oid), err->klass, err->message);
     }
     return GK_SUCCESS;
 }

@@ -90,5 +90,7 @@ int gk_lg2_index_conflict_get(gk_session *session, const git_index_entry **ances
 
 gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_merge_conflict_entry *entry, const char *purpose);
 int gk_lg2_index_add(gk_session *session, const git_index_entry *entry, const char *path, const char *purpose);
-    
+
+int gk_lg2_oid_from_id(gk_session *session, git_oid *oid, const char *oid_id, const char *purpose);
+int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid, const char *purpose);
 #endif // _GK_LG2_PRIVATE_H__

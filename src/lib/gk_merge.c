@@ -1,10 +1,12 @@
 
 #include "git2.h"
 
+#include "gk_merge.h"
 #include "gk_types.h"
 #include "gk_logging.h"
 #include "gk_session.h"
 #include "gk_lg2_private.h"
+
 
 int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
     if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "analyze merge") != GK_SUCCESS) {
@@ -103,8 +105,8 @@ static int merge_in_memory(gk_session *session) {
         return GK_FAILURE;
     }
 
-    gk_lg2_promote_merge_index(session);
-    if (git_index_has_conflicts(session->lg2_resources->index) == 0) {
+    if (git_index_has_conflicts(session->lg2_resources->merge_index) == 0) {
+        gk_lg2_promote_merge_index(session);
         if (gk_lg2_index_write_tree(session, session->lg2_resources->index, "merge in memory") != GK_SUCCESS) {
             return GK_FAILURE;
         }
@@ -123,16 +125,30 @@ static int merge_in_memory(gk_session *session) {
     }
     else { // has conflicts
         log_error(COMP_MERGE, "detected conflicts after merge");
-        if (gk_lg2_iterate_conflicts(session, "merge in memory") != GK_SUCCESS) {;
+        if (gk_session_merge_conflicts_query(session, "merge in memory") != GK_SUCCESS) {
             return GK_FAILURE;
         }
-        gk_session_state_set(session, GK_SESSION_STATE_HAS_CONFLICTS);
         gk_session_state_set(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
     }
 
     return GK_SUCCESS;
 }
 
+int gk_session_merge_conflicts_query(gk_session *session, const char *purpose) {
+    if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    if (gk_lg2_iterate_conflicts(session, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    if (session->conflict_summary.num_conflicts > 0) {
+        gk_session_state_set(session, GK_SESSION_STATE_HAS_CONFLICTS);
+    }
+    else {
+        gk_session_state_unset(session, GK_SESSION_STATE_HAS_CONFLICTS);
+    }
+    return GK_SUCCESS;
+}
 
 /*
 static int merge_normal(gk_session *session) {    
