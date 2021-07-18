@@ -413,9 +413,10 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
     gk_conflicts_allocate(session, num_conflicts);
     next_conflict_node = conflict_chain;
     index = 0;
-    while(next_conflict_node != NULL) {
+    while((next_conflict_node != NULL) && (next_conflict_node->data != NULL)) {
         session->conflict_summary.conflicts[index] = next_conflict_node->data;
         next_conflict_node = next_conflict_node->next;
+        index += 1;
     }
     
     gk_free_void_node_chain(conflict_chain, 0);

@@ -45,6 +45,23 @@ static void test_conflicts_incompatible_file1(void **state) {
     // Attempt a merge in repo B
     gk_session_merge_into_head(session2);
     assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    // We should now have 6 conflicts
+    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    assert_int_equal(summary->num_conflicts, 6);
+    assert_string_equal(summary->conflicts[0]->path, "file1");
+    assert_int_equal(summary->conflicts[0]->conflict_type, GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT);
+    assert_string_equal(summary->conflicts[1]->path, "file2");
+    assert_int_equal(summary->conflicts[1]->conflict_type, GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE);
+    assert_string_equal(summary->conflicts[2]->path, "file3");
+    assert_int_equal(summary->conflicts[2]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
+    assert_string_equal(summary->conflicts[3]->path, "file4");
+    assert_int_equal(summary->conflicts[3]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
+    assert_string_equal(summary->conflicts[4]->path, "file5");
+    assert_int_equal(summary->conflicts[4]->conflict_type, GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT);
+    assert_string_equal(summary->conflicts[5]->path, "file6");
+    assert_int_equal(summary->conflicts[5]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE);
+
     
     gk_session_free(session1);
     gk_session_free(session2);
