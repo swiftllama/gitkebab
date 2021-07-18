@@ -152,10 +152,16 @@ int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resol
 }
 
 int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *path, const char* purpose) {
-    if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "write blob") != GK_SUCCESS) {
+    if (gk_session_verify(session, &COMP_CONFLICTS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "write blob") != GK_SUCCESS) {
         return GK_FAILURE;
     }
-
+    else if (oid_id == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error writing blob with NULL object id", purpose);
+    }
+    else if (oid_id[0] == '\0') {
+        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error writing blob with empty object id", purpose);
+    }
+    
     git_oid blob_oid;
     if (gk_lg2_oid_from_id(session, &blob_oid, oid_id, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -180,15 +186,15 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
     if (rc < 0) {
         return gk_session_failure(session, &COMP_CONFLICTS, -10, "Cannot %s, error writing to file [%s]: error %d occurred", purpose, path, rc);
     }
-    
+
+    log_info(COMP_CONFLICTS, "Wrote blob with object id [%s] to [%s]", oid_id, path);
     git_blob_free(blob);
     
     return GK_SUCCESS;
 }
 
 
-int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *path) {
-    const char *purpose = "resolve conflict by accepting remote delete";
+static int gk_conflict_resolve_accept_delete(gk_session *session, const char *path, const char *purpose) {
     if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }
@@ -203,6 +209,16 @@ int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *pa
         return gk_session_failure(session, &COMP_CONFLICTS, -3, "Cannot %s, Error removing path '%s' from repository index (%d): %s", purpose, path, err->klass, err->message);
     }
 
-    log_info(COMP_CONFLICTS, "resolved conflict for path [%s] by accepting reomte delete", path);
-    return GK_SUCCESS;
+    log_info(COMP_CONFLICTS, "resolved conflict for path [%s] (%s)", path, purpose);
+    return GK_SUCCESS ;   
+}
+
+int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *path) {
+    const char *purpose = "resolve conflict by accepting remote delete";
+    return gk_conflict_resolve_accept_delete(session, path, purpose);
+}
+
+int gk_conflict_resolve_accept_local_delete(gk_session *session, const char *path) {
+    const char *purpose = "resolve conflict by accepting local delete";
+    return gk_conflict_resolve_accept_delete(session, path, purpose);
 }
