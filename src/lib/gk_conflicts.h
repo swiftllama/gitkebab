@@ -26,4 +26,7 @@ int gk_conflict_resolve_accept_local_delete(gk_session *session, const char *pat
 
 int gk_blob_contents(gk_session *session, void **blob_data, u_int64_t *blob_data_length, const char *oid_id, const char *purpose);
 
+const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session, const char *ancestor_oid_id, const char *ours_oid_id, const char *theirs_oid_id, const char *path);
+void gk_conflict_merged_buffer_free(const char *buffer);
+
 #endif // __GK_CONFLICTS_H__

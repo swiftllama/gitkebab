@@ -173,6 +173,10 @@ static void test_conflicts_incompatible_twosided_edit(void **state) {
     assert_string_equal(summary->conflicts[2]->path, "file3");
     assert_int_equal(summary->conflicts[2]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
 
+    const char *merged_buffer = gk_conflict_merged_buffer_with_conflict_markers(session2, summary->conflicts[2]->ancestor_oid_id, summary->conflicts[2]->ours_oid_id, summary->conflicts[2]->theirs_oid_id, "file3");
+    printf("DBG  M0 got merged buffer:\n ----------------------------\n%s\n---------------------------", merged_buffer);
+    gk_conflict_merged_buffer_free(merged_buffer);
+
     gk_session_free(session1);
     gk_session_free(session2);
 }
