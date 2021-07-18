@@ -153,11 +153,38 @@ static void test_conflicts_local_edit_remote_delete_file2(void **state) {
 }
 
 
+static void test_conflicts_incompatible_twosided_edit(void **state) {
+    (void) state;
+
+    // Setup repos A and B
+    // A has committed and pushed various changes
+    // B has committed and fetched, now has conflicts
+    gk_session *session1 = NULL;
+    gk_session *session2 = NULL;
+    gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(&session1, &session2, state);
+    
+    // Attempt a merge in repo B
+    gk_session_merge_into_head(session2);
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    // file3 should have a twosided-incompatible-edit type conflict
+    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    assert_int_equal(summary->num_conflicts, 6);
+    assert_string_equal(summary->conflicts[2]->path, "file3");
+    assert_int_equal(summary->conflicts[2]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
+
+    gk_session_free(session1);
+    gk_session_free(session2);
+}
+
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_conflicts_various_types, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_conflicts_local_delete_remote_edit_file1, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_conflicts_local_edit_remote_delete_file2, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_conflicts_incompatible_twosided_edit, test_staging_clean_repo_setup),
+
     };
 
     if (directory_exists("src/test/fixtures") != 0) {
