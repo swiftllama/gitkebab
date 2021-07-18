@@ -248,6 +248,6 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     // Repo-B fetch
     gk_session_fetch(session2, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session2->last_result), 0);
-    
+
     // there should now be conflicts in repo B upon merging
 }
