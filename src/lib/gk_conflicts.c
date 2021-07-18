@@ -54,7 +54,6 @@ int gk_conflicts_allocate(gk_session *session, size_t num_conflicts) {
 void gk_conflicts_free(gk_session *session) {
     for (size_t i = 0; i < session->conflict_summary.num_conflicts; i += 1) {
         //printf("DBG freeing conflict summary at index #%zu (ptr %p)\n", i, (void *)session->conflict_summary.conflicts[i]);
-        printf("DBG freeing conflict summary at index #%zu\n", i);
         gk_merge_conflict_entry_free(session->conflict_summary.conflicts[i]);
         session->conflict_summary.conflicts[i] = NULL;
     }
@@ -171,7 +170,7 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
     git_object_size_t blob_size = git_blob_rawsize(blob);
     const void *blob_data = git_blob_rawcontent(blob);
 
-    FILE *fptr = fopen("file.txt", "w");
+    FILE *fptr = fopen(path, "w");
     if (fptr == NULL) {
         return gk_session_failure(session, &COMP_CONFLICTS, -10, "Cannot %s, error opening file [%s] for writing: error %d occurred", purpose, path, errno);
     }
@@ -189,7 +188,7 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
 
 
 int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *path) {
-    const char *purpose = "resolve conflict, accept remote delete";
+    const char *purpose = "resolve conflict by accepting remote delete";
     if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }
@@ -197,18 +196,13 @@ int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *pa
         return gk_session_failure(session, &COMP_CONFLICTS, -5, "Cannot %s for NULL path", purpose);
     }
 
-    const git_index_entry *conflicted_entry = git_index_get_bypath(session->lg2_resources->merge_index, path, GIT_INDEX_STAGE_NORMAL);
-    if (conflicted_entry == NULL) {
-        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, file not found in index at path [%s]", path);
-    }
-
-
     int rc = git_index_remove_bypath(session->lg2_resources->merge_index, path);
-
+    
     if (rc != 0) {
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_CONFLICTS, -3, "Cannot %s, Error removing path '%s' from repository index (%d): %s", purpose, path, err->klass, err->message);
     }
-    
+
+    log_info(COMP_CONFLICTS, "resolved conflict for path [%s] by accepting reomte delete", path);
     return GK_SUCCESS;
 }

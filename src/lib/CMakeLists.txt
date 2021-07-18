@@ -11,6 +11,8 @@ add_library(gitkebab
   gk_conflicts.h
   gk_credentials.c
   gk_credentials.h
+  gk_filesystem.c
+  gk_filesystem.h
   gk_index.c
   gk_index.h
   gk_init.c

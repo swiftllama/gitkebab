@@ -7,7 +7,9 @@
 #include "gk_results.h"
 #include "gk_logging.h"
 #include "gk_status.h"
+#include "gk_conflicts.h"
 #include "gk_lg2_private.h"
+#include "gk_filesystem.h"
 
 static void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
@@ -143,6 +145,7 @@ void gk_session_free(gk_session *session) {
     gk_result_free(session->last_result);
     session->last_result = NULL;
     gk_repository_free_members(&session->repository);
+    gk_conflicts_free(session);
     gk_lg2_free_all_but_repository(session);
     free(session->lg2_resources);
     free(session);
@@ -216,5 +219,21 @@ int gk_session_verify(gk_session *session, log_Component *component, int conditi
         }
     }
 
+    return GK_SUCCESS;
+}
+
+int gk_session_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path, const char *purpose) {
+    if (gk_session_verify(session, &COMP_SESSION, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    if (buffer == NULL) {
+        return gk_session_failure(session, &COMP_SESSION, -4, "Error prepending repository path to [%s], destination buffer is NULL", path);
+    }
+
+    if (gk_concatenate_paths(buffer, buffer_length, session->repository.local_path, path) != 0) {
+        return gk_session_failure(session, &COMP_SESSION, -4, "Error prepending repository path [%s] to [%s] NULL", session->repository.local_path, path);
+    }
+    
     return GK_SUCCESS;
 }
