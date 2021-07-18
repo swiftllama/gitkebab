@@ -151,15 +151,21 @@ int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resol
     return GK_SUCCESS;
 }
 
-int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *path, const char* purpose) {
-    if (gk_session_verify(session, &COMP_CONFLICTS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "write blob") != GK_SUCCESS) {
+int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_length, const char *oid_id, const char *purpose) {
+    if (gk_session_verify(session, &COMP_CONFLICTS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "get blob contents") != GK_SUCCESS) {
         return GK_FAILURE;
     }
+    else if (blob_data == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error getting blob content with NULL data pointer", purpose);
+    }
+    else if (blob_data_length == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error getting blob content with NULL data length pointer", purpose);
+    }
     else if (oid_id == NULL) {
-        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error writing blob with NULL object id", purpose);
+        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error getting blob content with NULL object id", purpose);
     }
     else if (oid_id[0] == '\0') {
-        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error writing blob with empty object id", purpose);
+        return gk_session_failure(session, &COMP_CONFLICTS, -4, "Cannot %s, error getting blob content with empty object id", purpose);
     }
     
     git_oid blob_oid;
@@ -172,15 +178,34 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
         return GK_FAILURE;
     }
 
-    //int is_binary = git_blob_is_binary(blob);
-    git_object_size_t blob_size = git_blob_rawsize(blob);
-    const void *blob_data = git_blob_rawcontent(blob);
+    *blob_data_length = git_blob_rawsize(blob);
+    *blob_data = malloc(*blob_data_length);
+    if (blob_data == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -7, "Cannot %s, error allocating memory for blob data");
+    }
+    memcpy(*blob_data, git_blob_rawcontent(blob), *blob_data_length);
 
+    git_blob_free(blob);
+    return GK_SUCCESS;
+}
+
+int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *path, const char* purpose) {
+    if (gk_session_verify(session, &COMP_CONFLICTS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "write blob") != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    uint64_t blob_size = 0;
+    void *blob_data = NULL;
+    if (gk_blob_contents(session, &blob_data, &blob_size, oid_id, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    
     FILE *fptr = fopen(path, "w");
     if (fptr == NULL) {
         return gk_session_failure(session, &COMP_CONFLICTS, -10, "Cannot %s, error opening file [%s] for writing: error %d occurred", purpose, path, errno);
     }
 
+    printf("DBG P0 data ptr [%p], data length [%zu]\n", (void *)blob_data, blob_size);
     int rc = fwrite(blob_data, 1, blob_size, fptr);
     fclose(fptr);
     if (rc < 0) {
@@ -188,7 +213,9 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
     }
 
     log_info(COMP_CONFLICTS, "Wrote blob with object id [%s] to [%s]", oid_id, path);
-    git_blob_free(blob);
+    
+    free(blob_data);
+    blob_data = NULL;
     
     return GK_SUCCESS;
 }
@@ -222,3 +249,59 @@ int gk_conflict_resolve_accept_local_delete(gk_session *session, const char *pat
     const char *purpose = "resolve conflict by accepting local delete";
     return gk_conflict_resolve_accept_delete(session, path, purpose);
 }
+
+const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session, const char *ancestor_oid_id, const char *ours_oid_id, const char *theirs_oid_id, const char *path) {
+    const char *purpose = "generate merged buffer";
+    if (gk_session_verify(session, &COMP_CONFLICTS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
+        return NULL;
+    }
+    else if (ancestor_oid_id == NULL) {
+        gk_session_failure(session, &COMP_CONFLICTS, -5, "Cannot %s with NULL ancestor object id", purpose);
+        return NULL;
+    }
+    else if (ours_oid_id == NULL) {
+        gk_session_failure(session, &COMP_CONFLICTS, -5, "Cannot %s with NULL ours object id", purpose);
+        return NULL;
+    }
+    else if (theirs_oid_id == NULL) {
+        gk_session_failure(session, &COMP_CONFLICTS, -5, "Cannot %s with NULL theirs object id", purpose);
+        return NULL;
+    }
+
+    git_merge_file_input ancestor_input;
+    git_merge_file_input ours_input;
+    git_merge_file_input theirs_input;
+
+    git_merge_file_input_init(&ancestor_input, GIT_MERGE_FILE_INPUT_VERSION);
+    git_merge_file_input_init(&ours_input, GIT_MERGE_FILE_INPUT_VERSION);
+    git_merge_file_input_init(&theirs_input, GIT_MERGE_FILE_INPUT_VERSION);
+
+    ancestor_input.path = path;
+    ours_input.path = path;
+    theirs_input.path = path;
+
+    if (gk_blob_contents(session, (void **)&ancestor_input.ptr, &ancestor_input.size, ancestor_oid_id, purpose) != GK_SUCCESS) {
+        return NULL;
+    }
+    if (gk_blob_contents(session, (void **)&ours_input.ptr, &ours_input.size, ours_oid_id, purpose) != GK_SUCCESS) {
+        return NULL;
+    }
+    if (gk_blob_contents(session, (void **)&theirs_input.ptr, &theirs_input.size, theirs_oid_id, purpose) != GK_SUCCESS) {
+        return NULL;
+    }
+
+    git_merge_file_options merge_options;
+    git_merge_file_options_init(&merge_options, GIT_MERGE_OPTIONS_VERSION);
+
+    git_merge_file_result merged_file;
+    if (git_merge_file(&merged_file, &ancestor_input, &ours_input, &theirs_input, &merge_options) != 0) {
+        // TODO: do error
+    }
+    return NULL;
+}
+
+void gk_conflict_merged_buffer_free(gk_session *session, const char *buffer) {
+    free((void *)buffer);
+    (void) session;
+}
+

@@ -177,7 +177,6 @@ static void test_conflicts_incompatible_twosided_edit(void **state) {
     gk_session_free(session2);
 }
 
-
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_conflicts_various_types, test_staging_clean_repo_setup),
