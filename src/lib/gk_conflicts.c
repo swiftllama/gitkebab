@@ -205,7 +205,6 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
         return gk_session_failure(session, &COMP_CONFLICTS, -10, "Cannot %s, error opening file [%s] for writing: error %d occurred", purpose, path, errno);
     }
 
-    printf("DBG P0 data ptr [%p], data length [%zu]\n", (void *)blob_data, blob_size);
     int rc = fwrite(blob_data, 1, blob_size, fptr);
     fclose(fptr);
     if (rc < 0) {
@@ -300,8 +299,9 @@ const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session,
         gk_session_failure(session, &COMP_CONFLICTS, -7, "Cannot %s, error while merging file (%d): %s", err->klass, err->message);
         return NULL;
     }
-    
-    char *data = strdup(merged_file.ptr);
+
+    char *data = (char *)malloc(merged_file.len);
+    memcpy(data, merged_file.ptr, merged_file.len);
     git_merge_file_result_free(&merged_file);
 
     return data;
@@ -311,3 +311,57 @@ void gk_conflict_merged_buffer_free(const char *buffer) {
     free((void *)buffer);
 }
 
+
+// NOTE: this adds a blob to the current repository, but resolves the
+// conflict in the MERGE index. If this merge is abandoned it could
+// potentially leave this dangling blob which would eventually simply
+// get recycled
+int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, u_int64_t data_length) {
+    const char *purpose = "resolve conflict by accepting data from buffer";
+    if (gk_session_verify(session, &COMP_CONFLICTS, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    else if (path == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -9, "Cannot %s, path is NULL", purpose);
+    }
+    else if (data == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -9, "Cannot %s, buffer is NULL", purpose);
+    }
+
+    // Note: cannot add buffer directly to merge_index because it's
+    // not backed by the repository, it only exists in memory. So
+    // we add the blob to the real index
+    git_oid blob_oid;
+    if (git_blob_create_from_buffer(&blob_oid, session->lg2_resources->repository, data, data_length) != 0) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, error adding buffer data to blob", purpose, path);
+    }
+
+    log_info(COMP_CONFLICTS, "Created blog [%s] to resolve conflict at path [%s]", git_oid_tostr_s(&blob_oid), path);
+
+
+    // NOTE: we have to get the normal entry from the current index,
+    // as the merge index only has it as a staged ancestor/ours/theirs
+    // entry
+    gk_lg2_index_load(session, purpose);
+    const git_index_entry *conflicted_entry = git_index_get_bypath(session->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
+    if (conflicted_entry == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, ancestor file not found in index at path [%s]", purpose, path);
+    }
+    gk_lg2_index_free(session);
+    
+    git_index_entry clean_entry = *conflicted_entry;
+    clean_entry.id = blob_oid;
+    //clean_entry.stage = GIT_INDEX_STAGE_NORMAL;
+    
+    if (git_index_remove_bypath(session->lg2_resources->merge_index, path) != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -1, "Cannot %s, error removing file [%s] from index so as to clear its conflict sstatus (%d): %s", purpose, path, err->klass, err->message);
+    }
+
+    if (git_index_add(session->lg2_resources->merge_index, &clean_entry) != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -1, "Cannot %s, error adding file [%s] to index (%d): %s", purpose, path, err->klass, err->message);
+    }
+
+    return GK_SUCCESS;
+}

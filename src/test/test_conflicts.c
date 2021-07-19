@@ -174,9 +174,20 @@ static void test_conflicts_incompatible_twosided_edit(void **state) {
     assert_int_equal(summary->conflicts[2]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
 
     const char *merged_buffer = gk_conflict_merged_buffer_with_conflict_markers(session2, summary->conflicts[2]->ancestor_oid_id, summary->conflicts[2]->ours_oid_id, summary->conflicts[2]->theirs_oid_id, "file3");
-    printf("DBG  M0 got merged buffer:\n ----------------------------\n%s\n---------------------------", merged_buffer);
+    assert_non_null(merged_buffer);
+    //log_info(COMP_TEST, "Merged buffer: -----------------\n%s\n-------------------\n\n", merged_buffer);
     gk_conflict_merged_buffer_free(merged_buffer);
 
+    char new_buffer[6] = "hello";
+    gk_conflict_resolve_from_buffer(session2, "file3", new_buffer, 6);
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    gk_session_merge_conflicts_query(session2, "query merge conflicts");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    summary = &session2->conflict_summary;
+    assert_int_equal(summary->num_conflicts, 5);
+    assert_string_equal(summary->conflicts[2]->path, "file4");
+    
     gk_session_free(session1);
     gk_session_free(session2);
 }

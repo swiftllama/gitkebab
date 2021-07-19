@@ -28,5 +28,6 @@ int gk_blob_contents(gk_session *session, void **blob_data, u_int64_t *blob_data
 
 const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session, const char *ancestor_oid_id, const char *ours_oid_id, const char *theirs_oid_id, const char *path);
 void gk_conflict_merged_buffer_free(const char *buffer);
+int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, u_int64_t data_length);
 
 #endif // __GK_CONFLICTS_H__

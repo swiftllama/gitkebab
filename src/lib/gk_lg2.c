@@ -250,7 +250,7 @@ int gk_lg2_index_write_tree(gk_session *session, git_index *target_index, const 
 
     return GK_SUCCESS;
 }
-
+                            
 void gk_lg2_tree_free(gk_session *session) {
     git_tree_free(session->lg2_resources->tree);
     session->lg2_resources->tree = NULL;
