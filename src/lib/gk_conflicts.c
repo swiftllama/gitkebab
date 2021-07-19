@@ -292,7 +292,7 @@ const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session,
 
     git_merge_file_options merge_options;
     git_merge_file_options_init(&merge_options, GIT_MERGE_OPTIONS_VERSION);
-    merge_options.flags = GIT_MERGE_FILE_STYLE_DIFF3;
+    merge_options.flags = GIT_MERGE_FILE_STYLE_DIFF3 | GIT_MERGE_FILE_DIFF_MINIMAL;
     
     git_merge_file_result merged_file;
     if (git_merge_file(&merged_file, &ancestor_input, &ours_input, &theirs_input, &merge_options) != 0) {
@@ -300,7 +300,7 @@ const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session,
         gk_session_failure(session, &COMP_CONFLICTS, -7, "Cannot %s, error while merging file (%d): %s", err->klass, err->message);
         return NULL;
     }
-
+    
     char *data = strdup(merged_file.ptr);
     git_merge_file_result_free(&merged_file);
 
