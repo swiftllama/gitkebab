@@ -50,6 +50,8 @@ typedef struct {
 typedef struct {
     size_t num_conflicts;
     gk_merge_conflict_entry **conflicts;
+    char repository_head_oid_id[41];
+    char fetch_head_oid_id[41];
 } gk_merge_conflict_summary;
 
 typedef struct {

@@ -379,8 +379,6 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         next_conflict_node->data = (void *)ext_entry;
         next_conflict_node->next = gk_void_linked_node_new();
         next_conflict_node = next_conflict_node->next;
-
-        log_info(COMP_CONFLICTS, "Conflict #%d at file [%s], of type [%s] has ancestor [%s], ours [%s], theirs [%s]", index, entry_path, gk_merge_conflict_entry_type_string(ext_entry->conflict_type), ext_entry->ancestor_oid_id, ext_entry->ours_oid_id, ext_entry->theirs_oid_id);
         
         // DBG
         /*
@@ -412,12 +410,19 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
     gk_conflicts_free(session);
     gk_conflicts_allocate(session, num_conflicts);
     next_conflict_node = conflict_chain;
+    strncpy(session->conflict_summary.repository_head_oid_id, session->lg2_resources->repository_head_oid_id, 41);
+    strncpy(session->conflict_summary.fetch_head_oid_id, session->lg2_resources->fetch_head_oid_id, 41);
     index = 0;
+    log_info(COMP_CONFLICTS, "Merge status from fetch head [%s] into repository head [%s] has %zu conflicts", session->conflict_summary.fetch_head_oid_id, session->conflict_summary.repository_head_oid_id, session->conflict_summary.num_conflicts);
     while((next_conflict_node != NULL) && (next_conflict_node->data != NULL)) {
-        session->conflict_summary.conflicts[index] = next_conflict_node->data;
+        gk_merge_conflict_entry *entry = next_conflict_node->data;
+        log_info(COMP_CONFLICTS, "Conflict #%d at file [%s], of type [%s] has ancestor [%s], ours [%s], theirs [%s]", index, entry->path, gk_merge_conflict_entry_type_string(entry->conflict_type), entry->ancestor_oid_id, entry->ours_oid_id, entry->theirs_oid_id);
+        session->conflict_summary.conflicts[index] = entry;
         next_conflict_node = next_conflict_node->next;
         index += 1;
     }
+
+
     
     gk_free_void_node_chain(conflict_chain, 0);
     git_index_conflict_iterator_free(conflicts);
