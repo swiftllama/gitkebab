@@ -341,17 +341,20 @@ int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void 
 
     // NOTE: we have to get the normal entry from the current index,
     // as the merge index only has it as a staged ancestor/ours/theirs
-    // entry
-    gk_lg2_index_load(session, purpose);
+    // entry. This feels a bit sketchy
+    if (gk_lg2_index_load(session, purpose) != GK_SUCCESS) {
+        gk_lg2_index_free(session);
+        return GK_FAILURE;
+    }
+
     const git_index_entry *conflicted_entry = git_index_get_bypath(session->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
     if (conflicted_entry == NULL) {
         return gk_session_failure(session, &COMP_CONFLICTS, -6, "Cannot %s, ancestor file not found in index at path [%s]", purpose, path);
     }
     gk_lg2_index_free(session);
-    
+
     git_index_entry clean_entry = *conflicted_entry;
     clean_entry.id = blob_oid;
-    //clean_entry.stage = GIT_INDEX_STAGE_NORMAL;
     
     if (git_index_remove_bypath(session->lg2_resources->merge_index, path) != 0) {
         const git_error *err = git_error_last();
