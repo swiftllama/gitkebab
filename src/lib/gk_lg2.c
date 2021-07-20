@@ -5,6 +5,7 @@
 #include "gk_lg2_private.h"
 #include "gk_logging.h"
 #include "gk_conflicts.h"
+#include "gk_filesystem.h"
 
 void gk_lg2_resources_init(gk_session *session) {
     if (session == NULL) {
@@ -361,11 +362,21 @@ int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose) {
         ext_entry->path = strdup(entry_path);
         ext_entry->conflict_type = GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT;
         if (conflict_entry.ancestor != NULL) {
+            // NOTE: the deleted file may have been replaced by a
+            //       folder with the same name. We can detect this by
+            //       looking for entries in the index that start with
+            //       "<entry_path>/", since git doesn't track folders
+            //       but if there is one then it must contain at least
+            //       one file (or subfolder with file, etc). This can
+            //       be done using git_index_find_prefix(..)
             if (conflict_entry.ours == NULL) {
                 ext_entry->conflict_type = GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT;
             }
             else if (conflict_entry.theirs == NULL) {
                 ext_entry->conflict_type = GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE;
+
+
+                
             }
         }
         else {
