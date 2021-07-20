@@ -120,10 +120,19 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
         return gk_session_failure(session, &COMP_CONFLICTS, -6, "Canont resolve conflict for path '%s', unknown resolution type '%d' (expected ours '%d' or theirs '%d')", accept, GK_CONFLICT_RESOLUTION_OURS, GK_CONFLICT_RESOLUTION_THEIRS);
     }
 
-    const git_index_entry *conflicted_entry = git_index_get_bypath(session->lg2_resources->merge_index, path, GIT_INDEX_STAGE_NORMAL);
-    if (conflicted_entry == NULL) {
-        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, file not found in index at path %s", path);
+    // NOTE: we have to get the normal entry from the current index,
+    // as the merge index only has it as a staged ancestor/ours/theirs
+    // entry. This feels a bit sketchy
+    if (gk_lg2_index_load(session, purpose) != GK_SUCCESS) {
+        gk_lg2_index_free(session);
+        return GK_FAILURE;
     }
+    
+    const git_index_entry *conflicted_entry = git_index_get_bypath(session->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
+    if (conflicted_entry == NULL) {
+        return gk_session_failure(session, &COMP_MERGE, -6, "Cannot %s, file not found in index at path %s", purpose, path);
+    }
+    gk_lg2_index_free(session);
 
     const git_index_entry *ancestor_entry = NULL;
     const git_index_entry *ours_entry = NULL;

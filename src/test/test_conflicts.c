@@ -206,11 +206,19 @@ static void test_conflicts_incompatible_twosided_create(void **state) {
     gk_session_merge_into_head(session2);
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
-    // file3 should have a twosided-incompatible-edit type conflict
+    // file6 should have a twosided-incompatible-create type conflict
     gk_merge_conflict_summary *summary = &session2->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
-    assert_string_equal(summary->conflicts[2]->path, "file3");
-    assert_int_equal(summary->conflicts[2]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
+    assert_string_equal(summary->conflicts[5]->path, "file6");
+    assert_int_equal(summary->conflicts[5]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE);
+    gk_conflict_resolve_accept_existing(session2, "file6", GK_CONFLICT_RESOLUTION_THEIRS);
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    gk_session_merge_conflicts_query(session2, "query merge conflicts");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    summary = &session2->conflict_summary;
+    assert_int_equal(summary->num_conflicts, 5);
+    assert_string_equal(summary->conflicts[4]->path, "file5");
     
     gk_session_free(session1);
     gk_session_free(session2);
