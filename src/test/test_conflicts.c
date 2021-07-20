@@ -173,6 +173,13 @@ static void test_conflicts_incompatible_twosided_edit(void **state) {
     assert_string_equal(summary->conflicts[2]->path, "file3");
     assert_int_equal(summary->conflicts[2]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
 
+    // Similarity should be high, i.e. between 80 and 100 (same file's
+    // been modified in only a few places, albeit incompatibly)
+    int similarity = 0;
+    gk_compare_blobs(session2, &similarity, summary->conflicts[2]->ours_oid_id, summary->conflicts[2]->theirs_oid_id, "compare file3 ours and theirs blobs");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_in_range(similarity, 80, 101);
+    
     const char *merged_buffer = gk_conflict_merged_buffer_with_conflict_markers(session2, summary->conflicts[2]->ancestor_oid_id, summary->conflicts[2]->ours_oid_id, summary->conflicts[2]->theirs_oid_id, "file3");
     assert_non_null(merged_buffer);
     //log_info(COMP_TEST, "Merged buffer: -----------------\n%s\n-------------------\n\n", merged_buffer);
@@ -211,6 +218,15 @@ static void test_conflicts_incompatible_twosided_create(void **state) {
     assert_int_equal(summary->num_conflicts, 6);
     assert_string_equal(summary->conflicts[5]->path, "file6");
     assert_int_equal(summary->conflicts[5]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE);
+
+    // Similarity should be low, i.e. between 0 and 20 (these are
+    // two completely different files)
+    int similarity = 0;
+    gk_compare_blobs(session2, &similarity, summary->conflicts[5]->ours_oid_id, summary->conflicts[5]->theirs_oid_id, "compare file6 ours and theirs blobs");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_in_range(similarity, 0, 20);
+
+    // Resolve by accepting theirs
     gk_conflict_resolve_accept_existing(session2, "file6", GK_CONFLICT_RESOLUTION_THEIRS);
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
@@ -219,7 +235,7 @@ static void test_conflicts_incompatible_twosided_create(void **state) {
     summary = &session2->conflict_summary;
     assert_int_equal(summary->num_conflicts, 5);
     assert_string_equal(summary->conflicts[4]->path, "file5");
-    
+                     
     gk_session_free(session1);
     gk_session_free(session2);
 }

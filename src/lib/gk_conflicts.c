@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include "git2.h"
+#include "git2/sys/hashsig.h"
 
 #include "gk_conflicts.h"
 #include "gk_session.h"
@@ -222,6 +223,7 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
     uint64_t blob_size = 0;
     void *blob_data = NULL;
     if (gk_blob_contents(session, &blob_data, &blob_size, oid_id, purpose) != GK_SUCCESS) {
+        free(blob_data);
         return GK_FAILURE;
     }
     
@@ -390,6 +392,70 @@ int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void 
         const git_error *err = git_error_last();
         return gk_session_failure(session, &COMP_CONFLICTS, -1, "Cannot %s, error adding file [%s] to index (%d): %s", purpose, path, err->klass, err->message);
     }
+
+    return GK_SUCCESS;
+}
+
+int gk_compare_blobs(gk_session *session, int *similarity, const char *blob1_oid_id, const char *blob2_oid_id, const char *purpose) {
+    if (gk_session_verify(session, &COMP_CONFLICTS, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    else if (blob1_oid_id == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -12, "Cannot %s, blob1 id is NULL");
+    }
+    else if (blob2_oid_id == NULL) {
+        return gk_session_failure(session, &COMP_CONFLICTS, -12, "Cannot %s, blob2 id is NULL");
+    }
+
+    log_info(COMP_CONFLICTS, "Calculating similarity between blob1 [%s] and blob2 [%s]", blob1_oid_id, blob2_oid_id);
+    
+    uint64_t blob_size1 = 0;
+    void *blob_data1 = NULL;
+    if (gk_blob_contents(session, &blob_data1, &blob_size1, blob1_oid_id, purpose) != GK_SUCCESS) {
+        free(blob_data1);
+        return GK_FAILURE;
+    }
+
+    uint64_t blob_size2 = 0;
+    void *blob_data2 = NULL;
+    if (gk_blob_contents(session, &blob_data2, &blob_size2, blob2_oid_id, purpose) != GK_SUCCESS) {
+        free(blob_data2);
+        return GK_FAILURE;
+    }
+
+    git_hashsig *blob1_hashsig;
+    git_hashsig *blob2_hashsig;
+    
+    if (git_hashsig_create(&blob1_hashsig, blob_data1, blob_size1, GIT_HASHSIG_ALLOW_SMALL_FILES) != 0) {
+        free(blob_data1);
+        free(blob_data2);
+        git_hashsig_free(blob1_hashsig);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -8, "Cannot %s, error creating hash signature for blob [%s] (%d): %s", purpose, blob1_oid_id, err->klass, err->message);
+    }
+
+    if (git_hashsig_create(&blob2_hashsig, blob_data2, blob_size2, GIT_HASHSIG_ALLOW_SMALL_FILES) != 0) {
+        free(blob_data1);
+        free(blob_data2);
+        git_hashsig_free(blob1_hashsig);
+        git_hashsig_free(blob2_hashsig);
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -8, "Cannot %s, error creating hash signature for blob [%s] (%d): %s", purpose, blob2_oid_id, err->klass, err->message);
+    }
+
+    int blob_similarity = git_hashsig_compare(blob1_hashsig, blob2_hashsig);
+
+    free(blob_data1);
+    free(blob_data2);
+    git_hashsig_free(blob1_hashsig);
+    git_hashsig_free(blob2_hashsig);
+        
+    if (blob_similarity < 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -8, "Cannot %s, error calculating similarity between blobs (%d): %s", purpose, err->klass, err->message);
+    }
+
+    *similarity = blob_similarity;
 
     return GK_SUCCESS;
 }
