@@ -286,13 +286,13 @@ int gk_session_merge_into_head(gk_session *session) {
     gk_session_state_unset(session, GK_SESSION_STATE_MERGE_IN_PROGRESS);
 
     if (gk_session_state_enabled(session, GK_SESSION_STATE_HAS_CONFLICTS)) {
-        log_info(COMP_MERGE, "merge attemt ended with conflicts");
+        log_info(COMP_MERGE, "merge attempt ended with conflicts");
     }
     else if (gk_session_state_enabled(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE)) {
-        log_info(COMP_MERGE, "merge attemt ended without conflicts but merge still pending");
+        log_info(COMP_MERGE, "merge attempt ended without conflicts but merge still pending");
     }
     else {
-        log_info(COMP_MERGE, "merge attemt ended, all changes merged");
+        log_info(COMP_MERGE, "merge attempt ended, all changes merged");
     }
 
     gk_lg2_free_all_but_repository(session);
