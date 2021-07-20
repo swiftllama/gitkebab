@@ -1,5 +1,5 @@
 
-#ifndef __GK_CONFLICS_H__
+#ifndef __GK_CONFLICTS_H__
 #define __GK_CONFLICTS_H__
 
 #include "gk_types.h"
@@ -18,7 +18,7 @@ gk_conflict_diff_summary *gk_conflict_diff_summary_new();
 void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data);
 gk_void_linked_node *gk_void_linked_node_new();
 
-int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resolution accept);
+int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, gk_conflict_resolution accept);
 
 int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *path, const char* purpose);
 int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *path);

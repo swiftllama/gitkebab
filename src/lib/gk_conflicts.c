@@ -99,7 +99,7 @@ void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data) {
 
 
 
-int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resolution accept) {
+int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, gk_conflict_resolution accept) {
     if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, "resolve conflict") != GK_SUCCESS) {
         return GK_FAILURE;
     }
@@ -112,6 +112,9 @@ int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resol
     }
     else if (accept == GK_CONFLICT_RESOLUTION_THEIRS) {
         purpose = "resolve conflict (accept theirs)";
+    }
+    else if (accept == GK_CONFLICT_RESOLUTION_ANCESTOR) {
+        purpose = "resolve conflict (accept ancestor)";
     }
     else {
         return gk_session_failure(session, &COMP_CONFLICTS, -6, "Canont resolve conflict for path '%s', unknown resolution type '%d' (expected ours '%d' or theirs '%d')", accept, GK_CONFLICT_RESOLUTION_OURS, GK_CONFLICT_RESOLUTION_THEIRS);
@@ -133,19 +136,32 @@ int gk_conflict_resolve(gk_session *session, const char *path, gk_conflict_resol
     git_index_entry clean_entry = *conflicted_entry;
 
     if (accept == GK_CONFLICT_RESOLUTION_OURS) {
+        if (ours_entry == NULL) {
+            return gk_session_failure(session, &COMP_CONFLICTS, -11, "Cannot %s, conflict has no ours entry");
+        }
         clean_entry.id = ours_entry->id;
     }
     else if (accept == GK_CONFLICT_RESOLUTION_THEIRS) {
+        if (theirs_entry == NULL) {
+            return gk_session_failure(session, &COMP_CONFLICTS, -11, "Cannot %s, conflict has no theirs entry");
+        }
         clean_entry.id = theirs_entry->id;
     }
-
-    if (gk_lg2_index_add(session, &clean_entry, path, purpose) != GK_SUCCESS) {
-        return GK_FAILURE;
+    else if (accept == GK_CONFLICT_RESOLUTION_ANCESTOR) {
+        if (ancestor_entry == NULL) {
+            return gk_session_failure(session, &COMP_CONFLICTS, -11, "Cannot %s, conflict has no ancestor entry");
+        }
+        clean_entry.id = ancestor_entry->id;
     }
-            
-    if (git_index_conflict_remove(session->lg2_resources->merge_index, path) != 0) {
+
+    if (git_index_remove_bypath(session->lg2_resources->merge_index, path) != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_CONFLICTS, -11, "Cannot %s, error removing conflicts for entry '%s' (%d): %s", purpose, path, err->klass, err->message);
+        return gk_session_failure(session, &COMP_CONFLICTS, -1, "Cannot %s, error removing file [%s] from index so as to clear its conflict sstatus (%d): %s", purpose, path, err->klass, err->message);
+    }
+
+    if (git_index_add(session->lg2_resources->merge_index, &clean_entry) != 0) {
+        const git_error *err = git_error_last();
+        return gk_session_failure(session, &COMP_CONFLICTS, -1, "Cannot %s, error adding file [%s] to index (%d): %s", purpose, path, err->klass, err->message);
     }
 
     return GK_SUCCESS;
