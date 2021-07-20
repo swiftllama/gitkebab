@@ -257,7 +257,24 @@ static void test_conflicts_partial_resolution_causes_failed_merge(void **state) 
     // We should now have 6 conflicts of various types
     gk_merge_conflict_summary *summary = &session2->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
+
+    gk_conflict_resolve_accept_remote_delete(session2, "file1");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
     
+    gk_conflict_resolve_accept_local_delete(session2, "file2");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    gk_session_merge_conflicts_query(session2, "query merge conflicts");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(summary->num_conflicts, 4);
+
+    gk_session_merge_into_head_finalize(session2);
+    assert_int_not_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
+
+    gk_session_merge_abort(session2);
+    assert_int_not_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 0);
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS), 0);
     
     gk_session_free(session1);
     gk_session_free(session2);

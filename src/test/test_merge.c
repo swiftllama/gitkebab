@@ -201,6 +201,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 0);
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -282,6 +283,8 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS));
     assert_int_equal(1, gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS));
     assert_int_equal(0, gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
+
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
     
     gk_session_free(session1);
     gk_session_free(session2);

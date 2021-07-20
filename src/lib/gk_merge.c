@@ -5,8 +5,8 @@
 #include "gk_types.h"
 #include "gk_logging.h"
 #include "gk_session.h"
+#include "gk_conflicts.h"
 #include "gk_lg2_private.h"
-
 
 int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
     if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT, "analyze merge") != GK_SUCCESS) {
@@ -129,6 +129,7 @@ static int merge_in_memory(gk_session *session) {
             return GK_FAILURE;
         }
         gk_session_state_set(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE);
+        gk_session_state_set(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
     }
 
     return GK_SUCCESS;
@@ -297,4 +298,33 @@ int gk_session_merge_into_head(gk_session *session) {
 
     gk_lg2_free_all_but_repository(session);
     return gk_session_success(session);
+}
+
+int gk_session_merge_into_head_finalize(gk_session *session) {
+    const char *purpose = "finalize merge into head";
+    if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    if (git_index_has_conflicts(session->lg2_resources->merge_index) == 1) {
+        if (gk_session_merge_conflicts_query(session, purpose) != GK_SUCCESS) {
+            return GK_FAILURE;
+        }
+        return gk_session_failure(session, &COMP_CONFLICTS, -1, "Cannot %s, repository still has %d conflicts", purpose, session->conflict_summary.num_conflicts);
+    }
+
+    return GK_SUCCESS;
+}
+
+int gk_session_merge_abort(gk_session *session) {
+    const char *purpose = "abort merge into head";
+    if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    gk_conflicts_free(session);
+    gk_lg2_merge_index_free(session);
+    gk_session_state_unset(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
+    log_info(COMP_MERGE, "Aborting merge into head");
+    return GK_SUCCESS;
 }
