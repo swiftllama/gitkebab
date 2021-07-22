@@ -1,4 +1,5 @@
 
+#include <string.h>
 #include "git2.h"
 
 #include "gk_merge.h"
@@ -84,17 +85,9 @@ static int create_merge_commit(gk_session *session) {
 
 static int merge_in_memory(gk_session *session) {
     git_merge_options merge_options = GIT_MERGE_OPTIONS_INIT;
-    git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
 
     merge_options.flags = 0;
     merge_options.file_flags = GIT_MERGE_FILE_STYLE_DIFF3;
-
-    gk_authenticated_session authed_session;
-    gk_authenticated_session_init(&authed_session, session, NULL);
-    
-    checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_ALLOW_CONFLICTS;
-    checkout_options.progress_cb = gk_session_checkout_progress_callback;
-    checkout_options.progress_payload = &authed_session;
 
     gk_lg2_merge_index_free(session);
     int rc = git_merge_commits(&session->lg2_resources->merge_index, session->lg2_resources->repository, session->lg2_resources->repository_head_commit, session->lg2_resources->fetch_head_commit, &merge_options);
@@ -106,15 +99,9 @@ static int merge_in_memory(gk_session *session) {
     }
 
     if (git_index_has_conflicts(session->lg2_resources->merge_index) == 0) {
-        gk_lg2_promote_merge_index(session);
-        if (gk_lg2_index_write_tree(session, session->lg2_resources->index, "merge in memory") != GK_SUCCESS) {
+        if (gk_lg2_promote_merge_index(session, "merge in memory") != GK_SUCCESS) {
             return GK_FAILURE;
         }
-        
-        if (gk_lg2_checkout_tree(session, &checkout_options, "merge in memory") != GK_SUCCESS) {
-            return GK_FAILURE;
-        }
-
         rc = create_merge_commit(session);
         gk_lg2_merge_index_free(session);
         if (rc != GK_SUCCESS) {
@@ -313,10 +300,40 @@ int gk_session_merge_into_head_finalize(gk_session *session) {
         return gk_session_failure(session, &COMP_CONFLICTS, -1, "Cannot %s, repository still has %d conflicts", purpose, session->conflict_summary.num_conflicts);
     }
 
+    if (gk_lg2_load_references(session, session->repository.remote_ref_name, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    if (strcmp(session->conflict_summary.repository_head_oid_id, session->lg2_resources->repository_head_oid_id) != 0) {
+        log_warn(COMP_MERGE, "Cannot %s, conflict summary was calculated at repository head [%s] but the repository head is now [%s]", purpose, session->conflict_summary.repository_head_oid_id, session->lg2_resources->repository_head_oid_id);
+        if (gk_session_merge_abort(session) != GK_SUCCESS) {
+            return gk_session_failure(session, &COMP_MERGE, -13, "Cannot %s, error aborting session due to repository head mismatch: %s", purpose, gk_result_message(session->last_result));
+        }
+        return gk_session_failure(session, &COMP_MERGE, -14, "Cannot %s, conflict summary was calculated with repository head [%s] but the repository head is now [%s]", purpose, session->conflict_summary.repository_head_oid_id, session->lg2_resources->repository_head_oid_id);
+    }
+
+    if (strcmp(session->conflict_summary.fetch_head_oid_id, session->lg2_resources->fetch_head_oid_id) != 0) {
+        if (gk_session_merge_abort(session) != GK_SUCCESS) {
+            return gk_session_failure(session, &COMP_MERGE, -13, "Cannot %s, error aborting session due to fetch head mismatch: %s", purpose, gk_result_message(session->last_result));
+        }
+        return gk_session_failure(session, &COMP_MERGE, -14, "Cannot %s, conflict summary was calculated with fetch head [%s] but the fetch head is now [%s]", purpose, session->conflict_summary.fetch_head_oid_id, session->lg2_resources->fetch_head_oid_id);
+    }
+
+    if (gk_lg2_promote_merge_index(session, "finalize merge into head") != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    if (create_merge_commit(session) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    gk_session_state_unset(session, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING);
+
+    log_info(COMP_MERGE, "Successfully finalized merge into head");
     return GK_SUCCESS;
 }
 
-int gk_session_merge_abort(gk_session *session) {
+    int gk_session_merge_abort(gk_session *session) {
     const char *purpose = "abort merge into head";
     if (gk_session_verify(session, &COMP_MERGE, GK_SESSION_VERIFY_LOCAL_CHECKOUT | GK_SESSION_VERIFY_MERGE_IN_PROGRESS, purpose) != GK_SUCCESS) {
         return GK_FAILURE;

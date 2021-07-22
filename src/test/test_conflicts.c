@@ -258,19 +258,24 @@ static void test_conflicts_partial_resolution_causes_failed_merge(void **state) 
     gk_merge_conflict_summary *summary = &session2->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
 
+    // Resolve two out of the six
     gk_conflict_resolve_accept_remote_delete(session2, "file1");
     assert_int_equal(gk_result_code(session2->last_result), 0);
     
     gk_conflict_resolve_accept_local_delete(session2, "file2");
     assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    // Query again, we should have four left
     gk_session_merge_conflicts_query(session2, "query merge conflicts");
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(summary->num_conflicts, 4);
 
+    // Try to finalize the merge, it should fail
     gk_session_merge_into_head_finalize(session2);
     assert_int_not_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
 
+    // Abort, it should clean things up
     gk_session_merge_abort(session2);
     assert_int_not_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 0);
@@ -298,7 +303,37 @@ static void test_conflicts_with_resolution_and_merge(void **state) {
     // We should now have 6 conflicts of various types
     gk_merge_conflict_summary *summary = &session2->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
+
+    // Resolve all six conflicts
+    gk_conflict_resolve_accept_remote_delete(session2, "file1");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
     
+    gk_conflict_resolve_accept_local_delete(session2, "file2");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    char new_buffer[6] = "hello";
+    gk_conflict_resolve_from_buffer(session2, "file3", new_buffer, 6);
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    gk_conflict_resolve_from_buffer(session2, "file4", new_buffer, 6);
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    gk_conflict_resolve_accept_local_delete(session2, "file5");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    
+    gk_conflict_resolve_accept_existing(session2, "file6", GK_CONFLICT_RESOLUTION_THEIRS);
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+
+    // We should now have 0 conflicts
+    gk_session_merge_conflicts_query(session2, "query merge conflicts");
+    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(session2->conflict_summary.num_conflicts, 0);
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS), 0);
+    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
+
+    // Finalize the merge
+    gk_session_merge_into_head_finalize(session2);
+    assert_int_not_equal(gk_result_code(session2->last_result), 1);
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -311,8 +346,8 @@ int main(void) {
         cmocka_unit_test_setup(test_conflicts_local_edit_remote_delete_file2, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_conflicts_incompatible_twosided_edit, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_conflicts_incompatible_twosided_create, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_conflicts_with_resolution_and_merge, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_conflicts_partial_resolution_causes_failed_merge, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_conflicts_with_resolution_and_merge, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("src/test/fixtures") != 0) {

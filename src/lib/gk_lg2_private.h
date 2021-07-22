@@ -60,7 +60,7 @@ void gk_lg2_free_references(gk_session *session);
 
 int gk_lg2_index_load(gk_session *session, const char *purpose);
 void gk_lg2_index_free(gk_session *session);
-void gk_lg2_promote_merge_index(gk_session *session);
+int gk_lg2_promote_merge_index(gk_session *session, const char *purpose);
 void gk_lg2_merge_index_free(gk_session *session);
 
 int gk_lg2_repository_open(gk_session *session, const char *purpose);

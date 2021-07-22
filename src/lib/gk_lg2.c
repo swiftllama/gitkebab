@@ -62,6 +62,10 @@ int gk_lg2_load_references(gk_session *session, const char *from_ref_name, const
         return GK_FAILURE;
     }
 
+    if (session->lg2_resources->index != NULL) {
+        gk_lg2_free_references(session);
+    }
+
     int rc = git_revparse_ext(&session->lg2_resources->fetch_head_object, &session->lg2_resources->fetch_head_ref, session->lg2_resources->repository, from_ref_name);
     if (rc == GIT_ENOTFOUND) {
         return gk_session_failure(session, &COMP_MERGE, -5, "Cannot %s, reference '%s' not found", purpose, from_ref_name);
@@ -164,11 +168,29 @@ void gk_lg2_merge_index_free(gk_session *session) {
     session->lg2_resources->merge_index = NULL;
 }
 
-void gk_lg2_promote_merge_index(gk_session *session) {
+int gk_lg2_promote_merge_index(gk_session *session, const char *purpose) {
+    git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
+
+    gk_authenticated_session authed_session;
+    gk_authenticated_session_init(&authed_session, session, NULL);
+    
     gk_lg2_index_free(session);
     session->lg2_resources->index = session->lg2_resources->merge_index;
     session->lg2_resources->merge_index = NULL;
+
+    checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_ALLOW_CONFLICTS;
+    checkout_options.progress_cb = gk_session_checkout_progress_callback;
+    checkout_options.progress_payload = &authed_session;
     
+    if (gk_lg2_index_write_tree(session, session->lg2_resources->index, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+        
+    if (gk_lg2_checkout_tree(session, &checkout_options, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    return GK_SUCCESS;
 }
 
 int gk_lg2_repository_open(gk_session *session, const char *purpose) {
