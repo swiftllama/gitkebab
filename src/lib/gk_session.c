@@ -10,6 +10,7 @@
 #include "gk_conflicts.h"
 #include "gk_lg2_private.h"
 #include "gk_filesystem.h"
+#include "gk_execution_context.h"
 
 static void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *usr) {
     if (repository == NULL) {
@@ -62,6 +63,7 @@ void gk_session_init(gk_session *session, const char *remote_url, const char *lo
         return;
     }
     gk_repository_init(&session->repository, remote_url, local_path, user);
+    session->root_context = gk_execution_context_new("root context", &COMP_SESSION);
     session->last_result = gk_result_success();
     session->callbacks.progress_callback = progress_callback;
     session->callbacks.state_changed_callback = state_changed_callback;
@@ -144,6 +146,8 @@ void gk_session_free(gk_session *session) {
 
     gk_result_free(session->last_result);
     session->last_result = NULL;
+    gk_execution_context_free(session->root_context);
+    session->root_context = NULL;
     gk_repository_free_members(&session->repository);
     gk_conflicts_free(session);
     gk_lg2_free_all_but_repository(session);
@@ -196,6 +200,10 @@ int gk_session_verify(gk_session *session, log_Component *component, int conditi
         log_log(LOG_ERROR, __FILE__, __LINE__, component, "Cannot %s, session is NULL", purpose);
         return GK_FAILURE;
     }
+    else if (session->root_context == NULL) {
+        log_log(LOG_ERROR, __FILE__, __LINE__, component, "Cannot %s, session root context is NULL", purpose);
+        return GK_FAILURE;
+    }
 
     if (condition & GK_SESSION_VERIFY_LOCAL_CHECKOUT) {
         if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
@@ -236,4 +244,28 @@ int gk_session_prepend_repository_path(gk_session *session, char *buffer, size_t
     }
     
     return GK_SUCCESS;
+}
+
+int gk_session_result_success(gk_session *session) {
+    if (gk_session_verify(session, &COMP_SESSION, GK_SESSION_VERIFY_DEFAULT, "check session result success") != GK_SUCCESS) {
+        return 0;
+    }
+    if (session->root_context->child_context == NULL) {
+        return 1;
+    }
+    return 0;
+}
+
+void gk_session_context_push(gk_session *session, const char *purpose, log_Component *log_component) {
+    if (gk_session_verify(session, &COMP_SESSION, GK_SESSION_VERIFY_DEFAULT, "push session execution context") != GK_SUCCESS) {
+        return;
+    }
+    gk_execution_context_push(session->root_context, purpose, log_component);
+}
+
+void gk_session_context_pop(gk_session *session, const char *purpose) {
+    if (gk_session_verify(session, &COMP_SESSION, GK_SESSION_VERIFY_DEFAULT, "pop session execution context") != GK_SUCCESS) {
+        return;
+    }
+    gk_execution_context_pop(session->root_context, purpose);
 }

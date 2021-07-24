@@ -37,9 +37,10 @@ void gk_session_state_trigger_callback(gk_session *session);
 int gk_session_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path, const char *purpose);
 
 typedef enum {
-    GK_SESSION_VERIFY_LOCAL_CHECKOUT = (1 << 0),
-    GK_SESSION_VERIFY_STATUS_LIST = (1 << 1),
-    GK_SESSION_VERIFY_MERGE_IN_PROGRESS = (1 << 2)
+    GK_SESSION_VERIFY_DEFAULT = (1 << 0),
+    GK_SESSION_VERIFY_LOCAL_CHECKOUT = (1 << 1),
+    GK_SESSION_VERIFY_STATUS_LIST = (1 << 2),
+    GK_SESSION_VERIFY_MERGE_IN_PROGRESS = (1 << 3)
 } gk_session_verify_condition;
 
 int gk_session_verify(gk_session *session, log_Component *component, int condition, const char *purpose);

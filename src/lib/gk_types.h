@@ -149,6 +149,7 @@ typedef struct {
 
 struct gk_session {
     gk_repository repository;
+    gk_execution_context *root_context;
     gk_result *last_result;
     gk_session_callbacks callbacks;
     gk_session_state state;
