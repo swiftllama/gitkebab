@@ -47,7 +47,7 @@ gk_execution_context *gk_execution_context_last_parent(gk_execution_context *con
 
 void gk_execution_context_push(gk_execution_context *context, const char *purpose, log_Component *log_component) {
     gk_execution_context *last_parent = gk_execution_context_last_parent(context);
-    gk_execution_context *last_child = last_parent->child_context;
+    gk_execution_context *last_child = last_parent->child_context != NULL ? last_parent->child_context : last_parent;
     log_info(COMP_EXCTX, "Pushing context [%s] onto current context [%s]", purpose, last_child->purpose);
     last_child->child_context = gk_execution_context_new(purpose, log_component != NULL ? log_component : context->log_component);
 }
@@ -106,3 +106,16 @@ int gk_execution_context_is_success(gk_execution_context *context) {
 }
 
 
+size_t gk_execution_context_stack_size(gk_execution_context *context) {
+    if (context == NULL) {
+        log_error(COMP_EXCTX, "Cannot determine stack size for NULL execution context");
+        return 0;
+    }
+    size_t stack_size = 1;
+    gk_execution_context *next_context = context;
+    while (next_context->child_context != NULL) {
+        next_context = next_context->child_context;
+        stack_size += 1;
+    }
+    return stack_size;
+}
