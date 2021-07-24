@@ -3,6 +3,7 @@
 #define __GK_TYPES_H__
 
 #include <stdio.h>
+#include "rxi_log.h"
 
 enum GK_RESULT_CODE {
     GK_SUCCESS, GK_FAILURE
@@ -19,6 +20,15 @@ typedef struct {
     int code;
     char *message;
 } gk_result;
+
+typedef struct gk_execution_context gk_execution_context;
+
+struct gk_execution_context {
+    const char *purpose;
+    gk_result *result;
+    gk_execution_context *child_context;
+    log_Component *log_component;
+};
 
 
 enum gk_session_progress_event_type {

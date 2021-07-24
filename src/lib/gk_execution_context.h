@@ -5,14 +5,6 @@
 #include "gk_results.h"
 #include "gk_logging.h"
 
-typedef struct gk_execution_context gk_execution_context;
-
-struct gk_execution_context {
-    const char *purpose;
-    gk_result *result;
-    gk_execution_context *child_context;
-    log_Component *log_component;
-};
 
 gk_execution_context *gk_execution_context_new(const char *purpose, log_Component *log_component);
 void gk_execution_context_free(gk_execution_context *context);
