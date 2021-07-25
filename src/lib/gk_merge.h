@@ -4,14 +4,14 @@
 
 #include "gk_types.h"
 
-int gk_session_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis);
+int gk_repository_analyze_merge_into_head(gk_repository *repository, const char* from_ref_name, int *out_analysis);
 
-int gk_session_merge_into_head(gk_session *session);
+int gk_repository_merge_into_head(gk_repository *repository);
 
-int gk_session_merge_conflicts_query(gk_session *session, const char *purpose);
+int gk_repository_merge_conflicts_query(gk_repository *repository, const char *purpose);
 
-int gk_session_merge_into_head_finalize(gk_session *session);
+int gk_repository_merge_into_head_finalize(gk_repository *repository);
 
-int gk_session_merge_abort(gk_session *session);
+int gk_repository_merge_abort(gk_repository *repository);
 
 #endif // __GK_MERGE_H__

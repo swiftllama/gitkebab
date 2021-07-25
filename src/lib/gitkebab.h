@@ -12,7 +12,7 @@
 #include "gk_merge.h"
 #include "gk_remotes.h"
 #include "gk_results.h"
-#include "gk_session.h"
+#include "gk_repository.h"
 #include "gk_status.h"
 
 #endif // __GITKEBAB_H__

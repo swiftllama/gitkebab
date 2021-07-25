@@ -1,6 +1,6 @@
 #include "gk_credentials.h"
 #include "gk_results.h"
-#include "gk_session.h"
+#include "gk_repository.h"
 
 #include "gk_logging.h"
 #include <string.h>

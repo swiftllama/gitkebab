@@ -5,8 +5,13 @@
 #include <stdio.h>
 #include "rxi_log.h"
 
+
+typedef struct gk_repository gk_repository;
+typedef struct gk_lg2_resources gk_lg2_resources;
+typedef struct gk_execution_context gk_execution_context;
+
 enum GK_RESULT_CODE {
-    GK_SUCCESS, GK_FAILURE
+    GK_SUCCESS, GK_FAILURE, GK_ERR
 };
 
 typedef enum {
@@ -20,8 +25,6 @@ typedef struct {
     int code;
     char *message;
 } gk_result;
-
-typedef struct gk_execution_context gk_execution_context;
 
 struct gk_execution_context {
     const char *purpose;
@@ -105,16 +108,16 @@ typedef struct {
 } gk_session_credential;
 
 typedef enum {
-    GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS      = (1 << 0),
-    GK_SESSION_STATE_HAS_CONFLICTS              = (1 << 1),
-    GK_SESSION_STATE_HAS_CHANGES_TO_MERGE       = (1 << 2),
-    GK_SESSION_STATE_CLONE_IN_PROGRESS          = (1 << 3),
-    GK_SESSION_STATE_MERGE_FINALIZATION_PENDING = (1 << 4),
-    GK_SESSION_STATE_MERGE_PENDING_ON_DISK      = (1 << 5),
-    GK_SESSION_STATE_PUSH_IN_PROGRESS           = (1 << 6),
-    GK_SESSION_STATE_FETCH_IN_PROGRESS          = (1 << 7),
-    GK_SESSION_STATE_MERGE_IN_PROGRESS          = (1 << 8),
-} gk_session_state;
+    GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS      = (1 << 0),
+    GK_REPOSITORY_STATE_HAS_CONFLICTS              = (1 << 1),
+    GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE       = (1 << 2),
+    GK_REPOSITORY_STATE_CLONE_IN_PROGRESS          = (1 << 3),
+    GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING = (1 << 4),
+    GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK      = (1 << 5),
+    GK_REPOSITORY_STATE_PUSH_IN_PROGRESS           = (1 << 6),
+    GK_REPOSITORY_STATE_FETCH_IN_PROGRESS          = (1 << 7),
+    GK_REPOSITORY_STATE_MERGE_IN_PROGRESS          = (1 << 8),
+} gk_repository_state;
     
 typedef struct {
     const char *local_path;
@@ -124,7 +127,7 @@ typedef struct {
     const char *remote_ref_name;
     const char *remote_name;
     const char *push_refspec;
-} gk_repository;
+} gk_repository_spec;
 
 typedef struct {
     size_t count_new;
@@ -133,26 +136,20 @@ typedef struct {
     size_t count_renamed;
     size_t count_typechange;
     size_t count_conflicted;
-
 } gk_status_summary;
 
-typedef struct gk_session gk_session;
-
-typedef struct gk_lg2_resources gk_lg2_resources;
-
-typedef void gk_session_state_changed_callback(gk_session *session);
+typedef void gk_repository_state_changed_callback(gk_repository *repository);
 
 typedef struct {
     gk_session_progress_callback *progress_callback;
     gk_session_state_changed_callback *state_changed_callback;
 } gk_session_callbacks;
 
-struct gk_session {
-    gk_repository repository;
-    gk_execution_context *root_context;
+struct gk_repository {
+    gk_repository_spec repository_spec;
     gk_result *last_result;
     gk_session_callbacks callbacks;
-    gk_session_state state;
+    gk_repository_state state;
     gk_status_summary status_summary;
     gk_merge_conflict_summary conflict_summary;
     
@@ -160,9 +157,10 @@ struct gk_session {
 };
 
 typedef struct {
-    gk_session *session;
+    gk_execution_context *context;
+    gk_repository *repository;
     gk_session_credential *credential;
-} gk_authenticated_session;
+} gk_session;
 
 
 typedef struct gk_void_linked_node gk_void_linked_node;

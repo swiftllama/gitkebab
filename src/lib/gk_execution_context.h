@@ -14,4 +14,8 @@ int gk_execution_context_success(gk_execution_context *context);
 void gk_execution_context_log_stack_failure(gk_execution_context *context);
 size_t gk_execution_context_stack_size(gk_execution_context *context);
 
+gk_execution_context *gk_execution_context_last_parent(gk_execution_context *context);
+gk_execution_context *gk_execution_context_last_child(gk_execution_context *context);
+void gk_execution_context_set_result(gk_execution_context *context, gk_result *result);
+
 #endif // __GK_EXECUTION_CONTEXT_H__

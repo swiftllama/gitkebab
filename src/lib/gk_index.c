@@ -7,101 +7,101 @@
 #include "gk_logging.h"
 #include "gk_lg2_private.h"
 
-static int verify_session_and_path(gk_session *session, const char* purpose, const char *path) {
-    if (gk_session_verify(session, &COMP_COMMIT, GK_SESSION_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
+static int verify_repository_and_path(gk_repository *repository, const char* purpose, const char *path) {
+    if (gk_repository_verify(repository, &COMP_COMMIT, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     if (path == NULL) {
-        return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, path/pattern is NULL", purpose);
+        return gk_repository_failure(repository, &COMP_COMMIT, -3, "Cannot %s, path/pattern is NULL", purpose);
     }
     else if (path[0] == '\0') {
-        return gk_session_failure(session, &COMP_COMMIT, -3, "Cannot %s, path/pattern is empty", purpose);
+        return gk_repository_failure(repository, &COMP_COMMIT, -3, "Cannot %s, path/pattern is empty", purpose);
     }
     return GK_SUCCESS;
 }
 
-int gk_session_index_add_path(gk_session *session, const char *path) {
-    if (verify_session_and_path(session, "add path to index", path) != GK_SUCCESS) {
+int gk_repository_index_add_path(gk_repository *repository, const char *path) {
+    if (verify_repository_and_path(repository, "add path to index", path) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (gk_lg2_index_load(session, "add path to index") != GK_SUCCESS) {
+    if (gk_lg2_index_load(repository, "add path to index") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
-    int rc = git_index_add_bypath(session->lg2_resources->index, path);
-    gk_lg2_index_free(session);
+    int rc = git_index_add_bypath(repository->lg2_resources->index, path);
+    gk_lg2_index_free(repository);
     
     if (rc != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_COMMIT, -3, "Error adding path '%s' to repository index (%d): %s", path, err->klass, err->message);
+        return gk_repository_failure(repository, &COMP_COMMIT, -3, "Error adding path '%s' to repository index (%d): %s", path, err->klass, err->message);
     }
     
-    return gk_session_success(session);
+    return gk_repository_success(repository);
 }
 
-int gk_session_index_remove_path(gk_session *session, const char *path) {
-    if (verify_session_and_path(session, "remove path from index", path) != GK_SUCCESS) {
+int gk_repository_index_remove_path(gk_repository *repository, const char *path) {
+    if (verify_repository_and_path(repository, "remove path from index", path) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (gk_lg2_index_load(session, "remove path from index") != GK_SUCCESS) {
+    if (gk_lg2_index_load(repository, "remove path from index") != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    int rc = git_index_remove_bypath(session->lg2_resources->index, path);
-    gk_lg2_index_free(session);
+    int rc = git_index_remove_bypath(repository->lg2_resources->index, path);
+    gk_lg2_index_free(repository);
 
     if (rc != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_COMMIT, -3, "Error removing path '%s' from repository index (%d): %s", path, err->klass, err->message);
+        return gk_repository_failure(repository, &COMP_COMMIT, -3, "Error removing path '%s' from repository index (%d): %s", path, err->klass, err->message);
     }
     
-    return gk_session_success(session);
+    return gk_repository_success(repository);
 }
 
-int gk_session_index_add_all(gk_session *session, const char* pattern) {
-    if (verify_session_and_path(session, "add all paths", pattern) != GK_SUCCESS) {
+int gk_repository_index_add_all(gk_repository *repository, const char* pattern) {
+    if (verify_repository_and_path(repository, "add all paths", pattern) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (gk_lg2_index_load(session, "add all paths") != GK_SUCCESS) {
+    if (gk_lg2_index_load(repository, "add all paths") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
     char *path_pattern = strdup(pattern);
     git_strarray paths = {&path_pattern, 1};
-    int rc = git_index_add_all(session->lg2_resources->index, &paths, GIT_INDEX_ADD_DEFAULT, NULL, NULL);
+    int rc = git_index_add_all(repository->lg2_resources->index, &paths, GIT_INDEX_ADD_DEFAULT, NULL, NULL);
     free(path_pattern);
-    gk_lg2_index_free(session);
+    gk_lg2_index_free(repository);
 
     if (rc != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_COMMIT, -3, "Error adding all paths matching '%s' to repository index (%d): %s", pattern, err->klass, err->message);
+        return gk_repository_failure(repository, &COMP_COMMIT, -3, "Error adding all paths matching '%s' to repository index (%d): %s", pattern, err->klass, err->message);
     }
 
-    return gk_session_success(session);
+    return gk_repository_success(repository);
 }
 
-int gk_session_index_update_all(gk_session *session, const char* pattern) {
-    if (verify_session_and_path(session, "update all paths", pattern) != GK_SUCCESS) {
+int gk_repository_index_update_all(gk_repository *repository, const char* pattern) {
+    if (verify_repository_and_path(repository, "update all paths", pattern) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     
-    if (gk_lg2_index_load(session, "update all paths") != GK_SUCCESS) {
+    if (gk_lg2_index_load(repository, "update all paths") != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
     char *path_pattern = strdup(pattern);
     git_strarray paths = {&path_pattern, 1};
-    int rc = git_index_update_all(session->lg2_resources->index, &paths, NULL, NULL);
+    int rc = git_index_update_all(repository->lg2_resources->index, &paths, NULL, NULL);
     free(path_pattern);
-    gk_lg2_index_free(session);
+    gk_lg2_index_free(repository);
 
     if (rc != 0) {
         const git_error *err = git_error_last();
-        return gk_session_failure(session, &COMP_COMMIT, -3, "Error updating all paths matching '%s' to repository index (%d): %s", pattern, err->klass, err->message);
+        return gk_repository_failure(repository, &COMP_COMMIT, -3, "Error updating all paths matching '%s' to repository index (%d): %s", pattern, err->klass, err->message);
     }
 
-    return gk_session_success(session);
+    return gk_repository_success(repository);
 }

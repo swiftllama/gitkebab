@@ -45,9 +45,13 @@ gk_execution_context *gk_execution_context_last_parent(gk_execution_context *con
     return last_parent;
 }
 
-void gk_execution_context_push(gk_execution_context *context, const char *purpose, log_Component *log_component) {
+gk_execution_context *gk_execution_context_last_child(gk_execution_context *context) {
     gk_execution_context *last_parent = gk_execution_context_last_parent(context);
-    gk_execution_context *last_child = last_parent->child_context != NULL ? last_parent->child_context : last_parent;
+    return last_parent->child_context != NULL ? last_parent->child_context : last_parent;
+}
+
+void gk_execution_context_push(gk_execution_context *context, const char *purpose, log_Component *log_component) {
+    gk_execution_context *last_child = gk_execution_context_last_child(context);
     log_info(COMP_EXCTX, "Pushing context [%s] onto current context [%s]", purpose, last_child->purpose);
     last_child->child_context = gk_execution_context_new(purpose, log_component != NULL ? log_component : context->log_component);
 }
@@ -118,4 +122,13 @@ size_t gk_execution_context_stack_size(gk_execution_context *context) {
         stack_size += 1;
     }
     return stack_size;
+}
+
+void gk_execution_context_set_result(gk_execution_context *context, gk_result *result) {
+    if (context == NULL) {
+        log_error(COMP_EXCTX, "Cannot set result for NULL execution context");
+        return;
+    }
+    gk_result_free(context->result);
+    context->result = result;
 }

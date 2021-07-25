@@ -48,49 +48,32 @@ typedef struct {
     char theirs_oid_id[41];
 }  gk_lg2_conflict_entry;
 
+void gk_lg2_resources_init(gk_repository *repository);
+void gk_lg2_free_all_but_repository(gk_repository *repository);
+int gk_lg2_load_references(gk_session *session);
+void gk_lg2_free_references(gk_repository *repository);
+int gk_lg2_index_load(gk_session *session);
+void gk_lg2_index_free(gk_repository *session);
+void gk_lg2_merge_index_free(gk_session *session);
+int gk_lg2_promote_merge_index(gk_session *session);
+int gk_lg2_repository_open(gk_session *session);
+void gk_lg2_repository_free(gk_session *session);
+int gk_lg2_reflog_read(gk_session *session, const char *ref_name);
+void gk_lg2_reflog_free(gk_session *session);
+int gk_lg2_parents_lookup(gk_repository *repository);
+void gk_lg2_parents_free(gk_session *session);
+int gk_lg2_index_write_tree(gk_session *session, git_index *target_index);
+void gk_lg2_tree_free(gk_session *session);
+int gk_lg2_signature_create(gk_session *session);
+void gk_lg2_signature_free(gk_session *session);
+void gk_lg2_status_list_free(gk_session *session);
+int gk_lg2_status_list_load(gk_session *session);
+int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_options);
+int gk_lg2_iterate_conflicts(gk_session *session);
 void gk_lg2_conflict_entry_init(gk_lg2_conflict_entry *entry);
 void gk_lg2_conflict_entry_free_members(gk_lg2_conflict_entry *entry);
-    
-void gk_lg2_resources_init(gk_session *session);
+gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_repository *repository, gk_merge_conflict_entry *entry);
+int gk_lg2_index_conflict_get(gk_session *session, const git_index_entry **ancestor_entry, const git_index_entry **ours_entry, const git_index_entry **theirs_entry, git_index *index, const char *path);
+int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid);
 
-void gk_lg2_free_all_but_repository(gk_session *session);
-
-int gk_lg2_load_references(gk_session *session, const char *from_ref_name, const char *purpose);
-void gk_lg2_free_references(gk_session *session);
-
-int gk_lg2_index_load(gk_session *session, const char *purpose);
-void gk_lg2_index_free(gk_session *session);
-int gk_lg2_promote_merge_index(gk_session *session, const char *purpose);
-void gk_lg2_merge_index_free(gk_session *session);
-
-int gk_lg2_repository_open(gk_session *session, const char *purpose);
-void gk_lg2_repository_free(gk_session *session);
-
-int gk_lg2_reflog_read(gk_session *session, const char *ref_name, const char *purpose);
-void gk_lg2_reflog_free(gk_session *session);
-
-int gk_lg2_index_write_tree(gk_session *session, git_index *target_index, const char *purpose);
-void gk_lg2_tree_free(gk_session *session);
-
-int gk_lg2_signature_create(gk_session *session, log_Component *component, const char *purpose);
-void gk_lg2_signature_free(gk_session *session);
-
-void gk_lg2_parents_free(gk_session *session);
-int gk_lg2_parents_lookup(gk_session *session, const char *purpose);
-
-int gk_lg2_status_list_load(gk_session *session, const char *purpose);
-void gk_lg2_status_list_free(gk_session *session);
-
-int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_options, const char *purpose);
-
-int gk_lg2_iterate_conflicts(gk_session *session, const char *purpose);
-gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_merge_conflict_entry *entry, const char *purpose);
-
-int gk_lg2_index_conflict_get(gk_session *session, const git_index_entry **ancestor_entry, const git_index_entry **ours_entry, const git_index_entry **theirs_entry, git_index *index, const char *path, const char *purpose);
-
-gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_merge_conflict_entry *entry, const char *purpose);
-int gk_lg2_index_add(gk_session *session, const git_index_entry *entry, const char *path, const char *purpose);
-
-int gk_lg2_oid_from_id(gk_session *session, git_oid *oid, const char *oid_id, const char *purpose);
-int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid, const char *purpose);
 #endif // _GK_LG2_PRIVATE_H__

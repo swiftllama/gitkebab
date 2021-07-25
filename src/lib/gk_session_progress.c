@@ -1,21 +1,21 @@
 
 #include "git2.h"
 
-#include "gk_session.h"
+#include "gk_repository.h"
 #include "gk_logging.h"
 
 static int gk_session_check_progress_pointer(void *payload, const char *progress_type) {
     if (payload == NULL) {
-        log_error(COMP_PROGRESS, "Authed-session payload is NULL in %s progress callback", progress_type);
+        log_error(COMP_PROGRESS, "Session payload is NULL in %s progress callback", progress_type);
         return -1;
     }
-    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
-    if (authed_session->session == NULL) {
-        log_error(COMP_PROGRESS, "Authed-session contains NULL in %s progress callback", progress_type);
+    gk_session *session = (gk_session *)payload;
+    if (session->repository == NULL) {
+        log_error(COMP_PROGRESS, "Session contains NULL repository in %s progress callback", progress_type);
         return -1;
     }
-    if (authed_session->session->callbacks.progress_callback == NULL) {
-        log_info(COMP_PROGRESS, "Authed-session contains session with NULL progress callback, no callback will be invoked");
+    if (session->repository->callbacks.progress_callback == NULL) {
+        log_info(COMP_PROGRESS, "Session contains NULL progress callback, no callback will be invoked");
         return -1;
     }
     return 0;
@@ -118,10 +118,10 @@ int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
         return 0;
     }
     
-    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
+    gk_session *session = (gk_session *)payload;
     gk_session_progress progress;
     gk_session_progress_init_fetch(&progress, stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
-    authed_session->session->callbacks.progress_callback(&progress);
+    session->repository->callbacks.progress_callback(&progress);
     return 0;
 }
 
@@ -131,10 +131,10 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
         return;
     }
 
-    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
+    gk_session *session = (gk_session *)payload;
     gk_session_progress progress;
     gk_session_progress_init_checkout(&progress, path, current_steps, total_steps); 
-    authed_session->session->callbacks.progress_callback(&progress);
+    session->session->callbacks.progress_callback(&progress);
 }
 
 int gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload) {
@@ -142,10 +142,10 @@ int gk_session_progress_push_transfer_callback(unsigned int current, unsigned in
         return 0;
     }
 
-    gk_authenticated_session *authed_session = (gk_authenticated_session *)payload;
+    gk_session *session = (gk_session *)payload;
     gk_session_progress progress;
     gk_session_progress_init_push_transfer(&progress, current, total, bytes);
-    authed_session->session->callbacks.progress_callback(&progress);
+    session->repository->callbacks.progress_callback(&progress);
     return 0;
 }
 
