@@ -56,7 +56,6 @@ void gk_repository_init(gk_repository *repository, const char *remote_url, const
     }
     gk_repository_spec_init(&repository->repository_spec, remote_url, local_path, user);
     repository->root_context = gk_execution_context_new("root context", &COMP_REPOSITORY);
-    repository->last_result = gk_result_success();
     repository->callbacks.progress_callback = progress_callback;
     repository->callbacks.state_changed_callback = state_changed_callback;
 
@@ -95,48 +94,11 @@ int gk_open_local_repository(gk_session *session) {
     return gk_session_success(session);
 }
 
-void gk_repository_set_last_result(gk_repository *repository, gk_result *last_result) {
-    gk_result_free(repository->last_result);
-    repository->last_result = last_result;
-    if (last_result == NULL) {
-        log_error(COMP_REPOSITORY, "Set a NULL last error on a repository, this could be the result of a memory allocation failure");
-    }
-}
-
-void gk_repository_set_last_result_v(gk_repository *repository, int code, const char *message, ...) {
-    va_list(args);
-    va_start(args, message);
-    gk_result *result = gk_result_v(code, message, args);
-    va_end(args);
-    gk_repository_set_last_result(repository, result);
-}
-
-void gk_repository_set_last_result_vargs(gk_repository *repository, int code, const char *message, va_list args) {
-    gk_result *result = gk_result_vargs(code, message, args);
-    gk_repository_set_last_result(repository, result);
-}
-
-int gk_repository_failure(gk_repository *repository, log_Component *component, int code, const char *message, ...) {
-    va_list args;
-    va_start(args, message);
-    gk_repository_set_last_result_vargs(repository, code, message, args);
-    va_end(args);
-    log_log(LOG_ERROR, __FILE__, __LINE__, component, gk_result_message(repository->last_result));
-    return GK_FAILURE;
-}
-
-int gk_repository_success(gk_repository *repository) {
-    gk_repository_set_last_result(repository, gk_result_success());
-    return GK_SUCCESS;
-}
-
 void gk_repository_free(gk_repository *repository) {
     if (repository == NULL) {
         return;
     }
 
-    gk_result_free(repository->last_result);
-    repository->last_result = NULL;
     gk_execution_context_free(repository->root_context);
     repository->root_context = NULL;
     gk_repository_spec_free_members(&repository->repository_spec);

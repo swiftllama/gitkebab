@@ -154,7 +154,6 @@ typedef struct {
 
 struct gk_repository {
     gk_repository_spec repository_spec;
-    gk_result *last_result;
     gk_session_callbacks callbacks;
     gk_repository_state state;
     gk_status_summary status_summary;
