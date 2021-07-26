@@ -27,6 +27,10 @@ int gk_session_context_sanity_check(gk_session *session, log_Component *componen
 
 int gk_session_verify(gk_session *session, log_Component *component, int condition, const char *purpose) {
     gk_repository *repository = session->repository;
+    if (gk_did_init() != 1) {
+        return gk_session_failure_ex(session, purpose, GK_ERR, "Gitkebab not initialized");
+    }
+
     if (condition & GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) {
         if (gk_repository_state_disabled(repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS)) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "local checkout does not exist");
