@@ -13,21 +13,21 @@ size_t gk_count_reflog_entries(gk_session *session, const char* ref_name) {
         return 0;
     }
     
-    if (gk_lg2_index_load(repository) != GK_SUCCESS) {
+    if (gk_lg2_index_load(session) != GK_SUCCESS) {
         gk_session_failure(session);
         return 0;
     }
 
-    if (gk_lg2_reflog_read(repository, ref_name) != GK_SUCCESS) {
+    if (gk_lg2_reflog_read(session, ref_name) != GK_SUCCESS) {
         gk_session_failure(session);
         return 0;
     }
 
-    size_t entrycount = git_reflog_entrycount(repository->lg2_resources->reflog);
-    gk_lg2_reflog_free(repository);
-    gk_lg2_index_free(repository);
+    size_t entrycount = git_reflog_entrycount(session->repository->lg2_resources->reflog);
+    gk_lg2_reflog_free(session->repository);
+    gk_lg2_index_free(session->repository);
 
-    gk_repository_context_success(repository, purpose);
+    gk_session_success(session, purpose);
     return entrycount;
 }
 
@@ -51,21 +51,21 @@ n
 
     if (gk_lg2_write_index_tree(session, session->repository->lg2_repository->index) != GK_SUCCESS) {
         gk_lg2_free_references(session->repository);
-        gk_lg2_signature_free(session);
+        gk_lg2_signature_free(session->repository);
         return gk_session_failure(session);
     }
 
     if (git_index_write(lg2_resources->index) != 0) {
         gk_lg2_free_references(session->repository);
-        gk_lg2_signature_free(session);        
-        gk_lg2_tree_free(session);
+        gk_lg2_signature_free(session->repository);        
+        gk_lg2_tree_free(session->repository);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to write index");
     }
 
     if (git_commit_create_v(&commit_oid, lg2_resources->repository, "HEAD", lg2_resources->signature, lg2_resources->signature, NULL, safe_commit_message, lg2_resources->tree, lg2_resources->repository_head_object != NULL? 1 : 0, lg2_repository_head_object) != 0) {
         gk_lg2_free_references(session->repository);
-        gk_lg2_signature_free(session);
-        gk_lg2_tree_free(session);
+        gk_lg2_signature_free(session->repository);
+        gk_lg2_tree_free(session->repository);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to create commit");
     }
 

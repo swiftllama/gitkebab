@@ -131,7 +131,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     // as the merge index only has it as a staged ancestor/ours/theirs
     // entry. This feels a bit sketchy
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
-        gk_lg2_index_free(session);
+        gk_lg2_index_free(session->repository);
         return gk_session_failure(session);
     }
     
@@ -139,7 +139,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     if (conflicted_entry == NULL) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "path [%s] not found in index", path);
     }
-    gk_lg2_index_free(repository);
+    gk_lg2_index_free(session->repository);
         
     const git_index_entry *ancestor_entry = NULL;
     const git_index_entry *ours_entry = NULL;
@@ -200,12 +200,12 @@ int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_
     }
     
     git_oid blob_oid;
-    if (gk_lg2_oid_from_id(repository, &blob_oid, oid_id) != GK_SUCCESS) {
+    if (gk_lg2_oid_from_id(session, &blob_oid, oid_id) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 
     git_blob *blob = NULL;
-    if (gk_lg2_blob_lookup(repository, &blob, &blob_oid, purpose) != GK_SUCCESS) {
+    if (gk_lg2_blob_lookup(session, &blob, &blob_oid) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 
@@ -308,15 +308,15 @@ const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session,
     ours_input.path = path;
     theirs_input.path = path;
 
-    if (gk_blob_contents(repository, (void **)&ancestor_input.ptr, &ancestor_input.size, ancestor_oid_id, purpose) != GK_SUCCESS) {
+    if (gk_blob_contents(session, (void **)&ancestor_input.ptr, &ancestor_input.size, ancestor_oid_id) != GK_SUCCESS) {
         gk_session_failure_ex(session, purpose, GK_ERR, "failed to get ancestor blob contents");
         return NULL;
     }
-    if (gk_blob_contents(repository, (void **)&ours_input.ptr, &ours_input.size, ours_oid_id, purpose) != GK_SUCCESS) {
+    if (gk_blob_contents(session, (void **)&ours_input.ptr, &ours_input.size, ours_oid_id) != GK_SUCCESS) {
         gk_session_failure_ex(session, purpose, GK_ERR, "failed to get ours blob contents");
         return NULL;
     }
-    if (gk_blob_contents(repository, (void **)&theirs_input.ptr, &theirs_input.size, theirs_oid_id, purpose) != GK_SUCCESS) {
+    if (gk_blob_contents(session, (void **)&theirs_input.ptr, &theirs_input.size, theirs_oid_id) != GK_SUCCESS) {
         gk_session_failure_ex(session, purpose, GK_ERR, "failed to get theirs blob contents");
         return NULL;
     }
@@ -374,8 +374,8 @@ int gk_conflict_resolve_from_buffer(gk_repository *repository, const char *path,
     // NOTE: we have to get the normal entry from the current index,
     // as the merge index only has it as a staged ancestor/ours/theirs
     // entry. This feels a bit sketchy
-    if (gk_lg2_index_load(repository, purpose) != GK_SUCCESS) {
-        gk_lg2_index_free(repository);
+    if (gk_lg2_index_load(session) != GK_SUCCESS) {
+        gk_lg2_index_free(session->repository);
         return gk_session_failure(session, purpose, GK_ERR);
     }
 
@@ -383,7 +383,7 @@ int gk_conflict_resolve_from_buffer(gk_repository *repository, const char *path,
     if (conflicted_entry == NULL) {
         return gk_session_failure(session, purpose, GK_ERR, "ancestor file not found in index at path [%s]", path);
     }
-    gk_lg2_index_free(repository);
+    gk_lg2_index_free(session->repository);
 
     git_index_entry clean_entry = *conflicted_entry;
     clean_entry.id = blob_oid;
@@ -399,7 +399,7 @@ int gk_conflict_resolve_from_buffer(gk_repository *repository, const char *path,
     return gk_session_success(session, purpose);
 }
 
-int gk_compare_blobs(gk_repository *repository, int *similarity, const char *blob1_oid_id, const char *blob2_oid_id, const char *purpose) {
+int gk_compare_blobs(gk_repository *repository, int *similarity, const char *blob1_oid_id, const char *blob2_oid_id) {
     const char *purpose = "compare blobs";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -415,14 +415,14 @@ int gk_compare_blobs(gk_repository *repository, int *similarity, const char *blo
     
     uint64_t blob_size1 = 0;
     void *blob_data1 = NULL;
-    if (gk_blob_contents(repository, &blob_data1, &blob_size1, blob1_oid_id, purpose) != GK_SUCCESS) {
+    if (gk_blob_contents(session, &blob_data1, &blob_size1, blob1_oid_id) != GK_SUCCESS) {
         free(blob_data1);
         return gk_session_failure_ex(session, purpose, GK_ERR, "failed to obtain blob1 contents");
     }
 
     uint64_t blob_size2 = 0;
     void *blob_data2 = NULL;
-    if (gk_blob_contents(repository, &blob_data2, &blob_size2, blob2_oid_id, purpose) != GK_SUCCESS) {
+    if (gk_blob_contents(repository, &blob_data2, &blob_size2, blob2_oid_id) != GK_SUCCESS) {
         free(blob_data1);
         free(blob_data2);
         return gk_session_failure_ex(session, purpose, GK_ERR, "failed to obtain blob2 contents");

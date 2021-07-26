@@ -182,14 +182,14 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     assert_int_equal(rc, 0);
 
     // commit and push
-    gk_session_index_add_path(session1, "file1");
-    gk_session_index_remove_path(session1, "file2");
-    gk_session_index_add_path(session1, "file3");
-    gk_session_index_add_path(session1, "file4");
-    gk_session_index_add_path(session1, "file5");
-    gk_session_index_add_path(session1, "file6");
-    gk_session_index_add_path(session1, "file7");
-    gk_session_commit(session1, "HEAD", "commit repo A modifications", NULL);
+    gk_index_add_path(session1, "file1");
+    gk_index_remove_path(session1, "file2");
+    gk_index_add_path(session1, "file3");
+    gk_index_add_path(session1, "file4");
+    gk_index_add_path(session1, "file5");
+    gk_index_add_path(session1, "file6");
+    gk_index_add_path(session1, "file7");
+    gk_commit(session1, "HEAD", "commit repo A modifications", NULL);
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_session_push(session1, &g_empty_credential, "origin");
@@ -231,14 +231,14 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     assert_int_equal(rc, 0);
 
     // commit but don't push
-    gk_session_index_remove_path(session2, "file1");
-    gk_session_index_add_path(session2, "file2");
-    gk_session_index_add_path(session2, "file3");
-    gk_session_index_add_path(session2, "file4");
-    gk_session_index_add_path(session2, "file5/child1");
-    gk_session_index_add_path(session2, "file6");
-    gk_session_index_add_path(session2, "file7");
-    gk_session_commit(session2, "HEAD", "commit repo B modifications", NULL);
+    gk_index_remove_path(session2, "file1");
+    gk_index_add_path(session2, "file2");
+    gk_index_add_path(session2, "file3");
+    gk_index_add_path(session2, "file4");
+    gk_index_add_path(session2, "file5/child1");
+    gk_index_add_path(session2, "file6");
+    gk_index_add_path(session2, "file7");
+    gk_commit(session2, "HEAD", "commit repo B modifications", NULL);
     assert_int_equal(gk_result_code(session2->last_result), 0);// commit and push
 
     ////

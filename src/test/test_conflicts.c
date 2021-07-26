@@ -88,7 +88,7 @@ static void test_conflicts_local_delete_remote_edit_file1(void **state) {
     gk_session_prepend_repository_path(session2, new_file1_path, 256, "new_file1", "prepend repo path");
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
-    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, new_file1_path, "write blob");
+    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, new_file1_path);
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     // Verify that the file we "preserved" is the same as our edit
@@ -132,7 +132,7 @@ static void test_conflicts_local_edit_remote_delete_file2(void **state) {
     gk_session_prepend_repository_path(session2, new_file1_path, 256, "new_file2", "prepend repo path");
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
-    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, new_file1_path, "write blob");
+    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, new_file1_path);
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     // Verify that the file we "preserved" is the same as the incoming edit
@@ -176,7 +176,7 @@ static void test_conflicts_incompatible_twosided_edit(void **state) {
     // Similarity should be high, i.e. between 80 and 100 (same file's
     // been modified in only a few places, albeit incompatibly)
     int similarity = 0;
-    gk_compare_blobs(session2, &similarity, summary->conflicts[2]->ours_oid_id, summary->conflicts[2]->theirs_oid_id, "compare file3 ours and theirs blobs");
+    gk_compare_blobs(session2, &similarity, summary->conflicts[2]->ours_oid_id, summary->conflicts[2]->theirs_oid_id);
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_in_range(similarity, 80, 101);
     
@@ -222,7 +222,7 @@ static void test_conflicts_incompatible_twosided_create(void **state) {
     // Similarity should be low, i.e. between 0 and 20 (these are
     // two completely different files)
     int similarity = 0;
-    gk_compare_blobs(session2, &similarity, summary->conflicts[5]->ours_oid_id, summary->conflicts[5]->theirs_oid_id, "compare file6 ours and theirs blobs");
+    gk_compare_blobs(session2, &similarity, summary->conflicts[5]->ours_oid_id, summary->conflicts[5]->theirs_oid_id);
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_in_range(similarity, 0, 20);
 

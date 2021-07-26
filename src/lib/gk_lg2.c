@@ -52,9 +52,9 @@ void gk_lg2_free_all_but_repository(gk_repository *repository) {
     gk_lg2_free_references(repository);
     gk_lg2_index_free(repository);
 
-    gk_lg2_signature_free(session);
-    gk_lg2_parents_free(session);
-    gk_lg2_tree_free(session);
+    gk_lg2_signature_free(repository);
+    gk_lg2_parents_free(repository);
+    gk_lg2_tree_free(repository);
 }
 
 int gk_lg2_load_references(gk_session *session) {
@@ -108,7 +108,7 @@ int gk_lg2_load_references(gk_session *session) {
 
 void gk_lg2_free_references(gk_repository *repository) {
     if (repository == NULL) {
-        log_error(COMP_REPOSITORY, "gk_repository_lg2_resources_free_references called on NULL repository");
+        log_error(COMP_REPOSITORY, "gk_lg2_free_references called on NULL repository");
         return;
     }
 
@@ -139,19 +139,16 @@ int gk_lg2_index_load(gk_session *session) {
 
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_repository_index(&lg2_resources->index, lg2_resources->repository) != 0) {
-        gk_lg2_index_free(repository);
+        gk_lg2_index_free(session->repository);
         return gk_repository_context_lg2_failure(repository, purpose, GK_ERR);
     }
 
     return gk_session_success(session);
 }
 
-void gk_lg2_index_free(gk_repository *session) {
-    if (gk_session_context_sanity_check(session, &COMP_GENERAL, "free repository index") != GK_SUCCESS) {
-        return;
-    }
-    git_index_free(session->repository->lg2_resources->index);
-    session->repository->lg2_resources->index = NULL;
+void gk_lg2_index_free(gk_repository *repository) {
+    git_index_free(repository->lg2_resources->index);
+    repository->lg2_resources->index = NULL;
 }
 
 void gk_lg2_merge_index_free(gk_session *session) {
@@ -171,7 +168,7 @@ int gk_lg2_promote_merge_index(gk_session *session) {
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
     
-    gk_lg2_index_free(session);
+    gk_lg2_index_free(session->repository);
     lg2_resources->index = lg2_resources->merge_index;
     lg2_resources->merge_index = NULL;
 
@@ -198,15 +195,15 @@ int gk_lg2_repository_open(gk_session *session) {
 
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_repository_open(&lg2_resources->repository, session->repository->repository_spec.local_path) != 0) {
-        gk_lg2_repository_free(session);
+        gk_lg2_repository_free(session->repository);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "repository at local path [%s] could not be opened", session->repository->repository_spec.local_path);
     }
     return gk_session_success(session, purpose);
 }
 
-void gk_lg2_repository_free(gk_session *session) {
-    git_repository_free(session->repository->lg2_resources->repository);
-    session->repository->lg2_resources->repository = NULL;
+void gk_lg2_repository_free(gk_repository *repository) {
+    git_repository_free(repository->lg2_resources->repository);
+    repository->lg2_resources->repository = NULL;
 }
 
 int gk_lg2_reflog_read(gk_session *session, const char *ref_name) {
@@ -223,12 +220,12 @@ int gk_lg2_reflog_read(gk_session *session, const char *ref_name) {
     return gk_session_success(session, purpose);
 }
 
-void gk_lg2_reflog_free(gk_session *session) {
-    git_reflog_free(session->repository->lg2_resources->reflog);
-    session->repository->lg2_resources->reflog = NULL;
+void gk_lg2_reflog_free(gk_repository *repository) {
+    git_reflog_free(repository->lg2_resources->reflog);
+    repository->lg2_resources->reflog = NULL;
 }
 
-int gk_lg2_parents_lookup(gk_repository *repository) {
+int gk_lg2_parents_lookup(gk_session *session) {
     const char *purpose = "lookup commit parents";
     if (gk_session_context_push(session, &COMP_MERGE, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -251,8 +248,8 @@ int gk_lg2_parents_lookup(gk_repository *repository) {
     return gk_session_success(session, purpose);
 }
 
-void gk_lg2_parents_free(gk_session *session) {
-    gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
+void gk_lg2_parents_free(gk_repository *repository) {
+    gk_lg2_resources *lg2_resources = repository->lg2_resources;
     if (lg2_resources->merge_parents != NULL) {
         git_object_free((git_object *)lg2_resources->merge_parents[0]);
         lg2_resources->merge_parents[0] = NULL;
@@ -282,9 +279,9 @@ int gk_lg2_index_write_tree(gk_session *session, git_index *target_index) {
     return gk_session_success(repository);
 }
                             
-void gk_lg2_tree_free(gk_session *session) {
-    git_tree_free(session->repository->lg2_resources->tree);
-    session->repository->lg2_resources->tree = NULL;
+void gk_lg2_tree_free(gk_repository *repository) {
+    git_tree_free(repository->lg2_resources->tree);
+    repository->lg2_resources->tree = NULL;
 }
 
 int gk_lg2_signature_create(gk_session *session) {
@@ -300,14 +297,14 @@ int gk_lg2_signature_create(gk_session *session) {
     return gk_session_success(session, purpose);
 }
 
-void gk_lg2_signature_free(gk_session *session) {
-    git_signature_free(session->repository->lg2_resources->signature);
-    session->repository->lg2_resources->signature = NULL;
+void gk_lg2_signature_free(gk_repository *repository) {
+    git_signature_free(repository->lg2_resources->signature);
+    repository->lg2_resources->signature = NULL;
 }
 
-void gk_lg2_status_list_free(gk_session *session) {
-    git_status_list_free(session->repository->lg2_resources->status_list);
-    session->repository->lg2_resources->status_list = NULL;
+void gk_lg2_status_list_free(gk_repository *repository) {
+    git_status_list_free(repository->lg2_resources->status_list);
+    repository->lg2_resources->status_list = NULL;
 }
 
 int gk_lg2_status_list_load(gk_session *session) {
@@ -372,7 +369,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
         const char *entry_path = "";
         if (conflict_entry.ours != NULL) {
             git_oid_tostr(conflict_entry.ours_oid_id, 41, &conflict_entry.ours->id);
-            if (gk_lg2_blob_lookup(repository, &conflict_entry.ours_blob, &conflict_entry.ours->id, purpose) != GK_SUCCESS) {
+            if (gk_lg2_blob_lookup(session, &conflict_entry.ours_blob, &conflict_entry.ours->id) != GK_SUCCESS) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
@@ -382,7 +379,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
         }
         if (conflict_entry.theirs != NULL) {
             git_oid_tostr(conflict_entry.theirs_oid_id, 41, &conflict_entry.theirs->id);
-            if (gk_lg2_blob_lookup(repository, &conflict_entry.theirs_blob, &conflict_entry.theirs->id, purpose) != GK_SUCCESS) {
+            if (gk_lg2_blob_lookup(session, &conflict_entry.theirs_blob, &conflict_entry.theirs->id) != GK_SUCCESS) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
@@ -392,7 +389,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
         }
         if (conflict_entry.ancestor != NULL) {
             git_oid_tostr(conflict_entry.ancestor_oid_id, 41, &conflict_entry.ancestor->id);
-            if (gk_lg2_blob_lookup(repository, &conflict_entry.ancestor_blob, &conflict_entry.ancestor->id,  purpose) != GK_SUCCESS) {
+            if (gk_lg2_blob_lookup(session, &conflict_entry.ancestor_blob, &conflict_entry.ancestor->id) != GK_SUCCESS) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
@@ -434,7 +431,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
         // DBG
         /*
         gk_conflict_diff_summary *summary = NULL;
-        summary = gk_lg2_conflict_diff_summary(repository, entry, purpose);
+        summary = gk_lg2_conflict_diff_summary(session, entry);
 
         log_error(COMP_CONFLICTS, "DBG C0x found ancestor-to-ours diff: -------\n%s\n---------", summary->ancestor_to_ours_diff);
         log_error(COMP_CONFLICTS, "DBG C1x found ancestor-to-theirs diff: -------\n%s\n---------", summary->ancestor_to_theirs_diff);
@@ -502,7 +499,7 @@ void gk_lg2_conflict_entry_free_members(gk_lg2_conflict_entry *entry) {
     entry->theirs_oid_id[0] = '\0';
 }
 
-gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_repository *repository, gk_merge_conflict_entry *entry) {
+gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_merge_conflict_entry *entry) {
     const char *purpose = "summarize diff";
     if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return NULL;
@@ -536,17 +533,17 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_repository *repository
         return NULL;
     }
 
-    if (gk_lg2_blob_lookup(repository, &ancestor_blob, &ancestor_oid, purpose) != GK_SUCCESS) {
+    if (gk_lg2_blob_lookup(session, &ancestor_blob, &ancestor_oid) != GK_SUCCESS) {
         gk_session_failure(session);
         return NULL;
     }
 
-    if (gk_lg2_blob_lookup(repository, &ours_blob, &ours_oid, purpose) != GK_SUCCESS) {
+    if (gk_lg2_blob_lookup(session, &ours_blob, &ours_oid) != GK_SUCCESS) {
         gk_session_failure(session);
         return NULL;
     }
 
-    if (gk_lg2_blob_lookup(repository, &theirs_blob, &theirs_oid, purpose) != GK_SUCCESS) {
+    if (gk_lg2_blob_lookup(session, &theirs_blob, &theirs_oid) != GK_SUCCESS) {
         gk_session_failure(session);
         return NULL;
     }

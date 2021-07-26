@@ -38,11 +38,11 @@ static void test_index_add_remove_individual_files(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_index_add_path(session, "new-file1");
+    gk_index_add_path(session, "new-file1");
     assert_int_equal(gk_result_code(session->last_result), 0);
-    gk_session_index_add_path(session, "file1");
+    gk_index_add_path(session, "file1");
     assert_int_equal(gk_result_code(session->last_result), 0);
-    gk_session_index_remove_path(session, "file2");
+    gk_index_remove_path(session, "file2");
     assert_int_equal(gk_result_code(session->last_result), 0);
     
     gk_session_status_summary_query(session);
@@ -84,7 +84,7 @@ static void test_index_update_all(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_index_update_all(session, "*");
+    gk_index_update_all(session, "*");
     assert_int_equal(gk_result_code(session->last_result), 0);
     
     gk_session_status_summary_query(session);
@@ -126,7 +126,7 @@ static void test_index_add_all(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_index_add_all(session, "*");
+    gk_index_add_all(session, "*");
     assert_int_equal(gk_result_code(session->last_result), 0);
     
     gk_session_status_summary_query(session);

@@ -153,7 +153,7 @@ int gk_fetch(gk_session *session, const char *remote_name) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to fetch from remote [%s]", remote_name);
     }
 
-    if (gk_lg2_load_references(session->repository) != 0) {
+    if (gk_lg2_load_references(session) != 0) {
         gk_lg2_free_references(repository);
         return gk_session_failure(session);
     }

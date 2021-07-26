@@ -73,7 +73,7 @@ int gk_open_local_repository(gk_session *session) {
     if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return GK_FAILURE;
 
-    if (gk_lg2_repository_open(session, "open local repository") != GK_SUCCESS) {
+    if (gk_lg2_repository_open(session) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 

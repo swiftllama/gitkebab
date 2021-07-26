@@ -39,24 +39,24 @@ static void test_merge_no_changes(void **state) {
     assert_non_null(session1);
 
     gk_object_id original_head = {0};
-    gk_session_resolve_reference(session1, "HEAD", &original_head);
+    gk_resolve_reference(session1, "HEAD", &original_head);
     
     // Fetch 
     gk_session_fetch(session1, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id fetched_commit = {0};
-    gk_session_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
+    gk_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
 
     gk_object_id new_head_before_merge = {0};
-    gk_session_resolve_reference(session1, "HEAD", &new_head_before_merge);
+    gk_resolve_reference(session1, "HEAD", &new_head_before_merge);
 
     // Merge
     gk_session_merge_into_head(session1);
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id new_head_after_merge = {0};
-    gk_session_resolve_reference(session1, "HEAD", &new_head_after_merge);
+    gk_resolve_reference(session1, "HEAD", &new_head_after_merge);
     
     // Compare
     assert_string_equal(original_head.id, fetched_commit.id);
@@ -78,17 +78,17 @@ static void test_merge_one_commit(void **state) {
     assert_non_null(session1);
 
     gk_object_id repo_A_original_head = {0};
-    gk_session_resolve_reference(session1, "HEAD", &repo_A_original_head);
+    gk_resolve_reference(session1, "HEAD", &repo_A_original_head);
     
     gk_session *session2 = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1-B");
     assert_non_null(session2);
 
     gk_object_id repo_B_original_head = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_original_head);
+    gk_resolve_reference(session2, "HEAD", &repo_B_original_head);
     
     // Modify repo-A, commit and push
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
-    gk_session_index_add_path(session1, "file1");
+    gk_index_add_path(session1, "file1");
     assert_int_equal(gk_result_code(session1->last_result), 0);
     gk_object_id repo_A_new_commit = {0};
     gk_session_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
@@ -102,7 +102,7 @@ static void test_merge_one_commit(void **state) {
     assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
             
     gk_object_id repo_B_fetched_commit = {0};
-    gk_session_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
         
     // Merge in repo-B
     gk_session_merge_into_head(session2);
@@ -110,7 +110,7 @@ static void test_merge_one_commit(void **state) {
     assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_new_head = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_new_head);
+    gk_resolve_reference(session2, "HEAD", &repo_B_new_head);
     
     // Compare
     assert_string_equal(repo_A_original_head.id, repo_B_original_head.id);
@@ -138,29 +138,29 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
 
     // Modify repo-A, commit and push
     gk_object_id repo_A_original_head = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_A_original_head);
+    gk_resolve_reference(session2, "HEAD", &repo_A_original_head);
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
-    gk_session_index_add_path(session1, "file1");
+    gk_index_add_path(session1, "file1");
     assert_int_equal(gk_result_code(session1->last_result), 0);
     gk_object_id repo_A_new_commit = {0};
-    gk_session_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
+    gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
     assert_int_equal(gk_result_code(session1->last_result), 0);
     gk_session_push(session1, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id repo_A_new_head = {0};
-    gk_session_resolve_reference(session1, "HEAD", &repo_A_new_head);
+    gk_resolve_reference(session1, "HEAD", &repo_A_new_head);
 
     // Modify repo-B
     gk_object_id repo_B_original_head = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_original_head);
+    gk_resolve_reference(session2, "HEAD", &repo_B_original_head);
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file2");
-    gk_session_index_add_path(session2, "file2");
+    gk_index_add_path(session2, "file2");
     assert_int_equal(gk_result_code(session2->last_result), 0);
     gk_object_id repo_B_new_commit = {0};
-    gk_session_commit(session2, "HEAD", "change file2", &repo_B_new_commit);
+    gk_commit(session2, "HEAD", "change file2", &repo_B_new_commit);
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     // Repo-B fetch
@@ -168,10 +168,10 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     gk_object_id repo_B_fetched_commit = {0};
-    gk_session_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
 
     gk_object_id repo_B_head_after_fetch = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);
+    gk_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);
 
     // Merge
     gk_session_merge_into_head(session2);
@@ -179,7 +179,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_head_after_merge = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
+    gk_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
 
     // Compare
     //log_error(COMP_MERGE, "repo_A_original_head: %s", repo_A_original_head.id);
@@ -219,29 +219,29 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
 
     // Modify repo-A, commit and push
     gk_object_id repo_A_original_head = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_A_original_head);
+    gk_resolve_reference(session2, "HEAD", &repo_A_original_head);
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
-    gk_session_index_add_path(session1, "file1");
+    gk_index_add_path(session1, "file1");
     assert_int_equal(gk_result_code(session1->last_result), 0);
     gk_object_id repo_A_new_commit = {0};
-    gk_session_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
+    gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
     assert_int_equal(gk_result_code(session1->last_result), 0);
     gk_session_push(session1, &g_empty_credential, "origin");
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id repo_A_new_head = {0};
-    gk_session_resolve_reference(session1, "HEAD", &repo_A_new_head);
+    gk_resolve_reference(session1, "HEAD", &repo_A_new_head);
 
     // Modify repo-B with conflicting change, commit and push
     gk_object_id repo_B_original_head = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_original_head);
+    gk_resolve_reference(session2, "HEAD", &repo_B_original_head);
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified-incompatible", "test-staging/simple-repo1-B/file1");
-    gk_session_index_add_path(session2, "file1");
+    gk_index_add_path(session2, "file1");
     assert_int_equal(gk_result_code(session2->last_result), 0);
     gk_object_id repo_B_new_commit = {0};
-    gk_session_commit(session2, "HEAD", "change file1 incompatbile", &repo_B_new_commit);
+    gk_commit(session2, "HEAD", "change file1 incompatbile", &repo_B_new_commit);
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     // Repo-B fetch
@@ -249,10 +249,10 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     gk_object_id repo_B_fetched_commit = {0};
-    gk_session_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
 
     gk_object_id repo_B_head_after_fetch = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);
+    gk_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);
 
     // Merge
     gk_session_merge_into_head(session2);
@@ -261,7 +261,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_head_after_merge = {0};
-    gk_session_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
+    gk_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
 
     // Compare
     //log_error(COMP_MERGE, "repo_A_original_head: %s", repo_A_original_head.id);

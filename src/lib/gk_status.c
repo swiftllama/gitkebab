@@ -19,7 +19,7 @@ void gk_status_summary_reset(gk_status_summary *status_summary) {
 }
 
 void gk_status_summary_close(gk_session *session) {
-    gk_lg2_status_list_free(session);
+    gk_lg2_status_list_free(session->repository);
 }
 
 int gk_status_summary_query(gk_session *session) {
@@ -33,7 +33,7 @@ int gk_status_summary_query(gk_session *session) {
 
     gk_lg2_status_list_free(repository);
     if (gk_lg2_status_list_load(session) != GK_SUCCESS) {
-        gk_lg2_status_list_free(session);
+        gk_lg2_status_list_free(repository);
         return gk_session_failure(session);
     }
 

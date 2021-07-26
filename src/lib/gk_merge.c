@@ -93,24 +93,25 @@ static int merge_in_memory(gk_session *session) {
     if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
         return GK_FAILURE;
     }
+    gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     git_merge_options merge_options = GIT_MERGE_OPTIONS_INIT;
 
     merge_options.flags = 0;
     merge_options.file_flags = GIT_MERGE_FILE_STYLE_DIFF3;
 
-    gk_lg2_merge_index_free(repository);
-    int rc = git_merge_commits(&repository->lg2_resources->merge_index, repository->lg2_resources->repository, repository->lg2_resources->repository_head_commit, repository->lg2_resources->fetch_head_commit, &merge_options);
+    gk_lg2_merge_index_free(session->repository);
+    int rc = git_merge_commits(&lg2_resources->merge_index, lg2_resources->repository, lg2_resources->repository_head_commit, lg2_resources->fetch_head_commit, &merge_options);
     if (rc != 0) {
-        gk_lg2_merge_index_free(repository);
+        gk_lg2_merge_index_free(session->repository);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to merge in-memory");
     }
 
-    if (git_index_has_conflicts(repository->lg2_resources->merge_index) == 0) {
-        if (gk_lg2_promote_merge_index(repository, "merge in memory") != GK_SUCCESS) {
+    if (git_index_has_conflicts(lg2_resources->merge_index) == 0) {
+        if (gk_lg2_promote_merge_index(session) != GK_SUCCESS) {
             return gk_session_failure(session);
         }
-        rc = create_merge_commit(repository);
-        gk_lg2_merge_index_free(repository);
+        rc = create_merge_commit(session);
+        gk_lg2_merge_index_free(session->repository);
         if (rc != GK_SUCCESS) {
             return gk_session_failure(session);
         }
@@ -169,7 +170,7 @@ static int merge_normal(gk_session *session) {
         return GK_FAILURE;
     }
 
-    rc = gk_lg2_index_load(repository, "perform normal merge");
+    rc = gk_lg2_index_load(session);
     if (rc != GK_SUCCESS) {
         return GK_FAILURE;
     }
@@ -179,7 +180,7 @@ static int merge_normal(gk_session *session) {
         gk_repository_state_set(repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING | GK_REPOSITORY_STATE_HAS_CONFLICTS);
     }
     else {
-        if (gk_lg2_index_write_tree(repository, repository->lg2_resources->index, "peroform normal merge") != GK_SUCCESS) {
+        if (gk_lg2_index_write_tree(session, session->repository->lg2_resources->index) != GK_SUCCESS) {
             return GK_FAILURE;
         }
         rc = create_merge_commit(repository);
@@ -237,7 +238,7 @@ int gk_merge_into_head(gk_session *session) {
     log_info(COMP_MERGE, "merging [%s] into HEAD", from_ref_name);
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
 
-    if (gk_lg2_load_references(session->repository) != GK_SUCCESS) {
+    if (gk_lg2_load_references(session) != GK_SUCCESS) {
         gk_lg2_free_all_but_repository(session->repository);
         return gk_session_failure(session);
     }
@@ -311,7 +312,7 @@ int gk_merge_into_head_finalize(gk_session *session) {
         return gk_session_failure(session, purpose, GK_ERR, "repository still has [%d] conflicts", repository->conflict_summary.num_conflicts);
     }
 
-    if (gk_lg2_load_references(repository) != GK_SUCCESS) {
+    if (gk_lg2_load_references(session) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 

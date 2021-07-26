@@ -17,16 +17,16 @@ int gk_index_add_path(gk_session *session, const char *path) {
     }
     
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
-        gk_lg2_index_free(session);
+        gk_lg2_index_free(session->repository);
         return gk_session_failure(session, purpose, GK_ERR);
     }
 
     if (git_index_add_bypath(repository->lg2_resources->index, path) != 0) {
-        gk_lg2_index_free(session);
+        gk_lg2_index_free(session->repository);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add [%s] to index", path);
     }
 
-    gk_lg2_index_free(repository);
+    gk_lg2_index_free(session->repository);
     return gk_session_success(session, purpose);
 }
 
@@ -40,15 +40,15 @@ int gk_index_remove_path(gk_session *session, const char *path) {
     }
     
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
-        gk_lg2_index_free(session);
+        gk_lg2_index_free(session->repository);
         return gk_session_failure(session, purpose, GK_ERR);
     }
     
     if (git_index_remove_bypath(repository->lg2_resources->index, path) != 0) {
-        gk_lg2_index_free(session);
+        gk_lg2_index_free(session->repository);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to remove [%s] from index", path);        
     }
-    gk_lg2_index_free(session);
+    gk_lg2_index_free(session->repository);
     
     return gk_session_success(session, purpose);
 }
@@ -59,14 +59,14 @@ int gk_index_add_all(gk_session *session, const char* pattern) {
         return GK_FAILURE;
     }
     
-    if (gk_lg2_index_load(repository, "add all paths") != GK_SUCCESS) {
+    if (gk_lg2_index_load(session) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 
     char *path_pattern = strdup(pattern);
     git_strarray paths = {&path_pattern, 1};
     int rc = git_index_add_all(session->repository->lg2_resources->index, &paths, GIT_INDEX_ADD_DEFAULT, NULL, NULL);
-    gk_lg2_index_free(session);
+    gk_lg2_index_free(session->repository);
     free(path_pattern);
 
     if (rc != 0) {
@@ -81,7 +81,7 @@ int gk_index_update_all(gk_session *session, const char* pattern) {
         return GK_FAILURE;
     }
     
-    if (gk_lg2_index_load(repository, "update all paths") != GK_SUCCESS) {
+    if (gk_lg2_index_load(session) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 
@@ -89,7 +89,7 @@ int gk_index_update_all(gk_session *session, const char* pattern) {
     git_strarray paths = {&path_pattern, 1};
     int rc = git_index_update_all(session->repository->lg2_resources->index, &paths, NULL, NULL);
     free(path_pattern);
-    gk_lg2_index_free(repository);
+    gk_lg2_index_free(session->repository);
 
     if (rc != 0) {
         const git_error *err = git_error_last();
