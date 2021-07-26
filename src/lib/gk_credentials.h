@@ -9,6 +9,7 @@ int gk_session_credential_ssh_key_memory_init(gk_session *session, const char *p
 int gk_session_credential_ssh_key_file_init(gk_session *session, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase);
 int gk_session_credential_username_password_init(gk_session *session, const char *username, const char *password);
 void gk_session_credential_free_members(gk_session_credential *credential);
+void gk_session_credential_init(gk_session *session);
 
 #endif // __GITKEBAB_CREDENTIALS_H__
 

@@ -10,6 +10,7 @@ gk_session *gk_session_new(const char *remote_url, const char *local_path, const
     gk_session *session = (gk_session *)malloc(sizeof(gk_session));
     session->repository = gk_repository_new();
     gk_repository_init(session->repository, remote_url, local_path, user, progress_callback, state_changed_callback);
+    gk_session_credential_init(session);
     gk_session_credential_username_password_init(session, "", "");
     session->context = gk_execution_context_new("root context", &COMP_GENERAL);
     return session;
