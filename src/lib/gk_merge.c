@@ -226,7 +226,7 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     return gk_session_success(session, purpose);
 }
     
-int gk_repository_merge_into_head(gk_session *session) {
+int gk_merge_into_head(gk_session *session) {
     const char *purpose = "merge into HEAD";
     if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -297,7 +297,7 @@ int gk_repository_merge_into_head(gk_session *session) {
     return gk_session_success(session);
 }
 
-int gk_repository_merge_into_head_finalize(gk_session *session) {
+int gk_merge_into_head_finalize(gk_session *session) {
     const char *purpose = "finalize merge into head";
     if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -344,7 +344,7 @@ int gk_repository_merge_into_head_finalize(gk_session *session) {
     return gk_session_success(session);
 }
 
-int gk_repository_merge_abort(gk_session *session) {
+int gk_merge_abort(gk_session *session) {
     const char *purpose = "abort merge into HEAD";
     if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
         return GK_FAILURE;

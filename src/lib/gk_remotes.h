@@ -4,8 +4,8 @@
 
 #include "gk_repository.h"
 
-int gk_repository_fetch(gk_repository *repository, gk_session_credential *credential, const char *remote_name);
-int gk_repository_push(gk_repository *repository, gk_session_credential *credential, const char *remote_name);
-int gk_repository_clone(gk_repository *repository, gk_session_credential *credential);
+int gk_clone(gk_session *session);
+int gk_fetch(gk_session *session, const char *remote_name);
+int gk_push(gk_session *session, const char *remote_name);
 
 #endif // __GK_REMOTES_H__

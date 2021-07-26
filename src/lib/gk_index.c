@@ -30,7 +30,7 @@ int gk_index_add_path(gk_session *session, const char *path) {
     return gk_session_success(session, purpose);
 }
 
-int gk_repository_index_remove_path(gk_session *session, const char *path) {
+int gk_index_remove_path(gk_session *session, const char *path) {
     const char *purpose = "remove path from index";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -53,7 +53,7 @@ int gk_repository_index_remove_path(gk_session *session, const char *path) {
     return gk_session_success(session, purpose);
 }
 
-int gk_repository_index_add_all(gk_session *session, const char* pattern) {
+int gk_index_add_all(gk_session *session, const char* pattern) {
     const char *purpose = "add all files to index";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -75,7 +75,7 @@ int gk_repository_index_add_all(gk_session *session, const char* pattern) {
     return gk_session_success(session);
 }
 
-int gk_repository_index_update_all(gk_session *session, const char* pattern) {
+int gk_index_update_all(gk_session *session, const char* pattern) {
     const char *purpose = "update all paths in index";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;

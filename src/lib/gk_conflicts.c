@@ -180,7 +180,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     return gk_session_success(session, purpose);
 }
 
-int gk_blob_contents(gk_repository *repository, void **blob_data, uint64_t *blob_data_length, const char *oid_id) {
+int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_length, const char *oid_id) {
     const char *purpose = "retrieve blob contents";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -270,15 +270,15 @@ static int gk_conflict_resolve_accept_delete(gk_session *session, const char *pa
     return gk_session_success(session);
 }
 
-int gk_conflict_resolve_accept_remote_delete(gk_repository *repository, const char *path) {
-    return gk_conflict_resolve_accept_delete(repository, path, "accept remote delete");
+int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *path) {
+    return gk_conflict_resolve_accept_delete(session, path, "accept remote delete");
 }
 
-int gk_conflict_resolve_accept_local_delete(gk_repository *repository, const char *path) {
-    return gk_conflict_resolve_accept_delete(repository, path, "accept local delete");
+int gk_conflict_resolve_accept_local_delete(gk_session *session, const char *path) {
+    return gk_conflict_resolve_accept_delete(session, path, "accept local delete");
 }
 
-const char *gk_conflict_merged_buffer_with_conflict_markers(gk_repository *repository, const char *ancestor_oid_id, const char *ours_oid_id, const char *theirs_oid_id, const char *path) {
+const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session, const char *ancestor_oid_id, const char *ours_oid_id, const char *theirs_oid_id, const char *path) {
     const char *purpose = "generate merged buffer";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
         return NULL;

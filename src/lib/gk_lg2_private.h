@@ -74,6 +74,7 @@ void gk_lg2_conflict_entry_init(gk_lg2_conflict_entry *entry);
 void gk_lg2_conflict_entry_free_members(gk_lg2_conflict_entry *entry);
 gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_repository *repository, gk_merge_conflict_entry *entry);
 int gk_lg2_index_conflict_get(gk_session *session, const git_index_entry **ancestor_entry, const git_index_entry **ours_entry, const git_index_entry **theirs_entry, git_index *index, const char *path);
+int gk_lg2_index_add(gk_session *session, const git_index_entry *entry, const char *path);
+int gk_lg2_oid_from_id(gk_session *session, git_oid *oid, const char *oid_id);
 int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid);
-
 #endif // _GK_LG2_PRIVATE_H__

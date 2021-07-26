@@ -7,7 +7,7 @@
 #include "gk_lg2_private.h"
 #include "git2.h"
 
-size_t gk_session_count_reflog_entries(gk_session *session, const char* ref_name) {
+size_t gk_count_reflog_entries(gk_session *session, const char* ref_name) {
     const char *purpose = "count reflog entries";
     if (gk_session_context_push(session, purpose, &COMP_COMMIT, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return 0;
@@ -31,7 +31,7 @@ size_t gk_session_count_reflog_entries(gk_session *session, const char* ref_name
     return entrycount;
 }
 
-int gk_repository_commit(gk_repository *repository, const char* commit_message, gk_object_id *out_commit_id) {
+int gk_commit(gk_session *session, const char* commit_message, gk_object_id *out_commit_id) {
     const char *purpose = "commit changes";
     if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -77,7 +77,7 @@ n
     return gk_session_success(session);
 }
 
-int gk_repository_resolve_reference(gk_session *session, const char *ref_name, gk_object_id *object_id) {
+int gk_resolve_reference(gk_session *session, const char *ref_name, gk_object_id *object_id) {
     const char *purpose = "resolve reference";
     if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;

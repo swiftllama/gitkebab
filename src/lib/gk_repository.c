@@ -70,30 +70,29 @@ void gk_repository_init(gk_repository *repository, const char *remote_url, const
 }
 
 int gk_open_local_repository(gk_session *session) {
-    if (repository == NULL) {
-        log_error(COMP_REPOSITORY, "gk_repository_open_local_repository(repository) called on NULL repository");
+    const char *purpose = "open local repository";
+    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return GK_FAILURE;
-    }
 
     if (gk_lg2_repository_open(session, "open local repository") != GK_SUCCESS) {
-        return GK_FAILURE;
+        return gk_session_failure(session);
     }
 
-    gk_repository_state_set(repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);
+    gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);
 
-    if (git_repository_is_bare(repository->lg2_resources->repository) == 1) {
-        gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
-        gk_repository_state_unset(repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK);
+    if (git_repository_is_bare(session->repository->lg2_resources->repository) == 1) {
+        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
+        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK);
     }
     else {
         int rc = gk_repository_status_summary_query(repository);
         gk_repository_status_summary_close(repository);
         if (rc != GK_SUCCESS) {
-            return GK_FAILURE;
+            return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query status");
         }
     }
 
-    return gk_repository_success(repository);
+    return gk_session_success(session);
 }
 
 void gk_repository_set_last_result(gk_repository *repository, gk_result *last_result) {
@@ -187,7 +186,7 @@ void gk_repository_state_trigger_callback(gk_repository *repository) {
     repository->callbacks.state_changed_callback(repository);
 }
 
-int gk_repository_prepend_repository_path(gk_repository *repository, char *buffer, size_t buffer_length, const char *path, const char *purpose) {
+int gk_prepend_repository_path(gk_repository *repository, char *buffer, size_t buffer_length, const char *path, const char *purpose) {
     if (gk_repository_verify(repository, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }

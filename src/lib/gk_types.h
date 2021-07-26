@@ -21,6 +21,13 @@ typedef enum {
     GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT
 } gk_merge_conflict_entry_type;
 
+typedef enum {
+    GK_REPOSITORY_VERIFY_DEFAULT = (1 << 0),
+    GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT = (1 << 1),
+    GK_REPOSITORY_VERIFY_STATUS_LIST = (1 << 2),
+    GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS = (1 << 3)
+} gk_repository_verify_condition;
+
 typedef struct {
     int code;
     char *message;

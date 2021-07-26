@@ -9,14 +9,6 @@
 #include "gk_merge.h"
 #include "gk_lg2_private.h"
 
-git_remote *prepare_remote(gk_session *session, const char *remote_name) {
-    
-
-    
-
-    return remote;
-}
-
 static int gk_session_credential_callback(git_credential **out,
                                    const char *url,
                                    const char *username_from_url,
