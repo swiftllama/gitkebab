@@ -165,7 +165,7 @@ struct gk_repository {
 typedef struct {
     gk_execution_context *context;
     gk_repository *repository;
-    gk_session_credential *credential;
+    gk_session_credential credential;
 } gk_session;
 
 

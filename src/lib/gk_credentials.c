@@ -6,49 +6,55 @@
 #include <string.h>
 
 
-gk_result *gk_session_credential_ssh_key_memory_init(gk_session_credential *credential, const char *private_key_bytes, const char *public_key_bytes, const char *private_key_passphrase) {
-    if (credential == NULL) {
-        return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize ssh key credential (memory), credential is NULL");
+int gk_session_credential_ssh_key_memory_init(gk_session *session, const char *private_key_bytes, const char *public_key_bytes, const char *private_key_passphrase) {
+    if (session == NULL) {
+        log_error(COMP_AUTH, "Cannot initialize ssh key (memory), session is NULL");
+        return GK_FAILURE;
     }
 
-    memset(credential, 0, sizeof(gk_session_credential));
-    credential->credential_type = CREDENTIAL_SSH_KEY_MEMORY;
-    credential->ssh_private_key_bytes = private_key_bytes == NULL ? NULL : strdup(private_key_bytes);
-    credential->ssh_public_key_bytes = public_key_bytes == NULL ? NULL : strdup(public_key_bytes);
-    credential->ssh_private_key_passphrase = private_key_passphrase == NULL ? NULL : strdup(private_key_passphrase);
+    gk_session_credential_free_members(&session->credential);
+    memset(session->credential, 0, sizeof(gk_session_credential));
+    session->credential.credential_type = CREDENTIAL_SSH_KEY_MEMORY;
+    session->credential.ssh_private_key_bytes = private_key_bytes == NULL ? NULL : strdup(private_key_bytes);
+    session->credential.ssh_public_key_bytes = public_key_bytes == NULL ? NULL : strdup(public_key_bytes);
+    session->credential.ssh_private_key_passphrase = private_key_passphrase == NULL ? NULL : strdup(private_key_passphrase);
 
-    return gk_result_success();
+    return GK_SUCCESS;
 }
 
-gk_result *gk_session_credential_ssh_key_file_init(gk_session_credential *credential, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase) {
-    if (credential == NULL) {
-        return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize ssh key credential (file), credential is NULL");
+int gk_session_credential_ssh_key_file_init(gk_session *session, const char *private_key_path, const char *public_key_path, const char *private_key_passphrase) {
+    if (session == NULL) {
+        log_error(COMP_AUTH, "Cannot initialize ssh key (file), session is NULL");
+        return GK_FAILURE;
     }
 
-    memset(credential, 0, sizeof(gk_session_credential));
-    credential->credential_type = CREDENTIAL_SSH_KEY_FILE;
-    credential->ssh_private_key_path = private_key_path == NULL ? NULL : strdup(private_key_path);
-    credential->ssh_public_key_path = public_key_path == NULL ? NULL : strdup(public_key_path);
-    credential->ssh_private_key_passphrase = private_key_passphrase == NULL ? NULL : strdup(private_key_passphrase);
+    gk_session_credential_free_members(&session->credential);
+    memset(session->credential, 0, sizeof(gk_session_credential));
+    session->credential.credential_type = CREDENTIAL_SSH_KEY_FILE;
+    session->credential.ssh_private_key_path = private_key_path == NULL ? NULL : strdup(private_key_path);
+    session->credential.ssh_public_key_path = public_key_path == NULL ? NULL : strdup(public_key_path);
+    session->credential.ssh_private_key_passphrase = private_key_passphrase == NULL ? NULL : strdup(private_key_passphrase);
     
-    return gk_result_success();
+    return GK_SUCCESS;
 }
 
-gk_result *gk_session_credential_username_password_init(gk_session_credential *credential, const char *username, const char *password) {
-    if (credential == NULL) {
-        return gk_fail_result(&COMP_AUTH, -1, "Cannot initialize username/password, credential is NULL");
-    }
+int gk_session_credential_username_password_init(gk_session *session, const char *username, const char *password) {
+    if (session == NULL) {
+        log_error(COMP_AUTH, "Cannot initialize username/password credential, session is NULL");
+        return GK_FAILURE;
+    }    
 
-    memset(credential, 0, sizeof(gk_session_credential));
-    credential->credential_type = CREDENTIAL_USERNAME_PASSWORD;
-    credential->username = username == NULL ? NULL : strdup(username);
-    credential->password = password == NULL ? NULL : strdup(password);
+    gk_session_credential_free_members(&session->credential);
+    memset(session->credential, 0, sizeof(gk_session_credential));
+    session->credential.credential_type = CREDENTIAL_USERNAME_PASSWORD;
+    session->credential.username = username == NULL ? NULL : strdup(username);
+    session->credential.password = password == NULL ? NULL : strdup(password);
 
-    return gk_result_success();
+    return GK_FAILURE;
 }
 
-void gk_session_credential_free_members(gk_session_credential *credential) {
-    if (credential == NULL) {
+void gk_session_credential_free_members(gk_session *session) {
+    if (session == NULL) {
         return;
     }
 
@@ -59,4 +65,11 @@ void gk_session_credential_free_members(gk_session_credential *credential) {
     free((void *)credential->ssh_private_key_passphrase);
     free((void *)credential->username);
     free((void *)credential->password);
+    credential->ssh_private_key_bytes = NULL;
+    credential->ssh_public_key_bytes = NULL;
+    credential->ssh_private_key_path = NULL;
+    credential->ssh_public_key_path = NULL;
+    credential->ssh_private_key_passphrase = NULL;
+    credential->username = NULL;
+    credential->password = NULL;
 }

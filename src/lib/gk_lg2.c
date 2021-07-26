@@ -161,7 +161,7 @@ void gk_lg2_merge_index_free(gk_session *session) {
 
 int gk_lg2_promote_merge_index(gk_session *session) {
     const char *purpose = "promote merge index";
-    if (gk_session_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 

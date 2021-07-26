@@ -157,7 +157,7 @@ int gk_fetch(gk_session *session, const char *remote_name) {
         gk_lg2_free_references(repository);
         return gk_session_failure(session);
     }
-    rc = gk_repository_analyze_merge_into_head(repository, repository->repository_spec.remote_ref_name, NULL);
+    rc = gk_analyze_merge_into_head(session, session->repository->repository_spec.remote_ref_name, NULL);
     gk_lg2_free_references(repository);
 
     if (rc != 0) {

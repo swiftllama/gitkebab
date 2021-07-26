@@ -4,7 +4,8 @@
 
 #include "gk_types.h"
 
-void gk_session_init(gk_session *session, gk_repository *repository, gk_repository_credential *credential);
+gk_session *gk_session_new(const char *remote_url, const char *local_path, const char *user, gk_repository_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback);
+void gk_session_free(gk_session *session);
 int gk_session_context_sanity_check(gk_session *session, log_Component *component, const char *purpose);
 int gk_session_verify(gk_session *session, log_Component *component, int condition, const char *purpose);
 int gk_session_context_push(gk_session *session, const char *purpose, log_Component *log_component, int conditions);

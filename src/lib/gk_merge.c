@@ -255,7 +255,7 @@ int gk_merge_into_head(gk_session *session) {
 
     if ((merge_analysis & GIT_MERGE_ANALYSIS_FASTFORWARD) != 0) {
         log_info(COMP_MERGE, "will attempt a fast-forward merge");
-        if (merge_fast_forward(repository, from_ref_name) != GK_SUCCESS) {
+        if (merge_fast_forward(session, from_ref_name) != GK_SUCCESS) {
             gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
             gk_lg2_free_all_but_repository(session->repository);
             return gk_session_failure(session);
@@ -306,7 +306,7 @@ int gk_merge_into_head_finalize(gk_session *session) {
 
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_index_has_conflicts(lg2_resources->merge_index) == 1) {
-        if (gk_repository_merge_conflicts_query(repository, purpose) != GK_SUCCESS) {
+        if (gk_repository_merge_conflicts_query(session) != GK_SUCCESS) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query merge after conflicts detected");
         }
         return gk_session_failure(session, purpose, GK_ERR, "repository still has [%d] conflicts", repository->conflict_summary.num_conflicts);

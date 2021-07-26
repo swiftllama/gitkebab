@@ -8,8 +8,6 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-gk_session_credential g_empty_credential;
-
 void gk_test_copy_source_repo_simplerepo1_dot_git() {
     if (directory_exists("test-staging/simple-repo1.git") == 0) {
         rm_rf("test-staging/simple-repo1.git");
@@ -66,14 +64,12 @@ int gk_test_environment_setup(void **state) {
         rm_rf("test-staging");
     }
     create_directory("test-staging");
-    gk_session_credential_username_password_init(&g_empty_credential, "", "");
     return 0;
 }
 
 int gk_test_environment_teardown(void **state) {
     (void) state;
     
-    gk_session_credential_free_members(&g_empty_credential);
     return 0;
 }
 
@@ -94,8 +90,7 @@ void gk_test_session_progress_null(gk_session_progress *progress) {
 
 
 gk_session *gk_test_session_from_local_path(const char *repo_path) {
-    gk_session *session = gk_session_new();
-    gk_session_init(session, "", repo_path, "git", &gk_test_session_progress_verbose, NULL);
+    gk_session *session = gk_session_new("", repo_path, "git", &gk_test_session_progress_verbose, NULL);
     if (gk_result_code(session->last_result) != 0) {
         log_error(COMP_TEST, "Error initializing session from path '%s': %s", repo_path, gk_result_message(session->last_result));
         gk_session_free(session);
@@ -112,15 +107,14 @@ gk_session *gk_test_session_from_local_path(const char *repo_path) {
 
 
 gk_session *gk_test_session_from_clone(const char *remote_repo, const char *local_path) {
-    gk_session *session = gk_session_new();
-    gk_session_init(session, remote_repo, local_path, "git", &gk_test_session_progress_verbose, NULL);
+    gk_session *session = gk_session_new(remote_repo, local_path, "git", &gk_test_session_progress_verbose, NULL);
     if (gk_result_code(session->last_result) != 0) {
         log_error(COMP_TEST, "Error initializing session for clone from '%s' to path '%s': %s", remote_repo, local_path, gk_result_message(session->last_result));
         gk_session_free(session);
         return NULL;
     }
 
-    gk_session_clone(session, &g_empty_credential);
+    gk_clone(session);
     if (gk_result_code(session->last_result) != 0) {
         log_error(COMP_TEST, "Error cloning repository from '%s' to local path '%s': %s", remote_repo, local_path, gk_result_message(session->last_result));
         gk_session_free(session);
@@ -192,7 +186,7 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     gk_commit(session1, "HEAD", "commit repo A modifications", NULL);
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
-    gk_session_push(session1, &g_empty_credential, "origin");
+    gk_push(session1, "origin");
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     ////
@@ -246,7 +240,7 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     ////
 
     // Repo-B fetch
-    gk_session_fetch(session2, &g_empty_credential, "origin");
+    gk_fetch(session2, "origin");
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     // there should now be conflicts in repo B upon merging

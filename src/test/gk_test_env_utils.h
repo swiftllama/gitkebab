@@ -4,7 +4,6 @@
 
 #include "gitkebab.h"
 
-extern gk_session_credential g_empty_credential;
 
 void gk_test_session_progress_verbose(gk_session_progress *progress);
 void gk_test_session_progress_null(gk_session_progress *progress);

@@ -44,7 +44,7 @@ static void test_push_no_changes(void **state) {
     gk_session *session = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
     assert_non_null(session);
     
-    gk_session_push(session, &g_empty_credential, "origin");
+    gk_push(session, "origin");
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     // Verify that current commit has not changed on source repo
@@ -83,7 +83,7 @@ static void test_push_one_commit(void **state) {
     gk_commit(session, "HEAD", "change file1", &new_commit);
     assert_int_equal(gk_result_code(session->last_result), 0);
 
-    gk_session_push(session, &g_empty_credential, "origin");
+    gkpush(session, "origin");
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     // Check new commit in source repo
@@ -109,7 +109,7 @@ static void test_fetch_no_changes(void **state) {
     gk_resolve_reference(session1, "HEAD", &repo_first_commit);
     
     // Fetch 
-    gk_session_fetch(session1, &g_empty_credential, "origin");
+    gk_fetch(session1, "origin");
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id fetched_commit = {0};
@@ -146,7 +146,7 @@ static void test_fetch_one_commit_with_no_push(void **state) {
 
 
     // Fetch repo
-    gk_session_fetch(session, &g_empty_credential, "origin");
+    gk_fetch(session, "origin");
     assert_int_equal(gk_result_code(session->last_result), 0);
 
     gk_object_id fetched_commit = {0};
@@ -185,11 +185,11 @@ static void test_fetch_one_commit(void **state) {
     gk_object_id new_commit = {0};
     gk_commit(session1, "HEAD", "change file1", &new_commit);
     assert_int_equal(gk_result_code(session1->last_result), 0);
-    gk_session_push(session1, &g_empty_credential, "origin");
+    gk_push(session1, "origin");
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     // Fetch repo-B
-    gk_session_fetch(session2, &g_empty_credential, "origin");
+    gk_fetch(session2, "origin");
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     gk_object_id fetched_commit = {0};
@@ -229,7 +229,7 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     gk_object_id repo_A_new_commit = {0};
     gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
     assert_int_equal(gk_result_code(session1->last_result), 0);
-    gk_session_push(session1, &g_empty_credential, "origin");
+    gk_push(session1, "origin");
     assert_int_equal(gk_result_code(session1->last_result), 0);
 
     gk_object_id repo_A_new_head = {0};
@@ -247,7 +247,7 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     // Repo-B fetch
-    gk_session_fetch(session2, &g_empty_credential, "origin");
+    gk_fetch(session2, "origin");
     assert_int_equal(gk_result_code(session2->last_result), 0);
 
     gk_object_id fetched_commit = {0};

@@ -1,14 +1,24 @@
 
 #include "gk_session.h"
 
-void gk_session_init(gk_session *session, gk_repository *repository, gk_repository_credential *credential) {
+
+
+gk_session *gk_session_new(const char *remote_url, const char *local_path, const char *user, gk_repository_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
+    gk_session *session = (gk_session *)malloc(sizeof(gk_session));
+    session->repository = gk_repository_new();
+    gk_repository_init(session->repository, remote_url, local_path, user, progress_callback, state_changed_callback);
+    gk_session_credential_username_password_init(session, "", "");
+}
+
+void gk_session_free(gk_session *session) {
     if (session == NULL) {
         return;
     }
-    session->repository = repository;
-    session->credential = credential;
+    gk_repository_free(session->repository);
+    session->repository = NULL;
+    gk_session_credential_free_members(&session->credential);
+    free(session);
 }
-
 int gk_session_context_sanity_check(gk_session *session, log_Component *component, const char *purpose) {
     if (session == NULL) {
         log_log(LOG_ERROR, __FILE__, __LINE__, component, "Cannot %s, session is NULL", purpose);
