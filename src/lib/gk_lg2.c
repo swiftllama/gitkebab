@@ -6,6 +6,7 @@
 #include "gk_logging.h"
 #include "gk_conflicts.h"
 #include "gk_filesystem.h"
+#include "gk_session.h"
 
 void gk_lg2_resources_init(gk_repository *repository) {
     if (repository == NULL) {
@@ -68,7 +69,7 @@ int gk_lg2_load_references(gk_session *session) {
         gk_lg2_free_references(session->repository);
     }
 
-    const char *from_ref_name = session->repository->repository_spec->remote_ref_name;
+    const char *from_ref_name = session->repository->repository_spec.remote_ref_name;
     int rc = git_revparse_ext(&lg2_resources->fetch_head_object, &lg2_resources->fetch_head_ref, lg2_resources->repository, from_ref_name);
     if (rc == GIT_ENOTFOUND) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "could not revparse refname [%s], ref not found", from_ref_name);
@@ -85,9 +86,9 @@ int gk_lg2_load_references(gk_session *session) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "could not revparse refname HEAD");
     }
 
-    rc = git_annotated_commit_from_ref(&sessoin->lg2_resources->annotated_fetch_head_commit, lg2_resources->repository, lg2_resources->fetch_head_ref);
+    rc = git_annotated_commit_from_ref(&lg2_resources->annotated_fetch_head_commit, lg2_resources->repository, lg2_resources->fetch_head_ref);
     if ((rc != 0)) {
-        return gk_sessoin_lg2_failure_ex(session, purpose, GK_ERR, "could not annotate commit for reference [%s]", from_ref_name);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "could not annotate commit for reference [%s]", from_ref_name);
     }    
 
     lg2_resources->repository_head_oid = git_object_id(lg2_resources->repository_head_object);
@@ -96,14 +97,14 @@ int gk_lg2_load_references(gk_session *session) {
     git_oid_tostr(lg2_resources->fetch_head_oid_id, 41, lg2_resources->fetch_head_oid);
 
     if (git_commit_lookup(&lg2_resources->repository_head_commit, lg2_resources->repository, lg2_resources->repository_head_oid) != 0) {
-        return gk_repository_context_lg2_failure_ex(repository, purpose, GK_ERR, "Could not look up HEAD commit [%s]", lg2_resources->repository_head_oid_id);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Could not look up HEAD commit [%s]", lg2_resources->repository_head_oid_id);
     }
 
     if (git_commit_lookup(&lg2_resources->fetch_head_commit, lg2_resources->repository, lg2_resources->fetch_head_oid) != 0) {
-        return gk_repository_context_lg2_failure_ex(repository, purpose, GK_ERR, "Could not look up FETCH HEAD  commit [%s] for reference [%s]", lg2_resources->fetch_head_oid_id, from_ref_name);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Could not look up FETCH HEAD  commit [%s] for reference [%s]", lg2_resources->fetch_head_oid_id, from_ref_name);
     }
     
-    return gk_repository_context_success(repository);
+    return gk_session_success(session, purpose);
 }
 
 void gk_lg2_free_references(gk_repository *repository) {
@@ -140,10 +141,10 @@ int gk_lg2_index_load(gk_session *session) {
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_repository_index(&lg2_resources->index, lg2_resources->repository) != 0) {
         gk_lg2_index_free(session->repository);
-        return gk_repository_context_lg2_failure(repository, purpose, GK_ERR);
+        return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
 
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 void gk_lg2_index_free(gk_repository *repository) {
@@ -151,12 +152,9 @@ void gk_lg2_index_free(gk_repository *repository) {
     repository->lg2_resources->index = NULL;
 }
 
-void gk_lg2_merge_index_free(gk_session *session) {
-    if (gk_session_context_sanity_check(session, &COMP_GENERAL, "free repository index") != GK_SUCCESS) {
-        return;
-    }
-    git_index_free(session->repository->lg2_resources->merge_index);
-    session->repository->lg2_resources->merge_index = NULL;
+void gk_lg2_merge_index_free(gk_repository *repository) {
+    git_index_free(repository->lg2_resources->merge_index);
+    repository->lg2_resources->merge_index = NULL;
 }
 
 int gk_lg2_promote_merge_index(gk_session *session) {
@@ -173,7 +171,7 @@ int gk_lg2_promote_merge_index(gk_session *session) {
     lg2_resources->merge_index = NULL;
 
     checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_ALLOW_CONFLICTS;
-    checkout_options.progress_cb = gk_repository_checkout_progress_callback;
+    checkout_options.progress_cb = gk_session_checkout_progress_callback;
     checkout_options.progress_payload = &session;
     
     if (gk_lg2_index_write_tree(session, lg2_resources->index) != GK_SUCCESS) {
@@ -184,12 +182,12 @@ int gk_lg2_promote_merge_index(gk_session *session) {
         return gk_session_failure(session);
     }
 
-    return gk_session_success(repository, purpose);
+    return gk_session_success(session, purpose);
 }
 
 int gk_lg2_repository_open(gk_session *session) {
     const char *purpose = "open repository";
-    if (gk_session_context_push(session, &COMP_REPOSITORY, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -208,7 +206,7 @@ void gk_lg2_repository_free(gk_repository *repository) {
 
 int gk_lg2_reflog_read(gk_session *session, const char *ref_name) {
     const char *purpose = "read reflog";
-    if (gk_session_context_push(repository, purpose, &COMP_COMMIT, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_COMMIT, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return 0;
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
@@ -227,7 +225,7 @@ void gk_lg2_reflog_free(gk_repository *repository) {
 
 int gk_lg2_parents_lookup(gk_session *session) {
     const char *purpose = "lookup commit parents";
-    if (gk_session_context_push(session, &COMP_MERGE, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -267,16 +265,16 @@ int gk_lg2_index_write_tree(gk_session *session, git_index *target_index) {
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_index_write_tree_to(&lg2_resources->tree_oid, target_index, lg2_resources->repository) != 0) {
-        return gk_session_lg2_failure_ex(repository, purpose, GK_ERR, "error writing index tree");
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error writing index tree");
     }
 
     git_oid_tostr(lg2_resources->tree_oid_id, 41, &lg2_resources->tree_oid);
     if (git_tree_lookup(&lg2_resources->tree, lg2_resources->repository, &lg2_resources->tree_oid) != 0) {
-        return gk_session_lg2_failure_ex(repository, purpose, GK_ERR, "error looking up index tree [%s]", lg2_resources->tree_oid_id);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error looking up index tree [%s]", lg2_resources->tree_oid_id);
     }
 
     log_info(COMP_MERGE, "while [%s], Wrote tree [%s]", purpose, lg2_resources->tree_oid_id);
-    return gk_session_success(repository);
+    return gk_session_success(session, purpose);
 }
                             
 void gk_lg2_tree_free(gk_repository *repository) {
@@ -336,7 +334,7 @@ int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_opt
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_checkout_tree(lg2_resources->repository, (git_object *)lg2_resources->tree, checkout_options) != 0) {
-        return gk_session_lg2_failure(session, purpose, GK_ERR, "error checking out tree [%s]", lg2_resources->tree_oid_id);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error checking out tree [%s]", lg2_resources->tree_oid_id);
     }
 
     return gk_session_success(session, purpose);
@@ -364,7 +362,8 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
     size_t num_conflicts = 0;
     gk_lg2_conflict_entry conflict_entry;
     gk_lg2_conflict_entry_init(&conflict_entry);
-    
+
+    int rc;
     while ((rc = git_index_conflict_next(&conflict_entry.ancestor, &conflict_entry.ours, &conflict_entry.theirs, conflicts)) == 0) {
         const char *entry_path = "";
         if (conflict_entry.ours != NULL) {
@@ -373,7 +372,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                return gk_session_faliure(session, purpose, GK_ERR);
+                return gk_session_failure(session);
             }
             entry_path = conflict_entry.ours->path;
         }
@@ -383,7 +382,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                return gk_session_faliure(session, purpose, GK_ERR);
+                return gk_session_failure(session);
             }
             entry_path = conflict_entry.theirs->path;
         }
@@ -393,7 +392,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                return gk_session_faliure(session, purpose, GK_ERR);
+                return gk_session_failure(session);
             }
             entry_path = conflict_entry.ancestor->path;
         }
@@ -452,8 +451,9 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to get next conflict from iterator");
     }
 
-    gk_conflicts_free(repository);
-    gk_conflicts_allocate(repository, num_conflicts);
+    gk_repository *repository = session->repository;
+    gk_conflicts_free(session->repository);
+    gk_conflicts_allocate(session->repository, num_conflicts);
     next_conflict_node = conflict_chain;
     strncpy(repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id, 41);
     strncpy(repository->conflict_summary.fetch_head_oid_id, lg2_resources->fetch_head_oid_id, 41);
@@ -506,7 +506,7 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
     }
     if (entry == NULL) {
         log_error(COMP_CONFLICTS, "Cannot calculate conflict diff summary for NULL entry");
-        gk_sessoin_failure(session, purpose, GK_ERR, "entry is NULL");
+        gk_session_failure_ex(session, purpose, GK_ERR, "entry is NULL");
         return NULL;
     }
 
@@ -565,15 +565,13 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
     }
 
     if (git_patch_from_blobs(&ancestor_to_theirs_patch, ancestor_blob, entry->path, theirs_blob, entry->path, &diff_options) != 0) {
-    if (rc != 0) {
         git_patch_free(ancestor_to_theirs_patch);
         git_patch_free(ancestor_to_ours_patch);
         gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error generating ancestor<->theirs patch");
         return NULL;
     }
 
-    rc = git_patch_to_buf(&ancestor_to_ours_buf, ancestor_to_ours_patch);
-    if (rc != 0) {
+    if (git_patch_to_buf(&ancestor_to_ours_buf, ancestor_to_ours_patch) != 0) {
         git_patch_free(ancestor_to_theirs_patch);
         git_patch_free(ancestor_to_ours_patch);
         git_buf_dispose(&ancestor_to_ours_buf);
@@ -581,8 +579,7 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
         return NULL;
     }
 
-    rc = git_patch_to_buf(&ancestor_to_theirs_buf, ancestor_to_theirs_patch);
-    if (rc != 0) {
+    if (git_patch_to_buf(&ancestor_to_theirs_buf, ancestor_to_theirs_patch) != 0) {
         git_patch_free(ancestor_to_theirs_patch);
         git_patch_free(ancestor_to_ours_patch);
         git_buf_dispose(&ancestor_to_ours_buf);
@@ -614,7 +611,7 @@ int gk_lg2_index_add(gk_session *session, const git_index_entry *entry, const ch
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
-    if (git_index_add(lg2_resources->merge_index, entry) != 0) {
+    if (git_index_add(session->repository->lg2_resources->merge_index, entry) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add index entry at path [%s]", path);
     }
     return gk_session_success(session, purpose);

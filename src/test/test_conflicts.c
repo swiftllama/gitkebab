@@ -273,13 +273,13 @@ static void test_conflicts_partial_resolution_causes_failed_merge(void **state) 
     // Try to finalize the merge, it should fail
     gk_merge_into_head_finalize(session2);
     assert_int_not_equal(gk_result_code(session2->last_result), 0);
-    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
 
     // Abort, it should clean things up
     gk_merge_abort(session2);
     assert_int_not_equal(gk_result_code(session2->last_result), 0);
-    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 0);
-    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_IN_PROGRESS), 0);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 0);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_IN_PROGRESS), 0);
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -328,8 +328,8 @@ static void test_conflicts_with_resolution_and_merge(void **state) {
     gk_session_merge_conflicts_query(session2);
     assert_int_equal(gk_result_code(session2->last_result), 0);
     assert_int_equal(session2->conflict_summary.num_conflicts, 0);
-    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CONFLICTS), 0);
-    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CONFLICTS), 0);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
 
     // Finalize the merge
     gk_merge_into_head_finalize(session2);

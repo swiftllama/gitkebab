@@ -8,6 +8,7 @@
 #include "gk_conflicts.h"
 #include "gk_repository.h"
 #include "gk_lg2_private.h"
+#include "gk_session.h"
 
 
 gk_merge_conflict_entry *gk_merge_conflict_entry_new() {
@@ -124,7 +125,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     if ((accept != GK_CONFLICT_RESOLUTION_OURS) &&
         (accept != GK_CONFLICT_RESOLUTION_THEIRS) &&
         (accept != GK_CONFLICT_RESOLUTION_ANCESTOR)) {
-        return gk_session_failure(session, purpose, GK_ERR, "unknown resolution type [%d] (expected ours [%d], theirs [%d] or ancestor [%d])", accept, GK_CONFLICT_RESOLUTION_OURS, GK_CONFLICT_RESOLUTION_THEIRS, GK_CONFLICT_RESOLUTION_ANCESTOR);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "unknown resolution type [%d] (expected ours [%d], theirs [%d] or ancestor [%d])", accept, GK_CONFLICT_RESOLUTION_OURS, GK_CONFLICT_RESOLUTION_THEIRS, GK_CONFLICT_RESOLUTION_ANCESTOR);
     }
 
     // NOTE: we have to get the normal entry from the current index,
@@ -135,7 +136,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
         return gk_session_failure(session);
     }
     
-    const git_index_entry *conflicted_entry = git_index_get_bypath(repository->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
+    const git_index_entry *conflicted_entry = git_index_get_bypath(session->repository->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
     if (conflicted_entry == NULL) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "path [%s] not found in index", path);
     }
@@ -145,7 +146,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     const git_index_entry *ours_entry = NULL;
     const git_index_entry *theirs_entry = NULL;
 
-    if (gk_lg2_index_conflict_get(session, &ancestor_entry, &ours_entry, &theirs_entry, repository->lg2_resources->merge_index, path) != GK_SUCCESS) {
+    if (gk_lg2_index_conflict_get(session, &ancestor_entry, &ours_entry, &theirs_entry, session->repository->lg2_resources->merge_index, path) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 
@@ -169,11 +170,11 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
         clean_entry.id = ancestor_entry->id;
     }
 
-    if (git_index_remove_bypath(repository->lg2_resources->merge_index, path) != 0) {
+    if (git_index_remove_bypath(session->repository->lg2_resources->merge_index, path) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to remove file [%s] from index so as to clear its conflict status", path);
     }
 
-    if (git_index_add(repository->lg2_resources->merge_index, &clean_entry) != 0) {
+    if (git_index_add(session->repository->lg2_resources->merge_index, &clean_entry) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add file [%s] to index", path);
     }
 
@@ -187,16 +188,16 @@ int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_
     }
     
     if (blob_data == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "data pointer is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "data pointer is NULL");
     }
     else if (blob_data_length == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "data length pointer is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "data length pointer is NULL");
     }
     else if (oid_id == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "object id is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "object id is NULL");
     }
     else if (oid_id[0] == '\0') {
-        return gk_session_failure(session, purpose, GK_ERR, "object id is empty");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "object id is empty");
     }
     
     git_oid blob_oid;
@@ -235,13 +236,13 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
     
     FILE *fptr = fopen(path, "w");
     if (fptr == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "error opening file [%s] for writing: error %d occurred", path, errno);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "error opening file [%s] for writing: error %d occurred", path, errno);
     }
 
     int rc = fwrite(blob_data, 1, blob_size, fptr);
     fclose(fptr);
     if (rc < 0) {
-        return gk_session_failure(session, purpose, GK_ERR, "error writing to file [%s]: error %d occurred", path, rc);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "error writing to file [%s]: error %d occurred", path, rc);
     }
 
     log_info(COMP_CONFLICTS, "Wrote blob with object id [%s] to [%s]", oid_id, path);
@@ -249,7 +250,7 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
     free(blob_data);
     blob_data = NULL;
     
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 
@@ -262,12 +263,12 @@ static int gk_conflict_resolve_accept_delete(gk_session *session, const char *pa
         return gk_session_failure_ex(session, purpose, GK_ERR, "path is NULL");
     }
 
-    if (git_index_remove_bypath(repository->lg2_resources->merge_index, path) != 0) {
+    if (git_index_remove_bypath(session->repository->lg2_resources->merge_index, path) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Error removing path [%s] from repository index", path);
     }
 
     log_info(COMP_CONFLICTS, "resolved conflict for path [%s] (%s)", path, purpose);
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *path) {
@@ -284,15 +285,15 @@ const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session,
         return NULL;
     }
     else if (ancestor_oid_id == NULL) {
-        gk_session_failure(session, purpose, GK_ERR, "ancestor object id is NULL");
+        gk_session_failure_ex(session, purpose, GK_ERR, "ancestor object id is NULL");
         return NULL;
     }
     else if (ours_oid_id == NULL) {
-        gk_session_failure(session, purpose, GK_ERR, "ours object id is NULL");
+        gk_session_failure_ex(session, purpose, GK_ERR, "ours object id is NULL");
         return NULL;
     }
     else if (theirs_oid_id == NULL) {
-        gk_session_failure(session, purpose, GK_ERR, "theirs object id is NULL");
+        gk_session_failure_ex(session, purpose, GK_ERR, "theirs object id is NULL");
         return NULL;
     }
 
@@ -327,7 +328,7 @@ const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session,
     
     git_merge_file_result merged_file;
     if (git_merge_file(&merged_file, &ancestor_input, &ours_input, &theirs_input, &merge_options) != 0) {
-        gk_session_failure(session, purpose, GK_ERR, "error generating merged buffer for path [%s] with ancestor [%s], ours [%s] and theirs [%s]", ancestor_oid_id, ours_oid_id, theirs_oid_id);
+        gk_session_failure_ex(session, purpose, GK_ERR, "error generating merged buffer for path [%s] with ancestor [%s], ours [%s] and theirs [%s]", ancestor_oid_id, ours_oid_id, theirs_oid_id);
         return NULL;
     }
 
@@ -348,24 +349,24 @@ void gk_conflict_merged_buffer_free(const char *buffer) {
 // conflict in the MERGE index. If this merge is abandoned it could
 // potentially leave this dangling blob which would eventually simply
 // get recycled
-int gk_conflict_resolve_from_buffer(gk_repository *repository, const char *path, void *data, u_int64_t data_length) {
+int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, u_int64_t data_length) {
     const char *purpose = "resolve conflict by accepting data from buffer";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
-        return NULL;
+        return GK_FAILURE;
     }
     else if (path == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "path is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "path is NULL");
     }
     else if (data == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "buffer is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "buffer is NULL");
     }
 
     // Note: cannot add buffer directly to merge_index because it's
     // not backed by the repository, it only exists in memory. So
     // we add the blob to the real index
     git_oid blob_oid;
-    if (git_blob_create_from_buffer(&blob_oid, repository->lg2_resources->repository, data, data_length) != 0) {
-        return gk_session_failure(session, purpose, GK_ERR, "error adding buffer data to blob for path [%s]", path);
+    if (git_blob_create_from_buffer(&blob_oid, session->repository->lg2_resources->repository, data, data_length) != 0) {
+        return gk_session_failure_ex(session, purpose, GK_ERR, "error adding buffer data to blob for path [%s]", path);
     }
 
     log_info(COMP_CONFLICTS, "Created blob [%s] to resolve conflict at path [%s]", git_oid_tostr_s(&blob_oid), path);
@@ -376,39 +377,39 @@ int gk_conflict_resolve_from_buffer(gk_repository *repository, const char *path,
     // entry. This feels a bit sketchy
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
         gk_lg2_index_free(session->repository);
-        return gk_session_failure(session, purpose, GK_ERR);
+        return gk_session_failure(session);
     }
 
-    const git_index_entry *conflicted_entry = git_index_get_bypath(repository->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
+    const git_index_entry *conflicted_entry = git_index_get_bypath(session->repository->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
     if (conflicted_entry == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "ancestor file not found in index at path [%s]", path);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "ancestor file not found in index at path [%s]", path);
     }
     gk_lg2_index_free(session->repository);
 
     git_index_entry clean_entry = *conflicted_entry;
     clean_entry.id = blob_oid;
     
-    if (git_index_remove_bypath(repository->lg2_resources->merge_index, path) != 0) {
+    if (git_index_remove_bypath(session->repository->lg2_resources->merge_index, path) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to remove file [%s] from index so as to clear its conflict status", path);
     }
 
-    if (git_index_add(repository->lg2_resources->merge_index, &clean_entry) != 0) {
+    if (git_index_add(session->repository->lg2_resources->merge_index, &clean_entry) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add file [%s] to index", path);
     }
 
     return gk_session_success(session, purpose);
 }
 
-int gk_compare_blobs(gk_repository *repository, int *similarity, const char *blob1_oid_id, const char *blob2_oid_id) {
+int gk_compare_blobs(gk_session *session, int *similarity, const char *blob1_oid_id, const char *blob2_oid_id) {
     const char *purpose = "compare blobs";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     else if (blob1_oid_id == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "blob1 id is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "blob1 id is NULL");
     }
     else if (blob2_oid_id == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "blob2 id is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "blob2 id is NULL");
     }
 
     log_info(COMP_CONFLICTS, "Calculating similarity between blob1 [%s] and blob2 [%s]", blob1_oid_id, blob2_oid_id);
@@ -422,7 +423,7 @@ int gk_compare_blobs(gk_repository *repository, int *similarity, const char *blo
 
     uint64_t blob_size2 = 0;
     void *blob_data2 = NULL;
-    if (gk_blob_contents(repository, &blob_data2, &blob_size2, blob2_oid_id) != GK_SUCCESS) {
+    if (gk_blob_contents(session, &blob_data2, &blob_size2, blob2_oid_id) != GK_SUCCESS) {
         free(blob_data1);
         free(blob_data2);
         return gk_session_failure_ex(session, purpose, GK_ERR, "failed to obtain blob2 contents");

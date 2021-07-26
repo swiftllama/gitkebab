@@ -134,7 +134,7 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
     gk_session *session = (gk_session *)payload;
     gk_session_progress progress;
     gk_session_progress_init_checkout(&progress, path, current_steps, total_steps); 
-    session->session->callbacks.progress_callback(&progress);
+    session->repository->callbacks.progress_callback(&progress);
 }
 
 int gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload) {

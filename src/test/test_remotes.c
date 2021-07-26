@@ -202,7 +202,7 @@ static void test_fetch_one_commit(void **state) {
     assert_string_equal(repo_A_original_head.id, repo_B_first_commit.id);
     assert_string_not_equal(repo_A_original_head.id, new_commit.id);
     assert_string_equal(fetched_commit.id, new_commit.id);
-    assert_int_equal(gk_session_state_enabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_session_free(session1);
     gk_session_free(session2);

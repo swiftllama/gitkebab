@@ -39,7 +39,7 @@ static void test_clone_simple(void **state) {
     gk_clone(session);
 
     assert_int_equal(gk_session_context_succeeded(session), 1);
-    assert_int_equal(gk_session_state_enabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS), 1);
+    assert_int_equal(gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
         
     assert_int_equal(file_exists("test-staging/clone-test-1/file1"), 0);
     assert_int_equal(file_exists("test-staging/clone-test-1/file2"), 0);

@@ -12,7 +12,7 @@
 #include "gk_types.h"
 
 gk_repository *gk_repository_new();
-void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *user, gk_repository_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback);
+void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback);
 int gk_open_local_repository(gk_session *session);
 void gk_repository_free(gk_repository *repository);
 
@@ -22,6 +22,5 @@ void gk_repository_state_set(gk_repository *repository, int states_enable);
 void gk_repository_state_unset(gk_repository *repository, int states_disable);
 void gk_repository_state_trigger_callback(gk_repository *repository);
 
-int gk_prepend_repository_path(gk_repository *repository, char *buffer, size_t buffer_length, const char *path, const char *purpose);
-
+int gk_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path);
 #endif // __GITKEBAB_SESSION_H__

@@ -27,6 +27,8 @@ add_library(gitkebab
   gk_merge.h
   gk_remotes.h
   gk_remotes.c
+  gk_repository.c
+  gk_repository.h
   gk_results.c
   gk_results.h
   gk_session.c

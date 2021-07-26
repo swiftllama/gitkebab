@@ -3,6 +3,7 @@
 #include "gk_status.h"
 #include "gk_logging.h"
 #include "gk_lg2_private.h"
+#include "gk_session.h"
 
 void gk_status_summary_reset(gk_status_summary *status_summary) {
     if (status_summary == NULL) {
@@ -88,17 +89,16 @@ int gk_status_summary_query(gk_session *session) {
         gk_repository_state_unset(repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK);
     }
 
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 static const git_status_entry *gk_status_summary_entry(gk_session *session, size_t index) {
     const char *purpose = "get status summary entry";
     if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_DEFAULT | GK_REPOSITORY_VERIFY_STATUS_LIST) != GK_SUCCESS) {
-        return GK_FAILURE;
+        return NULL;
     }
 
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
-    gk_repository *repository = session->repository;
     
     size_t total = git_status_list_entrycount(lg2_resources->status_list);
     if (index >= total) {
@@ -111,16 +111,16 @@ static const git_status_entry *gk_status_summary_entry(gk_session *session, size
         return NULL;
     }
 
-    gk_session_succes(session, purpose);
+    gk_session_success(session, purpose);
     return entry;
 }
 
-int gk_status_summary_status_at(gk_repository *repository, size_t index) {
+int gk_status_summary_status_at(gk_session *session, size_t index) {
     const git_status_entry *entry = gk_status_summary_entry(session, index);
     return entry == NULL ? 0 : entry->status;
 }
 
-const char *gk_status_summary_path_at(gk_repository *repository, size_t index) {
+const char *gk_status_summary_path_at(gk_session *session, size_t index) {
     const git_status_entry *entry = gk_status_summary_entry(session, index);
     if (entry == NULL) {
         return "";
@@ -158,7 +158,7 @@ size_t gk_status_summary_entrycount(gk_session *session) {
         return GK_FAILURE;
     }
 
-    size_t entrycount = git_status_list_entrycount(lg2_resources->status_list);
+    size_t entrycount = git_status_list_entrycount(session->repository->lg2_resources->status_list);
     gk_session_success(session, purpose);
     return entrycount;
 }

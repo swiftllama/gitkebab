@@ -1,11 +1,12 @@
 
 #include <string.h>
+#include "git2.h"
 
 #include "gk_commit.h"
 #include "gk_logging.h"
 #include "gk_results.h"
 #include "gk_lg2_private.h"
-#include "git2.h"
+#include "gk_session.h"
 
 size_t gk_count_reflog_entries(gk_session *session, const char* ref_name) {
     const char *purpose = "count reflog entries";
@@ -43,13 +44,13 @@ int gk_commit(gk_session *session, const char* commit_message, gk_object_id *out
     if (gk_lg2_load_references(session) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
-n
+
     if (gk_lg2_signature_create(session) != GK_SUCCESS) {
         gk_lg2_free_references(session->repository);
         return gk_session_failure(session);
     }
 
-    if (gk_lg2_write_index_tree(session, session->repository->lg2_repository->index) != GK_SUCCESS) {
+    if (gk_lg2_index_write_tree(session, lg2_resources->index) != GK_SUCCESS) {
         gk_lg2_free_references(session->repository);
         gk_lg2_signature_free(session->repository);
         return gk_session_failure(session);
@@ -62,7 +63,8 @@ n
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to write index");
     }
 
-    if (git_commit_create_v(&commit_oid, lg2_resources->repository, "HEAD", lg2_resources->signature, lg2_resources->signature, NULL, safe_commit_message, lg2_resources->tree, lg2_resources->repository_head_object != NULL? 1 : 0, lg2_repository_head_object) != 0) {
+    git_oid commit_oid;
+    if (git_commit_create_v(&commit_oid, lg2_resources->repository, "HEAD", lg2_resources->signature, lg2_resources->signature, NULL, safe_commit_message, lg2_resources->tree, lg2_resources->repository_head_object != NULL? 1 : 0, lg2_resources->repository_head_object) != 0) {
         gk_lg2_free_references(session->repository);
         gk_lg2_signature_free(session->repository);
         gk_lg2_tree_free(session->repository);
@@ -72,9 +74,9 @@ n
     if (out_commit_id != NULL) {
         git_oid_tostr(out_commit_id->id, 41, &commit_oid);
     }
-    log_info(COMP_COMMITS, "Created commit [%s]", git_oid_tostr_s(out_commit_id->id));
+    log_info(COMP_COMMIT, "Created commit [%s]", git_oid_tostr_s(&commit_oid));
     
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 int gk_resolve_reference(gk_session *session, const char *ref_name, gk_object_id *object_id) {
@@ -84,10 +86,10 @@ int gk_resolve_reference(gk_session *session, const char *ref_name, gk_object_id
     }
     
     if (ref_name == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "reference name is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "reference name is NULL");
     }
     if (object_id == NULL) {
-        return gk_session_failure(session, purpose, GK_ERR, "destination object is NULL");
+        return gk_session_failure_ex(session, purpose, GK_ERR, "destination object is NULL");
     }
 
     git_oid oid;
@@ -101,5 +103,5 @@ int gk_resolve_reference(gk_session *session, const char *ref_name, gk_object_id
 
     git_oid_tostr(object_id->id, 41, &oid);
 
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }

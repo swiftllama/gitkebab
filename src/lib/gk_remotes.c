@@ -8,14 +8,13 @@
 #include "gk_init.h"
 #include "gk_merge.h"
 #include "gk_lg2_private.h"
+#include "gk_session.h"
 
 static int gk_session_credential_callback(git_credential **out,
                                    const char *url,
                                    const char *username_from_url,
                                    unsigned int allowed_types,
                                    void *payload) {
-    gk_result *result = NULL;
-    
     int allowed_userpass_plaintext = allowed_types & GIT_CREDENTIAL_USERPASS_PLAINTEXT;
     int allowed_ssh_key = allowed_types & GIT_CREDENTIAL_SSH_KEY;
     int allowed_ssh_custom = allowed_types & GIT_CREDENTIAL_SSH_CUSTOM;
@@ -51,23 +50,19 @@ static int gk_session_credential_callback(git_credential **out,
         gk_session_failure_ex(session, purpose, GK_ERR, "repository is NULL when trying to authenticate");
         return -1;
     }
-    else if (session->credential == NULL) {
-        gk_session_failure_ex(session, purpose, GK_ERR, "session repository has NULL credential, cannot auth");
-        return -1;
-    }
 
-    int cred_type = session->credential->credential_type;
+    int cred_type = session->credential.credential_type;
     if (cred_type == CREDENTIAL_SSH_KEY_MEMORY) {
         log_info(COMP_AUTH, "authenticating repository with an SSH_KEY_MEMORY credential");
-        git_credential_ssh_key_memory_new((git_credential **)out, username_from_url, session->credential->ssh_public_key_bytes, session->credential->ssh_private_key_bytes, session->credential->ssh_private_key_passphrase);
+        git_credential_ssh_key_memory_new((git_credential **)out, username_from_url, session->credential.ssh_public_key_bytes, session->credential.ssh_private_key_bytes, session->credential.ssh_private_key_passphrase);
     }
     else if (cred_type == CREDENTIAL_SSH_KEY_FILE) {
         log_info(COMP_AUTH, "authenticating repository with an SSH_KEY_FILE credential");
-        git_credential_ssh_key_new((git_credential **)out, username_from_url, session->credential->ssh_public_key_path, session->credential->ssh_private_key_path, session->credential->ssh_private_key_passphrase);
+        git_credential_ssh_key_new((git_credential **)out, username_from_url, session->credential.ssh_public_key_path, session->credential.ssh_private_key_path, session->credential.ssh_private_key_passphrase);
     }
     else if (cred_type == CREDENTIAL_USERNAME_PASSWORD) {
         log_info(COMP_AUTH, "authenticating repository with a USERNAME_PASSWORD credential");
-        git_credential_userpass_plaintext_new((git_credential **)out, session->credential->username, session->credential->password);
+        git_credential_userpass_plaintext_new((git_credential **)out, session->credential.username, session->credential.password);
     }
     else {
         gk_session_failure_ex(session, purpose, GK_ERR, "session repository has gk_credential of unknown type %d. Expected one of CREDENTIAL_SSH_KEY_MEMORY (%d), CREDENTIAL_SSH_KEY_FILE (%d) or CREDENTIAL_USERNAME_PASSWORD (%d). Cannot auth", cred_type, CREDENTIAL_SSH_KEY_MEMORY, CREDENTIAL_SSH_KEY_FILE, CREDENTIAL_USERNAME_PASSWORD);
@@ -88,31 +83,32 @@ int gk_clone(gk_session *session) {
     git_clone_options clone_opts = GIT_CLONE_OPTIONS_INIT;
     git_checkout_options checkout_opts = GIT_CHECKOUT_OPTIONS_INIT;
 
+    
     /* Set up options */
     checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
-    checkout_opts.progress_cb = gk_repository_checkout_progress_callback;
+    checkout_opts.progress_cb = gk_session_checkout_progress_callback;
     checkout_opts.progress_payload = &session;
     clone_opts.checkout_opts = checkout_opts;
     //clone_opts.fetch_opts.callbacks.sideband_progress = sideband_progress;
-    clone_opts.fetch_opts.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_repository_fetch_progress_callback;
-    clone_opts.fetch_opts.callbacks.credentials = &gk_repository_credential_callback;
+    clone_opts.fetch_opts.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
+    clone_opts.fetch_opts.callbacks.credentials = &gk_session_credential_callback;
     clone_opts.fetch_opts.callbacks.payload = &session;
 
     /* Do the clone */
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        [%s]", session->repository->repository_spec.remote_url);
     log_info(COMP_CLONE, "  - Local path: [%s]", session->repository->repository_spec.local_path);
-    gk_repository_state_set(esssion->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
+    gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
     rc = git_clone((git_repository **)&(session->repository->lg2_resources->repository), session->repository->repository_spec.remote_url, session->repository->repository_spec.local_path, &clone_opts);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
 
     if (rc != 0) {
         git_repository_free(session->repository->lg2_resources->repository);
         session->repository->lg2_resources->repository = NULL;
-        return gk_session_lg2_failure(repository, purpose, GK_ERR);
+        return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
 
-    if (git_remote_add_push(lg2_resources->repository, session->repository->repository_spec.remote_name, session->repository->repository.push_refspec) != 0) {
+    if (git_remote_add_push(session->repository->lg2_resources->repository, session->repository->repository_spec.remote_name, session->repository->repository_spec.push_refspec) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add push refspec [%s] to remote [%s]", session->repository->repository_spec.push_refspec, session->repository->repository_spec.remote_name);
     }
 
@@ -139,8 +135,8 @@ int gk_fetch(gk_session *session, const char *remote_name) {
     }
     
     git_fetch_options fetch_options = GIT_FETCH_OPTIONS_INIT;
-    fetch_options.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_repository_fetch_progress_callback;
-    fetch_options.callbacks.credentials = &gk_repository_credential_callback;
+    fetch_options.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
+    fetch_options.callbacks.credentials = &gk_session_credential_callback;
     fetch_options.callbacks.payload = &session;
 
     const git_strarray *refspecs = NULL;
@@ -154,17 +150,17 @@ int gk_fetch(gk_session *session, const char *remote_name) {
     }
 
     if (gk_lg2_load_references(session) != 0) {
-        gk_lg2_free_references(repository);
+        gk_lg2_free_references(session->repository);
         return gk_session_failure(session);
     }
     rc = gk_analyze_merge_into_head(session, session->repository->repository_spec.remote_ref_name, NULL);
-    gk_lg2_free_references(repository);
+    gk_lg2_free_references(session->repository);
 
     if (rc != 0) {
         return gk_session_failure(session);
     }
     
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 int gk_push(gk_session *session, const char *remote_name) {
@@ -184,8 +180,8 @@ int gk_push(gk_session *session, const char *remote_name) {
     }
     
     git_push_options push_options = GIT_PUSH_OPTIONS_INIT;
-    push_options.callbacks.push_transfer_progress = (git_push_transfer_progress_cb)&gk_repository_progress_push_transfer_callback;
-    push_options.callbacks.credentials = gk_repository_credential_callback;
+    push_options.callbacks.push_transfer_progress = (git_push_transfer_progress_cb)&gk_session_progress_push_transfer_callback;
+    push_options.callbacks.credentials = gk_session_credential_callback;
     push_options.callbacks.payload = &session;
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_PUSH_IN_PROGRESS);
@@ -196,6 +192,6 @@ int gk_push(gk_session *session, const char *remote_name) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
     
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 

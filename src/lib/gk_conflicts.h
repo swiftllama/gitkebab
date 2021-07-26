@@ -18,13 +18,14 @@ gk_void_linked_node *gk_void_linked_node_new();
 void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data);
 
 int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, gk_conflict_resolution accept);
-int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_length, const char *oid_id);
+int gk_blob_contents(gk_session *session, void **blob_data, u_int64_t *blob_data_length, const char *oid_id);
 int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *path);
 int gk_conflict_resolve_accept_remote_delete(gk_session *session, const char *path);
 int gk_conflict_resolve_accept_local_delete(gk_session *session, const char *path);
 
 const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session, const char *ancestor_oid_id, const char *ours_oid_id, const char *theirs_oid_id, const char *path);
 void gk_conflict_merged_buffer_free(const char *buffer);
+
 
 int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, u_int64_t data_length);
 int gk_compare_blobs(gk_session *session, int *similarity, const char *blob1_oid_id, const char *blob2_oid_id);

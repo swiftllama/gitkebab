@@ -11,19 +11,20 @@
 #include "gk_lg2_private.h"
 #include "gk_filesystem.h"
 #include "gk_execution_context.h"
+#include "gk_session.h"
 
 static void gk_repository_spec_init(gk_repository_spec *repository_spec, const char *remote_url, const char *local_path, const char *usr) {
     if (repository_spec == NULL) {
         return;
     }
     if (remote_url == NULL) {
-        log_warn(COMP_SESSION, "Repository spec initialized with NULL remote_url, will use empty string instead");
+        log_warn(COMP_GENERAL, "Repository spec initialized with NULL remote_url, will use empty string instead");
     }
     if (local_path == NULL) {
-        log_warn(COMP_SESSION, "Repository spec initialized with NULL local_url, will use empty string instead");
+        log_warn(COMP_GENERAL, "Repository spec initialized with NULL local_url, will use empty string instead");
     }
     if (usr == NULL) {
-        log_warn(COMP_SESSION, "Repository spec initialized with NULL user, will use empty string instead");
+        log_warn(COMP_GENERAL, "Repository spec initialized with NULL user, will use empty string instead");
     }
     repository_spec->local_path = local_path != NULL ? strdup(local_path) : strdup("");
     repository_spec->remote_url = remote_url != NULL ? strdup(remote_url) : strdup("");
@@ -50,12 +51,11 @@ gk_repository *gk_repository_new() {
 }
 
 
-void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *user, gk_repository_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
+void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
     if (repository == NULL) {
         return;
     }
     gk_repository_spec_init(&repository->repository_spec, remote_url, local_path, user);
-    repository->root_context = gk_execution_context_new("root context", &COMP_REPOSITORY);
     repository->callbacks.progress_callback = progress_callback;
     repository->callbacks.state_changed_callback = state_changed_callback;
 
@@ -72,6 +72,7 @@ int gk_open_local_repository(gk_session *session) {
     const char *purpose = "open local repository";
     if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return GK_FAILURE;
+    }
 
     if (gk_lg2_repository_open(session) != GK_SUCCESS) {
         return gk_session_failure(session);
@@ -84,14 +85,14 @@ int gk_open_local_repository(gk_session *session) {
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK);
     }
     else {
-        int rc = gk_repository_status_summary_query(repository);
-        gk_repository_status_summary_close(repository);
+        int rc = gk_status_summary_query(session);
+        gk_status_summary_close(session);
         if (rc != GK_SUCCESS) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query status");
         }
     }
 
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 void gk_repository_free(gk_repository *repository) {
@@ -99,8 +100,6 @@ void gk_repository_free(gk_repository *repository) {
         return;
     }
 
-    gk_execution_context_free(repository->root_context);
-    repository->root_context = NULL;
     gk_repository_spec_free_members(&repository->repository_spec);
     gk_conflicts_free(repository);
     gk_lg2_free_all_but_repository(repository);
@@ -148,20 +147,21 @@ void gk_repository_state_trigger_callback(gk_repository *repository) {
     repository->callbacks.state_changed_callback(repository);
 }
 
-int gk_prepend_repository_path(gk_repository *repository, char *buffer, size_t buffer_length, const char *path, const char *purpose) {
-    if (gk_repository_verify(repository, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT, purpose) != GK_SUCCESS) {
+int gk_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path) {
+    const char *purpose = "add path to index";
+    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
     if (buffer == NULL) {
-        return gk_repository_failure(repository, &COMP_REPOSITORY, -4, "Error prepending repository path to [%s], destination buffer is NULL", path);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "Failed to prepend repository path to [%s], destination buffer is NULL", path);
     }
 
-    if (gk_concatenate_paths(buffer, buffer_length, repository->repository_spec.local_path, path) != 0) {
-        return gk_repository_failure(repository, &COMP_REPOSITORY, -4, "Error prepending repository path [%s] to [%s] NULL", repository->repository_spec.local_path, path);
+    if (gk_concatenate_paths(buffer, buffer_length, session->repository->repository_spec.local_path, path) != 0) {
+        return gk_session_failure_ex(session, purpose, GK_ERR, "Error prepending repository path [%s] to [%s]", session->repository->repository_spec.local_path, path);
     }
     
-    return GK_SUCCESS;
+    return gk_session_success(session, purpose);
 }
 
 

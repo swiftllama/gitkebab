@@ -8,6 +8,7 @@
 #include "gk_repository.h"
 #include "gk_conflicts.h"
 #include "gk_lg2_private.h"
+#include "gk_session.h"
 
 int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
     const char *purpose = "analyze merge into HEAD";
@@ -34,12 +35,12 @@ int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, i
 
 
     if (analysis == GIT_MERGE_ANALYSIS_UP_TO_DATE) {
-        gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
+        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
     }
     else {
-        gk_repository_state_set(repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
+        gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
     }
-    log_info(COMP_MERGE, "Set repository has changes to merge to %d", gk_repository_state_enabled(session, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE));
+    log_info(COMP_MERGE, "Set repository has changes to merge to %d", gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE));
     if (analysis == GIT_MERGE_ANALYSIS_UNBORN) {
         log_warn(COMP_MERGE, "Repositor merge analysis resulted UNBORN, this is unexpected");
     }
@@ -48,7 +49,7 @@ int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, i
         *out_analysis = analysis;
     }
     
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 static int create_merge_commit(gk_session *session) {
@@ -68,7 +69,7 @@ static int create_merge_commit(gk_session *session) {
     }
 
     char commit_message[128];
-    snprintf(commit_message, 128, "Merge %s into %s", session->repository->repository_spec.remote_ref_name, session->repository->repository.main_branch_name);
+    snprintf(commit_message, 128, "Merge %s into %s", session->repository->repository_spec.remote_ref_name, session->repository->repository_spec.main_branch_name);
     git_oid commit_oid;
     int rc = git_commit_create(&commit_oid,
                            lg2_resources->repository, git_reference_name(lg2_resources->repository_head_ref),
@@ -82,7 +83,7 @@ static int create_merge_commit(gk_session *session) {
     }
 
     log_info(COMP_MERGE, "Created merge commit '%s'", git_oid_tostr_s(&commit_oid));
-    git_repository_state_cleanup(repository->lg2_resources->repository);
+    git_repository_state_cleanup(lg2_resources->repository);
 
     return gk_session_success(session, purpose);    
 }
@@ -123,11 +124,11 @@ static int merge_in_memory(gk_session *session) {
         if (gk_merge_conflicts_query(session) != GK_SUCCESS) {
             return gk_session_failure(session);
         }
-        gk_repository_state_set(repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
-        gk_repository_state_set(repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
+        gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
+        gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
     }
 
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 int gk_merge_conflicts_query(gk_session *session) {
@@ -140,10 +141,10 @@ int gk_merge_conflicts_query(gk_session *session) {
         return gk_session_failure(session);
     }
     if (session->repository->conflict_summary.num_conflicts > 0) {
-        gk_repository_state_set(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
+        gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
     }
     else {
-        gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
+        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
     }
     return gk_session_success(session, purpose);
 }
@@ -200,13 +201,10 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     log_info(COMP_MERGE, "Fast-forwardig merge from current HEAD at [%s] to %s at [%s]", lg2_resources->repository_head_oid_id , from_ref_name, lg2_resources->fetch_head_oid_id);
     
-    gk_authed authed;
-    gk_authed_init(&authed, repository, NULL);
-    
     git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
     checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE;
-    checkout_options.progress_cb = gk_repository_checkout_progress_callback;
-    checkout_options.progress_payload = &authed;
+    checkout_options.progress_cb = gk_session_checkout_progress_callback;
+    checkout_options.progress_payload = session;
 
     log_debug(COMP_MERGE, "Checked out tree at rev [%s] for reference [%s] into working directory", lg2_resources->fetch_head_oid_id, from_ref_name);
     if (git_checkout_tree(lg2_resources->repository, lg2_resources->fetch_head_object, &checkout_options) != 0) {
@@ -232,7 +230,7 @@ int gk_merge_into_head(gk_session *session) {
     if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
-    const char* from_ref_name = sessoin->repository->repository_spec.remote_ref_name;
+    const char* from_ref_name = session->repository->repository_spec.remote_ref_name;
 
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging [%s] into HEAD", from_ref_name);
@@ -247,8 +245,8 @@ int gk_merge_into_head(gk_session *session) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "UNIMPLEMENTED: merge pending on disk");
     }
     
-    if (gk_analyze_merge_into_head(session, from_ref_name, &merge_analysis) != GK_SUCCESS)
-        gk_repository_state_unset(sessoin->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+    if (gk_analyze_merge_into_head(session, from_ref_name, &merge_analysis) != GK_SUCCESS) {
+        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
         gk_lg2_free_all_but_repository(session->repository);
         return gk_session_failure(session);
     }
@@ -295,7 +293,7 @@ int gk_merge_into_head(gk_session *session) {
     }
 
     gk_lg2_free_all_but_repository(session->repository);
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 int gk_merge_into_head_finalize(gk_session *session) {
@@ -306,29 +304,29 @@ int gk_merge_into_head_finalize(gk_session *session) {
 
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_index_has_conflicts(lg2_resources->merge_index) == 1) {
-        if (gk_repository_merge_conflicts_query(session) != GK_SUCCESS) {
+        if (gk_merge_conflicts_query(session) != GK_SUCCESS) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query merge after conflicts detected");
         }
-        return gk_session_failure(session, purpose, GK_ERR, "repository still has [%d] conflicts", repository->conflict_summary.num_conflicts);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "repository still has [%d] conflicts", session->repository->conflict_summary.num_conflicts);
     }
 
     if (gk_lg2_load_references(session) != GK_SUCCESS) {
         return gk_session_failure(session);
     }
 
-    if (strcmp(repository->conflict_summary.repository_head_oid_id, repository->lg2_resources->repository_head_oid_id) != 0) {
-        log_warn(COMP_MERGE, "Cannot %s, conflict summary was calculated at repository head [%s] but the repository head is now [%s]", purpose, repository->conflict_summary.repository_head_oid_id, repository->lg2_resources->repository_head_oid_id);
+    if (strcmp(session->repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id) != 0) {
+        log_warn(COMP_MERGE, "Cannot %s, conflict summary was calculated at repository head [%s] but the repository head is now [%s]", purpose, session->repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id);
         if (gk_merge_abort(session) != GK_SUCCESS) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "repository head mismatch");
         }
-        return gk_session_failure_ex(session, purpose, GK_ERR, "conflict summary was calculated with repository head [%s] but the repository head is now [%s]", repository->conflict_summary.repository_head_oid_id, repository->lg2_resources->repository_head_oid_id);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "conflict summary was calculated with repository head [%s] but the repository head is now [%s]", session->repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id);
     }
 
-    if (strcmp(repository->conflict_summary.fetch_head_oid_id, repository->lg2_resources->fetch_head_oid_id) != 0) {
+    if (strcmp(session->repository->conflict_summary.fetch_head_oid_id, lg2_resources->fetch_head_oid_id) != 0) {
         if (gk_merge_abort(session) != GK_SUCCESS) {
-            return gk_session_failure_ex(session, , purpose, GK_ERR, "fetch head mismatch");
+            return gk_session_failure_ex(session, purpose, GK_ERR, "fetch head mismatch");
         }
-        return gk_session_failure_ex(session, purpose, GK_ERR, "conflict summary was calculated with fetch head [%s] but the fetch head is now [%s]", repository->conflict_summary.fetch_head_oid_id, repository->lg2_resources->fetch_head_oid_id);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "conflict summary was calculated with fetch head [%s] but the fetch head is now [%s]", session->repository->conflict_summary.fetch_head_oid_id, lg2_resources->fetch_head_oid_id);
     }
 
     if (gk_lg2_promote_merge_index(session) != GK_SUCCESS) {
@@ -342,7 +340,7 @@ int gk_merge_into_head_finalize(gk_session *session) {
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
 
     log_info(COMP_MERGE, "Successfully finalized merge into head");
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
 
 int gk_merge_abort(gk_session *session) {
@@ -355,5 +353,5 @@ int gk_merge_abort(gk_session *session) {
     gk_lg2_merge_index_free(session->repository);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
     log_info(COMP_MERGE, "Aborting merge into head");
-    return gk_session_success(session);
+    return gk_session_success(session, purpose);
 }
