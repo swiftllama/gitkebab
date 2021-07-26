@@ -38,7 +38,7 @@ static void test_clone_simple(void **state) {
     gk_session *session = gk_session_new("./src/test/fixtures/simple-repo1.git/", "./test-staging/clone-test-1", "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_context_succeeded(session), 1);
     assert_int_equal(gk_session_state_enabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS), 1);
         
     assert_int_equal(file_exists("test-staging/clone-test-1/file1"), 0);
@@ -55,7 +55,7 @@ static void test_clone_bad_source_path(void **state) {
     gk_session *session = gk_session_new("test-staging/tmp/non-existent-path/", "./test-staging/clone-test-2", "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_not_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_context_succeeded(session), 0);
 
     gk_session_free(session);
 }
@@ -66,7 +66,7 @@ static void test_clone_null_dest_path(void **state) {
     gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", NULL, "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_not_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_context_succeeded(session), 0);
 
     gk_session_free(session);
 }
@@ -77,7 +77,7 @@ static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
     gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", "test-staging/empty-dir1", "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_context_succeeded(session), 1);
 
     gk_session_free(session);
 }
@@ -88,7 +88,7 @@ static void test_clone_dest_path_nonempty_existing_regular_dir(void **state) {
     gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", "test-staging/nonempty-dir1", "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_not_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_context_succeeded(session), 0);
 
     gk_session_free(session);
 }

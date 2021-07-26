@@ -8,6 +8,7 @@ gk_session *gk_session_new(const char *remote_url, const char *local_path, const
     session->repository = gk_repository_new();
     gk_repository_init(session->repository, remote_url, local_path, user, progress_callback, state_changed_callback);
     gk_session_credential_username_password_init(session, "", "");
+    session->context = gk_execution_context_new("root context", &COMP_SSSION);
 }
 
 void gk_session_free(gk_session *session) {
@@ -17,6 +18,8 @@ void gk_session_free(gk_session *session) {
     gk_repository_free(session->repository);
     session->repository = NULL;
     gk_session_credential_free_members(&session->credential);
+    gk_execution_context_free(session->context);
+    session->context = NULL;
     free(session);
 }
 int gk_session_context_sanity_check(gk_session *session, log_Component *component, const char *purpose) {
@@ -91,6 +94,8 @@ int gk_session_context_success(gk_session *session, const char *purpose) {
 }
 
 int gk_session_failure(gk_session *session) {
+    gk_execution_context *last_child = gk_execution_context_last_child(session->context);
+    log_log(LOG_ERROR, __FILE__, __LINE__, last_child->log_component, "Failed to %s", purpose);
     return GK_FAILURE;
 }
 
@@ -100,10 +105,9 @@ int gk_session_failure_ex(gk_session *session, const char *purpose, int code, co
     gk_result *result = gk_result_v(code, message, args);
     va_end(args);
     gk_execution_context *last_child = gk_execution_context_last_child(session->context);
-    if (strcmp(last_child->purpose, purpose) != 0) {
-        log_error(COMP_EXCTX, "Failure recorded for purpose [%s], but last child has different purpose [%s]", purpose,  last_child->purpose);
-    }
     gk_execution_context_set_result(last_child, result);
+    log_log(LOG_ERROR, __FILE__, __LINE__, last_child->log_component, "Cannot %s, %s", purpose, gk_reuslt_message(result));
+    (void) purpose;
     return GK_FAILURE;
 }
 
@@ -123,11 +127,28 @@ int gk_session_context_lg2_failure_ex(gk_session *session, const char *purpose, 
 }
 
 int gk_session_context_succeeded(gk_session *session) {
-    if (gk_session_verify(repository, &COMP_REPOSITORY, GK_SESSION_VERIFY_DEFAULT, "check repository result success") != GK_SUCCESS) {
+    if (gk_session_sanity_check(session, &COMP_SESSION, "check repository result success") != GK_SUCCESS) {
         return 0;
     }
-    if (repository->root_context->child_context == NULL) {
+    if (session->context->child_context == NULL) {
         return 1;
     }
     return 0;
+}
+
+gk_result *gk_session_last_result(gk_session *session) {
+    if (gk_session_sanity_check(session, &COMP_SESSION, "get repository last result") != GK_SUCCESS) {
+        return 0;
+    }
+    if (session->context->child_context == NULL) {
+        return session->context->result;
+    }
+    while (next_context->child_context != NULL) {
+        next_context = next_context->child_context;
+        if (next_context->result != NULL) {
+            return next_context->result;
+        }
+    }
+    session->context->child_context->result = gk_result_new(GK_ERR, "<unknown error>");
+    return session->context->child_context->result;
 }
