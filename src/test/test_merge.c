@@ -144,7 +144,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     gk_index_add_path(session1, "file1");
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
-    gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
+    gk_commit(session1, "HEAD", &repo_A_new_commit);
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
     assert_int_equal(gk_session_last_result_code(session1), 0);
@@ -160,7 +160,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     gk_index_add_path(session2, "file2");
     assert_int_equal(gk_session_last_result_code(session2), 0);
     gk_object_id repo_B_new_commit = {0};
-    gk_commit(session2, "HEAD", "change file2", &repo_B_new_commit);
+    gk_commit(session2, "HEAD", &repo_B_new_commit);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Repo-B fetch
@@ -225,7 +225,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     gk_index_add_path(session1, "file1");
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
-    gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
+    gk_commit(session1, "HEAD", &repo_A_new_commit);
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
     assert_int_equal(gk_session_last_result_code(session1), 0);
@@ -241,7 +241,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     gk_index_add_path(session2, "file1");
     assert_int_equal(gk_session_last_result_code(session2), 0);
     gk_object_id repo_B_new_commit = {0};
-    gk_commit(session2, "HEAD", "change file1 incompatbile", &repo_B_new_commit);
+    gk_commit(session2, "HEAD", &repo_B_new_commit);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Repo-B fetch

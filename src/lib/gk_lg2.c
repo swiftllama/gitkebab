@@ -260,7 +260,7 @@ void gk_lg2_parents_free(gk_repository *repository) {
 
 int gk_lg2_index_write_tree(gk_session *session, git_index *target_index) {
     const char *purpose = "write index tree";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_INDEX_LOADED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;

@@ -52,8 +52,8 @@ static void test_commit_no_changes(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
     
-    gk_commit(session, "HEAD", "commit with no changes", NULL);
-    size_t entrycount = gkcount_reflog_entries(session, "HEAD");
+    gk_commit(session, "HEAD", NULL);
+    size_t entrycount = gk_count_reflog_entries(session, "HEAD");
     assert_int_equal(entrycount, 2);  // simple-repo1 has a single commit in its initial state
 
     gk_session_free(session);
@@ -70,16 +70,16 @@ static void test_commit_new_file(void **state) {
     gk_object_id original_head_commit = {0};
     gk_resolve_reference(session, "HEAD", &original_head_commit);
     
-    gk_session_index_add_path(session, "new-file1");
+    gk_index_add_path(session, "new-file1");
 
-    gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
-    assert_int_equal(gk_session_status_summary_entrycount(session), 1);
-    assert_string_equal(gk_session_status_summary_path_at(session, 0), "new-file1");
-    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_INDEX_NEW);
+    gk_status_summary_query(session);
+    assert_int_equal(gk_session_last_result_code(session), 0);
+    assert_int_equal(gk_status_summary_entrycount(session), 1);
+    assert_string_equal(gk_status_summary_path_at(session, 0), "new-file1");
+    assert_int_equal(gk_status_summary_status_at(session, 0), GIT_STATUS_INDEX_NEW);
 
     gk_object_id second_commit = {0};
-    gk_commit(session, "HEAD", "commit new file", &second_commit);
+    gk_commit(session, "HEAD", &second_commit);
 
     gk_object_id new_head_commit = {0};
     gk_resolve_reference(session, "HEAD", &new_head_commit);
@@ -87,9 +87,9 @@ static void test_commit_new_file(void **state) {
     assert_string_not_equal(second_commit.id, original_head_commit.id);
     assert_string_equal(second_commit.id, new_head_commit.id);
     
-    gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
-    assert_int_equal(gk_session_status_summary_entrycount(session), 0);
+    gk_status_summary_query(session);
+    assert_int_equal(gk_session_last_result_code(session), 0);
+    assert_int_equal(gk_status_summary_entrycount(session), 0);
 
     size_t entrycount = gk_count_reflog_entries(session, "HEAD");
     assert_int_equal(entrycount, 2);
@@ -110,34 +110,34 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     gk_index_add_path(session, "new-file1");
     gk_index_remove_path(session, "file2");
 
-    gk_session_status_summary_query(session);
+    gk_status_summary_query(session);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
-    assert_int_equal(gk_session_status_summary_entrycount(session), 3);
-    assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
-    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
-    assert_string_equal(gk_session_status_summary_path_at(session, 1), "file2");
-    assert_int_equal(gk_session_status_summary_status_at(session, 1), GIT_STATUS_INDEX_DELETED);
-    assert_string_equal(gk_session_status_summary_path_at(session, 2), "new-file1");
-    assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_INDEX_NEW);
+    assert_int_equal(gk_status_summary_entrycount(session), 3);
+    assert_string_equal(gk_status_summary_path_at(session, 0), "file1");
+    assert_int_equal(gk_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
+    assert_string_equal(gk_status_summary_path_at(session, 1), "file2");
+    assert_int_equal(gk_status_summary_status_at(session, 1), GIT_STATUS_INDEX_DELETED);
+    assert_string_equal(gk_status_summary_path_at(session, 2), "new-file1");
+    assert_int_equal(gk_status_summary_status_at(session, 2), GIT_STATUS_INDEX_NEW);
 
-    gk_commit(session, "HEAD", "commit new file and deletion", NULL);
+    gk_commit(session, "HEAD", NULL);
 
     size_t entrycount = gk_count_reflog_entries(session, "HEAD");
     assert_int_equal(entrycount, 2);
     
-    gk_session_status_summary_query(session);
+    gk_status_summary_query(session);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
-    assert_int_equal(gk_session_status_summary_entrycount(session), 1);
-    assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
-    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
+    assert_int_equal(gk_status_summary_entrycount(session), 1);
+    assert_string_equal(gk_status_summary_path_at(session, 0), "file1");
+    assert_int_equal(gk_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
 
-    gk_session_index_add_path(session, "file1");
+    gk_index_add_path(session, "file1");
 
-    gk_commit(session, "HEAD", "commit modification", NULL);
+    gk_commit(session, "HEAD", NULL);
     
-    gk_session_status_summary_query(session);
+    gk_status_summary_query(session);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
-    assert_int_equal(gk_session_status_summary_entrycount(session), 0);
+    assert_int_equal(gk_status_summary_entrycount(session), 0);
 
     gk_session_free(session);
 }

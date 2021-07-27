@@ -80,7 +80,7 @@ static void test_push_one_commit(void **state) {
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_object_id new_commit = {0};
-    gk_commit(session, "HEAD", "change file1", &new_commit);
+    gk_commit(session, "HEAD", &new_commit);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gkpush(session, "origin");
@@ -141,7 +141,7 @@ static void test_fetch_one_commit_with_no_push(void **state) {
     gk_index_add_path(session, "file1");
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     gk_object_id new_commit = {0};
-    gk_commit(session, "HEAD", "change file1", &new_commit);
+    gk_commit(session, "HEAD", &new_commit);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
 
@@ -183,7 +183,7 @@ static void test_fetch_one_commit(void **state) {
     gk_index_add_path(session1, "file1");
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id new_commit = {0};
-    gk_commit(session1, "HEAD", "change file1", &new_commit);
+    gk_commit(session1, "HEAD", &new_commit);
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
     assert_int_equal(gk_session_last_result_code(session1), 0);
@@ -227,7 +227,7 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     gk_index_add_path(session1, "file1");
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
-    gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
+    gk_commit(session1, "HEAD", &repo_A_new_commit);
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
     assert_int_equal(gk_session_last_result_code(session1), 0);
@@ -243,7 +243,7 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     gk_index_add_path(session2, "file2");
     assert_int_equal(gk_session_last_result_code(session2), 0);
     gk_object_id repo_B_new_commit = {0};
-    gk_commit(session2, "HEAD", "change file2", &repo_B_new_commit);
+    gk_commit(session2, "HEAD", &repo_B_new_commit);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Repo-B fetch

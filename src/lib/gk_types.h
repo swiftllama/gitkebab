@@ -32,7 +32,8 @@ typedef enum {
     GK_REPOSITORY_VERIFY_DEFAULT = (1 << 0),
     GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT = (1 << 1),
     GK_REPOSITORY_VERIFY_STATUS_LIST = (1 << 2),
-    GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS = (1 << 3)
+    GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS = (1 << 3),
+    GK_REPOSITORY_VERIFY_INDEX_LOADED = (1 << 4)
 } gk_repository_verify_condition;
 
 typedef struct {
