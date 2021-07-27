@@ -172,7 +172,7 @@ int gk_lg2_promote_merge_index(gk_session *session) {
 
     checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_ALLOW_CONFLICTS;
     checkout_options.progress_cb = gk_session_checkout_progress_callback;
-    checkout_options.progress_payload = &session;
+    checkout_options.progress_payload = session;
     
     if (gk_lg2_index_write_tree(session, lg2_resources->index) != GK_SUCCESS) {
         return gk_session_failure(session);

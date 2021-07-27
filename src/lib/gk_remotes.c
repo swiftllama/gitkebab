@@ -87,12 +87,12 @@ int gk_clone(gk_session *session) {
     /* Set up options */
     checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
     checkout_opts.progress_cb = gk_session_checkout_progress_callback;
-    checkout_opts.progress_payload = &session;
+    checkout_opts.progress_payload = session;
     clone_opts.checkout_opts = checkout_opts;
     //clone_opts.fetch_opts.callbacks.sideband_progress = sideband_progress;
     clone_opts.fetch_opts.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
     clone_opts.fetch_opts.callbacks.credentials = &gk_session_credential_callback;
-    clone_opts.fetch_opts.callbacks.payload = &session;
+    clone_opts.fetch_opts.callbacks.payload = session;
 
     /* Do the clone */
     log_info(COMP_CLONE, "Cloning repo");
@@ -137,7 +137,7 @@ int gk_fetch(gk_session *session, const char *remote_name) {
     git_fetch_options fetch_options = GIT_FETCH_OPTIONS_INIT;
     fetch_options.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
     fetch_options.callbacks.credentials = &gk_session_credential_callback;
-    fetch_options.callbacks.payload = &session;
+    fetch_options.callbacks.payload = session;
 
     const git_strarray *refspecs = NULL;
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_FETCH_IN_PROGRESS);
@@ -182,7 +182,7 @@ int gk_push(gk_session *session, const char *remote_name) {
     git_push_options push_options = GIT_PUSH_OPTIONS_INIT;
     push_options.callbacks.push_transfer_progress = (git_push_transfer_progress_cb)&gk_session_progress_push_transfer_callback;
     push_options.callbacks.credentials = gk_session_credential_callback;
-    push_options.callbacks.payload = &session;
+    push_options.callbacks.payload = session;
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_PUSH_IN_PROGRESS);
     int rc = git_remote_push(remote, NULL, &push_options);

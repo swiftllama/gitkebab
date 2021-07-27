@@ -107,12 +107,12 @@ int gk_session_failure(gk_session *session) {
 int gk_session_failure_ex(gk_session *session, const char *purpose, int code, const char *message, ...) {
     va_list args;
     va_start(args, message);
-    gk_result *result = gk_result_v(code, message, args);
+    gk_result *result = gk_result_vargs(code, message, args);
     va_end(args);
+    //printf("DBG X2 generated message [%s]\n", formatted_message);
     gk_execution_context *last_child = gk_execution_context_last_child(session->context);
     gk_execution_context_set_result(last_child, result);
-    log_log(LOG_ERROR, __FILE__, __LINE__, last_child->log_component, "Cannot %s, %s", purpose, gk_result_message(result));
-    (void) purpose;
+    log_log(LOG_ERROR, __FILE__, __LINE__, last_child->log_component, "Cannot %s: %s", purpose, gk_result_message(result));
     return GK_FAILURE;
 }
 

@@ -162,7 +162,7 @@ static int merge_normal(gk_session *session) {
     
     checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE | GIT_CHECKOUT_ALLOW_CONFLICTS;
     checkout_options.progress_cb = gk_repository_checkout_progress_callback;
-    checkout_options.progress_payload = &authed;
+    checkout_options.progress_payload = session;
     
     int rc = git_merge(repository->lg2_resources->repository, (const git_annotated_commit **)&repository->lg2_resources->annotated_fetch_head_commit, 1, &merge_options, &checkout_options);
     if (rc != 0) {
