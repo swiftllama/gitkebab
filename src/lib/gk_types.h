@@ -166,6 +166,7 @@ typedef struct {
     gk_execution_context *context;
     gk_repository *repository;
     gk_session_credential credential;
+    gk_result *internal_last_result;
 } gk_session;
 
 

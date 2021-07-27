@@ -51,7 +51,7 @@ int gk_result_code(gk_result *result) {
 }
 
 const char *gk_result_message(gk_result *result) {
-    return result != NULL ? result->message : "(message attribute not available on NULL result)";
+    return result == NULL ? "(message attribute not available on NULL result)" : result->message != NULL ? result->message : "";
 }
 
 gk_result *gk_fail_result(log_Component *component, int code, const char *message, ...) {

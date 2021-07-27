@@ -1,10 +1,14 @@
 
+#include <string.h>
+
 #include "gk_session.h"
 #include "gk_repository.h"
 #include "gk_execution_context.h"
 #include "gk_logging.h"
 #include "gk_init.h"
 #include "gk_lg2_private.h"
+#include "gk_results.h"
+
 
 gk_session *gk_session_new(const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
     gk_session *session = (gk_session *)malloc(sizeof(gk_session));
@@ -13,6 +17,7 @@ gk_session *gk_session_new(const char *remote_url, const char *local_path, const
     gk_session_credential_init(session);
     gk_session_credential_username_password_init(session, "", "");
     session->context = gk_execution_context_new("root context", &COMP_GENERAL);
+    session->internal_last_result = gk_result_success();
     return session;
 }
 
@@ -167,4 +172,41 @@ const char *gk_session_last_result_message(gk_session *session) {
 int gk_session_last_result_code(gk_session *session) {
     gk_result *result = gk_session_last_result(session);
     return gk_result_code(result);
+}
+
+gk_result *gk_session_last_result_trace(gk_session *session) {
+    int num_contexts = gk_execution_context_stack_size(session->context);
+    if (num_contexts == 1) {
+        return gk_result_success();
+    }
+    size_t message_length = 0;
+    gk_execution_context *context = session->context->child_context;
+    while (context != NULL) {
+        message_length += strlen(context->purpose) + 16; // room for prefix
+        if (context->result != NULL) {
+            message_length += strlen(gk_result_message(context->result)) + 16; // room for '(error: nnnn)' suffix
+        }
+        context = context->child_context;
+    }
+    char *message = (char *)malloc(message_length);
+    u_int64_t offset = 0;
+
+    const char *prefix = "Cannot";
+    context = session->context->child_context;
+    while (context != NULL) {
+        if (context->result != NULL) {
+            offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s, %s (error %d)\n", prefix, context->purpose, gk_result_message(context->result), gk_result_code(context->result));
+        }
+        else {
+            offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n", prefix, context->purpose);
+        }
+        offset -= 1; // don't null-terminate for now
+        context = context->child_context;
+        prefix = " -> failed to";
+    }
+    message[offset] = '\0'; // null terminate
+
+    gk_result_free(session->internal_last_result);
+    session->internal_last_result = gk_result_new(GK_ERR, message);
+    return session->internal_last_result;
 }
