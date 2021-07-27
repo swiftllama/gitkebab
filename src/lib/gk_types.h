@@ -13,7 +13,9 @@ typedef struct gk_execution_context gk_execution_context;
 enum GK_RESULT_CODE {
     GK_SUCCESS, GK_FAILURE, GK_ERR,
     // Clone
-    GK_ERR_CLONE_INEXISTENT_SOURCE_PATH
+    GK_ERR_CLONE_INEXISTENT_SOURCE_PATH,
+    GK_ERR_CLONE_INVALID_DESTINATION_PATH,
+    GK_ERR_CLONE_DESTINATION_PATH_NONEMPTY
 };
 
 typedef enum {

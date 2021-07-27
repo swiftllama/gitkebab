@@ -185,16 +185,6 @@ int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code
     return gk_session_failure_ex(session, purpose, code, "%s: %s (error %d)", formatted_message, err->message, err->klass);
 }
 
-int gk_session_context_succeeded(gk_session *session) {
-    if (gk_session_context_sanity_check(session, &COMP_GENERAL, "check repository result success") != GK_SUCCESS) {
-        return 0;
-    }
-    if (session->context->child_context == NULL) {
-        return 1;
-    }
-    return 0;
-}
-
 gk_result *gk_session_last_result(gk_session *session) {
     if (gk_session_context_sanity_check(session, &COMP_GENERAL, "get repository last result") != GK_SUCCESS) {
         return 0;

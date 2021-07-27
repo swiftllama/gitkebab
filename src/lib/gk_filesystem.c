@@ -23,3 +23,18 @@ int gk_directory_exists(const char *path) {
     }
     return 0;
 }
+
+int gk_directory_is_empty(const char *path) {
+    DIR* dir = opendir(path);
+    struct dirent *entry;
+    if (dir) {
+        entry = readdir(dir); // read '..'
+        entry = readdir(dir); // read '.'
+        entry = readdir(dir); // read next entry if it exists
+        closedir(dir);
+        return entry == NULL;
+    } else if (errno != ENOENT) {
+        log_error(COMP_GENERAL, "Encountered unexpected errno error [%d] while testing if path [%s] is an empty directory (expected no error or errno ENOENT=%d)", errno, path, ENOENT);
+    }
+    return 0;
+}

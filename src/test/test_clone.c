@@ -41,7 +41,7 @@ static void test_clone_simple(void **state) {
     gk_session *session = gk_session_new("./src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-1", "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_equal(gk_session_context_succeeded(session), 1);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     assert_int_equal(gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
         
     assert_int_equal(file_exists("test-staging/clone-test-1/file1"), 0);
@@ -70,7 +70,8 @@ static void test_clone_null_dest_path(void **state) {
     gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, NULL, "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_equal(gk_session_context_succeeded(session), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_ERR_CLONE_INVALID_DESTINATION_PATH);
+    append_to_error_listing(error_listing, "Clone with NULL destination path", gk_result_code_as_string(gk_session_last_result_code(session)), gk_session_last_result_message(session));
 
     gk_session_free(session);
 }
@@ -81,7 +82,7 @@ static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
     gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/empty-dir1", "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_equal(gk_session_context_succeeded(session), 1);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_session_free(session);
 }
@@ -92,8 +93,9 @@ static void test_clone_dest_path_nonempty_existing_regular_dir(void **state) {
     gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/nonempty-dir1", "git", &session_progress, NULL);
     gk_clone(session);
 
-    assert_int_equal(gk_session_context_succeeded(session), 0);
-
+    assert_int_equal(gk_session_last_result_code(session), GK_ERR_CLONE_DESTINATION_PATH_NONEMPTY);
+    append_to_error_listing(error_listing, "Clone with existing non-empty destination path", gk_result_code_as_string(gk_session_last_result_code(session)), gk_session_last_result_message(session));
+    
     gk_session_free(session);
 }
 

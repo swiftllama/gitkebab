@@ -101,14 +101,23 @@ int gk_clone(gk_session *session) {
     if (session->repository->spec.source_url_type == GK_REPOSITORY_SOURCE_URL_FILESYSTEM) {
         // verify that the path exists
         if (gk_directory_exists(source_url) == 0) {
-            return gk_session_failure_ex(session, purpose, GK_ERR_CLONE_INEXISTENT_SOURCE_PATH, "repoistory source path [%s] does not exist", source_url);
+            return gk_session_failure_ex(session, purpose, GK_ERR_CLONE_INEXISTENT_SOURCE_PATH, "repository source path [%s] does not exist", source_url);
         }
+    }
+
+    // Verify dest
+    const char *local_path = session->repository->spec.local_path;
+    if ((local_path == NULL) || (local_path[0] == '\0')) {
+        return gk_session_failure_ex(session, purpose, GK_ERR_CLONE_INVALID_DESTINATION_PATH, "repository destination path [%s] is invalid", local_path == NULL ? "NULL" : "");
+    }
+    else if ((gk_directory_exists(local_path) == 1) && (gk_directory_is_empty(local_path) == 0)) {
+        return gk_session_failure_ex(session, purpose, GK_ERR_CLONE_DESTINATION_PATH_NONEMPTY, "repository destination path [%s] exists but is not empty", local_path);
     }
     
     /* Do the clone */
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        [%s]", source_url);
-    log_info(COMP_CLONE, "  - Local path: [%s]", session->repository->spec.local_path);
+    log_info(COMP_CLONE, "  - Local path: [%s]", local_path);
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
     rc = git_clone((git_repository **)&(session->repository->lg2_resources->repository), session->repository->spec.source_url, session->repository->spec.local_path, &clone_opts);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
