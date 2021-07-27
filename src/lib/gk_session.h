@@ -19,6 +19,5 @@ int gk_session_context_succeeded(gk_session *session);
 gk_result *gk_session_last_result(gk_session *session);
 int gk_session_last_result_code(gk_session *session);
 const char *gk_session_last_result_message(gk_session *session) ;
-gk_result *gk_session_last_result_trace(gk_session *session);
 
 #endif //__GK_SESSION_H__
