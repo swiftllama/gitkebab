@@ -39,8 +39,14 @@ gk_execution_context *gk_execution_context_last_parent(gk_execution_context *con
         return NULL;
     }
     gk_execution_context *last_parent = context;
+    int count = 0;
     while ((last_parent->child_context != NULL) && (last_parent->child_context->child_context != NULL)) {
-        last_parent = context->child_context;
+        last_parent = last_parent->child_context;
+        count += 1;
+        if (count >= 64) {
+            log_error(COMP_EXCTX, "Could not find last child in execution context stack larger than 64, last purpose is [%s]", last_parent->purpose);
+        break;
+        }
     }
     return last_parent;
 }
@@ -50,9 +56,22 @@ gk_execution_context *gk_execution_context_last_child(gk_execution_context *cont
     return last_parent->child_context != NULL ? last_parent->child_context : last_parent;
 }
 
+ void print_execution_chain(gk_execution_context *context) {
+    gk_execution_context *next_context = context;
+    log_error(COMP_EXCTX, "[CHAIN]\n");
+    for (int i = 0; i <= 10; i += 1) {
+        log_error(COMP_EXCTX, "  (%d) is [%p] [%s]\n", i, (void *)next_context, next_context->purpose);
+        next_context = next_context->child_context;
+        if (next_context == NULL) {
+            log_error(COMP_EXCTX, "[CHAIN END]\n\n");
+            return;
+        }
+    }
+    log_error(COMP_EXCTX, "[CHAIN] end not found!\n");
+}
+
 void gk_execution_context_push(gk_execution_context *context, const char *purpose, log_Component *log_component) {
     gk_execution_context *last_child = gk_execution_context_last_child(context);
-    log_info(COMP_EXCTX, "Pushing context [%s] onto current context [%s]", purpose, last_child->purpose);
     last_child->child_context = gk_execution_context_new(purpose, log_component != NULL ? log_component : context->log_component);
 }
 

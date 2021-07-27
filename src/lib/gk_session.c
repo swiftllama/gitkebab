@@ -65,6 +65,7 @@ gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type
     gk_session_credential_init(session);
     gk_session_credential_username_password_init(session, "", "");
     session->context = gk_execution_context_new("root context", &COMP_GENERAL);
+    printf("DBG X1 created root context [%p]\n", (void *)session->context);
     session->internal_last_result = gk_result_success();
     return session;
 }
