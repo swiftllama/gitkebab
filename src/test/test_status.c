@@ -38,9 +38,9 @@ static void test_status_without_open_repo(void **state) {
 
     gk_status_summary_query(session);
     assert_int_equal(gk_session_last_result_code(session), GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT);
-    assert_non_null(strstr(gk_session_last_result_message(session), "Cannot query status, local checkout does not exist"));
-
     append_to_error_listing(error_listing, "Query status without an open repo", gk_result_code_as_string(gk_session_last_result_code(session)), gk_session_last_result_message(session));
+
+    assert_non_null(strstr(gk_session_last_result_message(session), "local checkout does not exist"));
     
     gk_session_free(session);
 }

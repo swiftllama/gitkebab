@@ -164,14 +164,15 @@ static void test_index_add_nonexistent_file(void **state) {
     assert_non_null(session);
 
     gk_index_add_path(session, "non-existent-file1");
-    assert_int_equal(gk_session_last_result_code(session), GK_ERR);
+    gk_execution_context_print_execution_chain(session->context);
+    assert_int_equal(gk_session_last_result_code(session), GK_ERR_NOT_FOUND);
 
-    append_to_error_listing(error_listing, "add non-existent path to index", gk_result_code_as_string(gk_session_last_result_code(session)), gk_session_last_result_message(session));    
+    append_to_error_listing(error_listing, "add non-existent path to index", gk_result_code_as_string(gk_session_last_result_code(session)), gk_session_last_result_message(session));
+
 
     gk_status_summary_close(session);
     gk_session_free(session);
 }
-
 
 int main(void) {
     const struct CMUnitTest tests[] = {

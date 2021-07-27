@@ -22,9 +22,10 @@ int gk_index_add_path(gk_session *session, const char *path) {
         return gk_session_failure(session, purpose);
     }
 
-    if (git_index_add_bypath(session->repository->lg2_resources->index, path) != 0) {
+    int rc = git_index_add_bypath(session->repository->lg2_resources->index, path);
+    if (rc != 0) {
         gk_lg2_index_free(session->repository);
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add [%s] to index", path);
+        return gk_session_lg2_failure_ex(session, purpose, rc == GIT_ENOTFOUND ? GK_ERR_NOT_FOUND : GK_ERR, "failed to add [%s] to index", path);
     }
 
     gk_lg2_index_free(session->repository);

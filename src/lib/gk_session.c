@@ -201,7 +201,7 @@ int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code
     vsnprintf(formatted_message, 256, message, args);
     va_end(args);
     const git_error *err = git_error_last();
-    return gk_session_failure_ex(session, purpose, err->klass, "%s: %s", formatted_message, err->message);
+    return gk_session_failure_ex(session, purpose, code, "%s: %s", formatted_message, err->message);
 }
 
 const char *gk_session_last_result_message(gk_session *session) {

@@ -15,5 +15,6 @@
 #include "gk_repository.h"
 #include "gk_status.h"
 #include "gk_session.h"
+#include "gk_execution_context.h"
 
 #endif // __GITKEBAB_H__
