@@ -133,7 +133,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     // entry. This feels a bit sketchy
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
         gk_lg2_index_free(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
     
     const git_index_entry *conflicted_entry = git_index_get_bypath(session->repository->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);
@@ -147,7 +147,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     const git_index_entry *theirs_entry = NULL;
 
     if (gk_lg2_index_conflict_get(session, &ancestor_entry, &ours_entry, &theirs_entry, session->repository->lg2_resources->merge_index, path) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     git_index_entry clean_entry = *conflicted_entry;
@@ -202,12 +202,12 @@ int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_
     
     git_oid blob_oid;
     if (gk_lg2_oid_from_id(session, &blob_oid, oid_id) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     git_blob *blob = NULL;
     if (gk_lg2_blob_lookup(session, &blob, &blob_oid) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     *blob_data_length = git_blob_rawsize(blob);
@@ -231,7 +231,7 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
     void *blob_data = NULL;
     if (gk_blob_contents(session, &blob_data, &blob_size, oid_id) != GK_SUCCESS) {
         free(blob_data);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
     
     FILE *fptr = fopen(path, "w");
@@ -377,7 +377,7 @@ int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void 
     // entry. This feels a bit sketchy
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
         gk_lg2_index_free(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     const git_index_entry *conflicted_entry = git_index_get_bypath(session->repository->lg2_resources->index, path, GIT_INDEX_STAGE_NORMAL);

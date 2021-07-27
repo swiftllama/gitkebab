@@ -34,12 +34,12 @@ add_test(NAME TestStatus
   COMMAND test_status
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-#add_executable(test_index test_index.c gk_test_filesystem_utils.c gk_test_env_utils.c)
-#target_link_libraries(test_index cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-#add_test(NAME TestIndex
-#  COMMAND test_index
-#  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-#
+add_executable(test_index test_index.c gk_test_filesystem_utils.c gk_test_env_utils.c)
+target_link_libraries(test_index cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestIndex
+  COMMAND test_index
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
 #add_executable(test_commit test_commit.c gk_test_filesystem_utils.c gk_test_env_utils.c)
 #target_link_libraries(test_commit cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
 #add_test(NAME TestCommit

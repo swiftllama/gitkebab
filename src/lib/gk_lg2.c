@@ -175,11 +175,11 @@ int gk_lg2_promote_merge_index(gk_session *session) {
     checkout_options.progress_payload = session;
     
     if (gk_lg2_index_write_tree(session, lg2_resources->index) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
         
     if (gk_lg2_checkout_tree(session, &checkout_options) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     return gk_session_success(session, purpose);
@@ -372,7 +372,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                return gk_session_failure(session);
+                return gk_session_failure(session, purpose);
             }
             entry_path = conflict_entry.ours->path;
         }
@@ -382,7 +382,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                return gk_session_failure(session);
+                return gk_session_failure(session, purpose);
             }
             entry_path = conflict_entry.theirs->path;
         }
@@ -392,7 +392,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
                 gk_lg2_conflict_entry_free_members(&conflict_entry);
                 git_index_conflict_iterator_free(conflicts);
                 gk_free_void_node_chain(conflict_chain, 1);
-                return gk_session_failure(session);
+                return gk_session_failure(session, purpose);
             }
             entry_path = conflict_entry.ancestor->path;
         }
@@ -519,32 +519,32 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
     git_blob *theirs_blob = NULL;
 
     if (gk_lg2_oid_from_id(session, &ancestor_oid, entry->ancestor_oid_id) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return NULL;
     }
 
     if (gk_lg2_oid_from_id(session, &ours_oid, entry->ours_oid_id) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return NULL;
     }
 
     if (gk_lg2_oid_from_id(session, &theirs_oid, entry->theirs_oid_id) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return NULL;
     }
 
     if (gk_lg2_blob_lookup(session, &ancestor_blob, &ancestor_oid) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return NULL;
     }
 
     if (gk_lg2_blob_lookup(session, &ours_blob, &ours_oid) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return NULL;
     }
 
     if (gk_lg2_blob_lookup(session, &theirs_blob, &theirs_oid) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return NULL;
     }
     
@@ -632,7 +632,7 @@ int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid)
     const char *purpose = "look up blob from object id";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
         return GK_FAILURE;
-    }      
+    }
     if (git_blob_lookup(blob, session->repository->lg2_resources->repository, oid) != 0) {
         if (blob != NULL) {
             git_blob_free(*blob);

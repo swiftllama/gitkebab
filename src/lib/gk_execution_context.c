@@ -6,11 +6,30 @@
 #include "gk_logging.h"
 #include "gk_results.h"
 
+void gk_execution_context_print_execution_chain(gk_execution_context *context) {
+    gk_execution_context *next_context = context;
+    log_error(COMP_EXCTX, "[CHAIN]");
+    for (int i = 0; i <= 10; i += 1) {
+        if (next_context->result == NULL) {
+            log_error(COMP_EXCTX, "  (%d) is [%p] [%s] [result: NULL]", i, (void *)next_context, next_context->purpose);
+        }
+        else {
+            log_error(COMP_EXCTX, "  (%d) is [%p] [%s] [result (%d): %s]", i, (void *)next_context, next_context->purpose, gk_result_code(next_context->result), gk_result_message(next_context->result));
+        }
+        next_context = next_context->child_context;
+        if (next_context == NULL) {
+            log_error(COMP_EXCTX, "[CHAIN END]");
+            return;
+        }
+    }
+    log_error(COMP_EXCTX, "[CHAIN] end not found!\n");
+}
+
 gk_execution_context *gk_execution_context_new(const char *purpose, log_Component *log_component) {
     const char *safe_purpose = purpose != NULL ? purpose : "<unspecified execution context purpose>";
     gk_execution_context *context = (gk_execution_context *)malloc(sizeof(gk_execution_context));
     context->purpose = safe_purpose;
-    context->result = gk_result_success();
+    context->result = NULL;
     context->child_context = NULL;
     context->log_component = log_component != NULL ? log_component : &COMP_GENERAL;
     return context;
@@ -33,46 +52,41 @@ void gk_execution_context_free(gk_execution_context *context) {
     free(context);
 }
 
-gk_execution_context *gk_execution_context_last_parent(gk_execution_context *context) {
-    if (context == NULL) {
-        log_error(COMP_EXCTX, "Cannot find last parent for NULL context");
+gk_execution_context *gk_execution_context_last_unresolved(gk_execution_context *context, gk_execution_context **parent) {
+    gk_execution_context *last_unresolved = context->result == NULL ? context : NULL;
+    gk_execution_context *next_context = context;
+    gk_execution_context *next_parent = context;
+
+    while (next_context != NULL) {
+        if (next_context->result == NULL) {
+            last_unresolved = next_context;
+        }
+        if (next_context->child_context != NULL) {
+            next_parent = next_context;
+        }
+        next_context = next_context->child_context;
+    }
+    if ((last_unresolved == NULL) || (last_unresolved->result != NULL)) {
+        log_error(COMP_EXCTX, "Context execution chain does not have unresolved contexts:");
+        gk_execution_context_print_execution_chain(context);
         return NULL;
     }
-    gk_execution_context *last_parent = context;
-    int count = 0;
-    while ((last_parent->child_context != NULL) && (last_parent->child_context->child_context != NULL)) {
-        last_parent = last_parent->child_context;
-        count += 1;
-        if (count >= 64) {
-            log_error(COMP_EXCTX, "Could not find last child in execution context stack larger than 64, last purpose is [%s]", last_parent->purpose);
-        break;
-        }
+
+    if (parent != NULL) {
+        *parent = next_parent;
     }
-    return last_parent;
+    return last_unresolved;
 }
 
-gk_execution_context *gk_execution_context_last_child(gk_execution_context *context) {
-    gk_execution_context *last_parent = gk_execution_context_last_parent(context);
-    return last_parent->child_context != NULL ? last_parent->child_context : last_parent;
-}
 
- void print_execution_chain(gk_execution_context *context) {
-    gk_execution_context *next_context = context;
-    log_error(COMP_EXCTX, "[CHAIN]\n");
-    for (int i = 0; i <= 10; i += 1) {
-        log_error(COMP_EXCTX, "  (%d) is [%p] [%s]\n", i, (void *)next_context, next_context->purpose);
-        next_context = next_context->child_context;
-        if (next_context == NULL) {
-            log_error(COMP_EXCTX, "[CHAIN END]\n\n");
-            return;
-        }
-    }
-    log_error(COMP_EXCTX, "[CHAIN] end not found!\n");
-}
 
 void gk_execution_context_push(gk_execution_context *context, const char *purpose, log_Component *log_component) {
-    gk_execution_context *last_child = gk_execution_context_last_child(context);
-    last_child->child_context = gk_execution_context_new(purpose, log_component != NULL ? log_component : context->log_component);
+    gk_execution_context *last_unresolved = gk_execution_context_last_unresolved(context, NULL);
+    if (last_unresolved->child_context != NULL) {
+        gk_execution_context_free(last_unresolved->child_context);
+        last_unresolved->child_context = NULL;
+    }
+    last_unresolved->child_context = gk_execution_context_new(purpose, log_component != NULL ? log_component : context->log_component);
 }
 
 void gk_execution_context_pop(gk_execution_context *context, const char *purpose) {
@@ -84,13 +98,19 @@ void gk_execution_context_pop(gk_execution_context *context, const char *purpose
         log_error(COMP_EXCTX, "Cannot pop contex with NULL child for purpose [%s]", purpose);
         return;
     }
-    gk_execution_context *last_parent = gk_execution_context_last_parent(context);
-    gk_execution_context *last_child = last_parent->child_context;
-    if (strcmp(last_child->purpose, purpose) != 0) {
-        log_error(COMP_EXCTX, "Asked to pop context with purpose [%s], but last child has different purpose [%s]", purpose,  last_child->purpose);
+    gk_execution_context *last_parent = NULL;
+    gk_execution_context *last_unresolved = gk_execution_context_last_unresolved(context, &last_parent);
+    if (last_unresolved == NULL) {
+        log_error(COMP_EXCTX, "Cannot pop session for purpose [%s], execution chain has no unresolved contexts. The most likely cause is a method that doesn't properly report its success/failure via gk_session_success() or gk_session_failure*()", purpose);
+        gk_execution_context_print_execution_chain(context);
         return;
     }
-    gk_execution_context_free(last_child);
+    if (strcmp(last_unresolved->purpose, purpose) != 0) {
+        log_error(COMP_EXCTX, "Cannot pop session for purpose [%s], the last unresolved execution context has a different purpose [%s]. The most likely cause is a method that doesn't properly report its success/failure via gk_session_success() or gk_session_failure*()", purpose, last_unresolved->purpose);
+        gk_execution_context_print_execution_chain(context);
+        return;
+    }
+    gk_execution_context_free(last_parent->child_context);
     last_parent->child_context = NULL;
 }
 

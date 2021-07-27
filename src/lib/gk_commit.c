@@ -15,12 +15,12 @@ size_t gk_count_reflog_entries(gk_session *session, const char* ref_name) {
     }
     
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return 0;
     }
 
     if (gk_lg2_reflog_read(session, ref_name) != GK_SUCCESS) {
-        gk_session_failure(session);
+        gk_session_failure(session, purpose);
         return 0;
     }
 
@@ -42,18 +42,18 @@ int gk_commit(gk_session *session, const char* commit_message, gk_object_id *out
     const char *safe_commit_message = commit_message == NULL ? "" : commit_message;
 
     if (gk_lg2_load_references(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (gk_lg2_signature_create(session) != GK_SUCCESS) {
         gk_lg2_free_references(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (gk_lg2_index_write_tree(session, lg2_resources->index) != GK_SUCCESS) {
         gk_lg2_free_references(session->repository);
         gk_lg2_signature_free(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (git_index_write(lg2_resources->index) != 0) {

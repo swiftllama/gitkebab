@@ -171,13 +171,13 @@ int gk_fetch(gk_session *session, const char *remote_name) {
 
     if (gk_lg2_load_references(session) != 0) {
         gk_lg2_free_references(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
     rc = gk_analyze_merge_into_head(session, session->repository->spec.remote_ref_name, NULL);
     gk_lg2_free_references(session->repository);
 
     if (rc != 0) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
     
     return gk_session_success(session, purpose);

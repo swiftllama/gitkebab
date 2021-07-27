@@ -61,11 +61,11 @@ static int create_merge_commit(gk_session *session) {
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     // Find parents
     if (gk_lg2_parents_lookup(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (gk_lg2_signature_create(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     char commit_message[128];
@@ -109,12 +109,12 @@ static int merge_in_memory(gk_session *session) {
 
     if (git_index_has_conflicts(lg2_resources->merge_index) == 0) {
         if (gk_lg2_promote_merge_index(session) != GK_SUCCESS) {
-            return gk_session_failure(session);
+            return gk_session_failure(session, purpose);
         }
         rc = create_merge_commit(session);
         gk_lg2_merge_index_free(session->repository);
         if (rc != GK_SUCCESS) {
-            return gk_session_failure(session);
+            return gk_session_failure(session, purpose);
         }
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
@@ -122,7 +122,7 @@ static int merge_in_memory(gk_session *session) {
     else { // has conflicts
         log_error(COMP_MERGE, "detected conflicts after merge");
         if (gk_merge_conflicts_query(session) != GK_SUCCESS) {
-            return gk_session_failure(session);
+            return gk_session_failure(session, purpose);
         }
         gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
         gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
@@ -138,7 +138,7 @@ int gk_merge_conflicts_query(gk_session *session) {
     }
 
     if (gk_lg2_iterate_conflicts(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
     if (session->repository->conflict_summary.num_conflicts > 0) {
         gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
@@ -238,7 +238,7 @@ int gk_merge_into_head(gk_session *session) {
 
     if (gk_lg2_load_references(session) != GK_SUCCESS) {
         gk_lg2_free_all_but_repository(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK)) {
@@ -248,7 +248,7 @@ int gk_merge_into_head(gk_session *session) {
     if (gk_analyze_merge_into_head(session, from_ref_name, &merge_analysis) != GK_SUCCESS) {
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
         gk_lg2_free_all_but_repository(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if ((merge_analysis & GIT_MERGE_ANALYSIS_FASTFORWARD) != 0) {
@@ -256,7 +256,7 @@ int gk_merge_into_head(gk_session *session) {
         if (merge_fast_forward(session, from_ref_name) != GK_SUCCESS) {
             gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
             gk_lg2_free_all_but_repository(session->repository);
-            return gk_session_failure(session);
+            return gk_session_failure(session, purpose);
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_NORMAL) != 0) {
@@ -264,7 +264,7 @@ int gk_merge_into_head(gk_session *session) {
         if (merge_in_memory(session) != GK_SUCCESS) {
             gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
             gk_lg2_free_all_but_repository(session->repository);
-            return gk_session_failure(session);
+            return gk_session_failure(session, purpose);
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0) {
@@ -311,7 +311,7 @@ int gk_merge_into_head_finalize(gk_session *session) {
     }
 
     if (gk_lg2_load_references(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (strcmp(session->repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id) != 0) {
@@ -330,11 +330,11 @@ int gk_merge_into_head_finalize(gk_session *session) {
     }
 
     if (gk_lg2_promote_merge_index(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (create_merge_commit(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);

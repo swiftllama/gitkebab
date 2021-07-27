@@ -76,7 +76,7 @@ int gk_open_local_repository(gk_session *session) {
     }
 
     if (gk_lg2_repository_open(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);

@@ -35,7 +35,7 @@ int gk_status_summary_query(gk_session *session) {
     gk_lg2_status_list_free(repository);
     if (gk_lg2_status_list_load(session) != GK_SUCCESS) {
         gk_lg2_status_list_free(repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     size_t count_total = git_status_list_entrycount(lg2_resources->status_list);
@@ -153,9 +153,9 @@ const char *gk_status_summary_path_at(gk_session *session, size_t index) {
 }
 
 size_t gk_status_summary_entrycount(gk_session *session) {
-    const char *purpose = "fetch from remote";
+    const char *purpose = "get entrycount";
     if (gk_session_context_push(session, purpose, &COMP_STATUS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_STATUS_LIST) != GK_SUCCESS) {
-        return GK_FAILURE;
+        return 0;
     }
 
     size_t entrycount = git_status_list_entrycount(session->repository->lg2_resources->status_list);

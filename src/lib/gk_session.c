@@ -38,7 +38,7 @@ static gk_result *gk_session_internal_last_result(gk_session *session) {
     context = session->context->child_context;
     while (context != NULL) {
         if (context->result != NULL) {
-            offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s, %s (error %d)\n", prefix, context->purpose, gk_result_message(context->result), gk_result_code(context->result));
+            offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n -> %s (error %d)\n", prefix, context->purpose, gk_result_message(context->result), gk_result_code(context->result));
         }
         else {
             offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n", prefix, context->purpose);
@@ -65,7 +65,6 @@ gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type
     gk_session_credential_init(session);
     gk_session_credential_username_password_init(session, "", "");
     session->context = gk_execution_context_new("root context", &COMP_GENERAL);
-    printf("DBG X1 created root context [%p]\n", (void *)session->context);
     session->internal_last_result = gk_result_success();
     return session;
 }
@@ -134,9 +133,10 @@ int gk_session_context_push(gk_session *session, const char *purpose, log_Compon
         return GK_FAILURE;
     }
     gk_session_clear_internal_last_result(session);
+    log_info(COMP_SESSION, "pushing purpose [%s]", purpose);
     gk_execution_context_push(session->context, purpose, log_component);
     if ((conditions != 0) && (gk_session_verify(session, conditions, purpose) != GK_SUCCESS)) {
-        return gk_session_failure(session);
+        return GK_FAILURE;
     }
     return GK_SUCCESS;
 }
@@ -149,14 +149,13 @@ void gk_session_context_pop(gk_session *session, const char *purpose) {
 }
 
 int gk_session_success(gk_session *session, const char *purpose) {
+    log_info(COMP_SESSION, "popping purpose [%s]", purpose);
     gk_execution_context_pop(session->context, purpose);
     return GK_SUCCESS;
 }
 
-int gk_session_failure(gk_session *session) {
-    gk_execution_context *last_child = gk_execution_context_last_child(session->context);
-    log_log(LOG_ERROR, __FILE__, __LINE__, last_child->log_component, "Failed to %s", last_child->purpose);
-    return GK_FAILURE;
+int gk_session_failure(gk_session *session, const char *purpose) {
+    return gk_session_failure_ex(session, purpose, GK_ERR, "");
 }
 
 int gk_session_failure_ex(gk_session *session, const char *purpose, int code, const char *message, ...) {
@@ -164,44 +163,45 @@ int gk_session_failure_ex(gk_session *session, const char *purpose, int code, co
     va_start(args, message);
     gk_result *result = gk_result_vargs(code, message, args);
     va_end(args);
-    //printf("DBG X2 generated message [%s]\n", formatted_message);
-    gk_execution_context *last_child = gk_execution_context_last_child(session->context);
-    gk_execution_context_set_result(last_child, result);
-    log_log(LOG_ERROR, __FILE__, __LINE__, last_child->log_component, "Cannot %s: %s", purpose, gk_result_message(result));
+    
+    gk_execution_context *last_unresolved = gk_execution_context_last_unresolved(session->context, NULL);
+    log_Component *log_component = last_unresolved != NULL ? last_unresolved->log_component : &COMP_GENERAL;
+    log_log(LOG_ERROR, __FILE__, __LINE__, log_component, "Cannot %s", purpose);
+    if (message[0] != '\0') {
+        log_log(LOG_ERROR, __FILE__, __LINE__, log_component, "  -> %s", gk_result_message(result));
+    }
+    
+    if (last_unresolved == NULL) {
+        log_error(COMP_EXCTX, "Cannot set session failure, execution chain has no unresolved contexts. The most likely cause is a method that doesn't properly report its success/failure via gk_session_success() or gk_session_failure*()");
+        gk_execution_context_print_execution_chain(session->context);
+    }
+    else if (strcmp(last_unresolved->purpose, purpose) != 0) {
+        log_error(COMP_EXCTX, "Cannot set session failure for purpose [%s], the last unresolved execution context has a different purpose [%s]. The most likely cause is a method that doesn't properly report its success/failure via gk_session_success() or gk_session_failure*()", purpose, last_unresolved->purpose);
+        gk_execution_context_print_execution_chain(session->context);
+        return GK_FAILURE;
+    }
+    else {
+        gk_execution_context_set_result(last_unresolved, result);
+    }
+    
     return GK_FAILURE;
 }
 
 int gk_session_lg2_failure(gk_session *session, const char *purpose, int code) {
+    (void) code;
     const git_error *err = git_error_last();
-    return gk_session_failure_ex(session, purpose, code, "%s (error %d)", err->message, err->klass);
+    return gk_session_failure_ex(session, purpose, err->klass, "%s", err->message, err->klass);
 }
 
 int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code, const char *message, ...) {
+    (void) code;
     va_list args;
     va_start(args, message);
     char formatted_message[256];
     vsnprintf(formatted_message, 256, message, args);
     va_end(args);
     const git_error *err = git_error_last();
-    return gk_session_failure_ex(session, purpose, code, "%s: %s (error %d)", formatted_message, err->message, err->klass);
-}
-
-gk_result *gk_session_last_result(gk_session *session) {
-    if (gk_session_context_sanity_check(session, &COMP_GENERAL, "get repository last result") != GK_SUCCESS) {
-        return 0;
-    }
-    if (session->context->child_context == NULL) {
-        return session->context->result;
-    }
-    gk_execution_context *next_context = session->context;
-    while (next_context->child_context != NULL) {
-        next_context = next_context->child_context;
-        if (next_context->result != NULL) {
-            return next_context->result;
-        }
-    }
-    session->context->child_context->result = gk_result_new(GK_ERR, "<unknown error>");
-    return session->context->child_context->result;
+    return gk_session_failure_ex(session, purpose, err->klass, "%s: %s", formatted_message, err->message);
 }
 
 const char *gk_session_last_result_message(gk_session *session) {

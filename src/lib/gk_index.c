@@ -19,7 +19,7 @@ int gk_index_add_path(gk_session *session, const char *path) {
     
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
         gk_lg2_index_free(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     if (git_index_add_bypath(session->repository->lg2_resources->index, path) != 0) {
@@ -42,7 +42,7 @@ int gk_index_remove_path(gk_session *session, const char *path) {
     
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
         gk_lg2_index_free(session->repository);
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
     
     if (git_index_remove_bypath(session->repository->lg2_resources->index, path) != 0) {
@@ -61,7 +61,7 @@ int gk_index_add_all(gk_session *session, const char* pattern) {
     }
     
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     char *path_pattern = strdup(pattern);
@@ -71,7 +71,7 @@ int gk_index_add_all(gk_session *session, const char* pattern) {
     free(path_pattern);
 
     if (rc != 0) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
     return gk_session_success(session, purpose);
 }
@@ -83,7 +83,7 @@ int gk_index_update_all(gk_session *session, const char* pattern) {
     }
     
     if (gk_lg2_index_load(session) != GK_SUCCESS) {
-        return gk_session_failure(session);
+        return gk_session_failure(session, purpose);
     }
 
     char *path_pattern = strdup(pattern);
