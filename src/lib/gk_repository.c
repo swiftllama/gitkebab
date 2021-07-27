@@ -13,12 +13,12 @@
 #include "gk_execution_context.h"
 #include "gk_session.h"
 
-static void gk_repository_spec_init(gk_repository_spec *repository_spec, const char *remote_url, const char *local_path, const char *usr) {
+static void gk_repository_spec_init(gk_repository_spec *repository_spec, const char *source_url, gk_repository_source_url_type source_url_type,  const char *local_path, const char *usr) {
     if (repository_spec == NULL) {
         return;
     }
-    if (remote_url == NULL) {
-        log_warn(COMP_GENERAL, "Repository spec initialized with NULL remote_url, will use empty string instead");
+    if (source_url == NULL) {
+        log_warn(COMP_GENERAL, "Repository spec initialized with NULL source url, will use empty string instead");
     }
     if (local_path == NULL) {
         log_warn(COMP_GENERAL, "Repository spec initialized with NULL local_url, will use empty string instead");
@@ -27,7 +27,8 @@ static void gk_repository_spec_init(gk_repository_spec *repository_spec, const c
         log_warn(COMP_GENERAL, "Repository spec initialized with NULL user, will use empty string instead");
     }
     repository_spec->local_path = local_path != NULL ? strdup(local_path) : strdup("");
-    repository_spec->remote_url = remote_url != NULL ? strdup(remote_url) : strdup("");
+    repository_spec->source_url = source_url != NULL ? strdup(source_url) : strdup("");
+    repository_spec->source_url_type = source_url_type;
     repository_spec->user = usr != NULL ? strdup(usr) : strdup("");
     repository_spec->main_branch_name = "master";
     repository_spec->remote_ref_name = "refs/remotes/origin/master";
@@ -38,8 +39,8 @@ static void gk_repository_spec_init(gk_repository_spec *repository_spec, const c
 static void gk_repository_spec_free_members(gk_repository_spec *repository_spec) {
     free((char *)repository_spec->local_path);
     repository_spec->local_path = NULL;
-    free((char *)repository_spec->remote_url);
-    repository_spec->remote_url = NULL;
+    free((char *)repository_spec->source_url);
+    repository_spec->source_url = NULL;
     free((char *)repository_spec->user);
     repository_spec->user = NULL;
 }
@@ -51,11 +52,11 @@ gk_repository *gk_repository_new() {
 }
 
 
-void gk_repository_init(gk_repository *repository, const char *remote_url, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
+void gk_repository_init(gk_repository *repository, const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
     if (repository == NULL) {
         return;
     }
-    gk_repository_spec_init(&repository->repository_spec, remote_url, local_path, user);
+    gk_repository_spec_init(&repository->spec, source_url, source_url_type, local_path, user);
     repository->callbacks.progress_callback = progress_callback;
     repository->callbacks.state_changed_callback = state_changed_callback;
 
@@ -100,7 +101,7 @@ void gk_repository_free(gk_repository *repository) {
         return;
     }
 
-    gk_repository_spec_free_members(&repository->repository_spec);
+    gk_repository_spec_free_members(&repository->spec);
     gk_conflicts_free(repository);
     gk_lg2_free_all_but_repository(repository);
     free(repository->lg2_resources);
@@ -157,8 +158,8 @@ int gk_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_
         return gk_session_failure_ex(session, purpose, GK_ERR, "Failed to prepend repository path to [%s], destination buffer is NULL", path);
     }
 
-    if (gk_concatenate_paths(buffer, buffer_length, session->repository->repository_spec.local_path, path) != 0) {
-        return gk_session_failure_ex(session, purpose, GK_ERR, "Error prepending repository path [%s] to [%s]", session->repository->repository_spec.local_path, path);
+    if (gk_concatenate_paths(buffer, buffer_length, session->repository->spec.local_path, path) != 0) {
+        return gk_session_failure_ex(session, purpose, GK_ERR, "Error prepending repository path [%s] to [%s]", session->repository->spec.local_path, path);
     }
     
     return gk_session_success(session, purpose);

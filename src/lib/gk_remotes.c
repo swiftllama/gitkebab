@@ -9,6 +9,7 @@
 #include "gk_merge.h"
 #include "gk_lg2_private.h"
 #include "gk_session.h"
+#include "gk_filesystem.h"
 
 static int gk_session_credential_callback(git_credential **out,
                                    const char *url,
@@ -94,12 +95,22 @@ int gk_clone(gk_session *session) {
     clone_opts.fetch_opts.callbacks.credentials = &gk_session_credential_callback;
     clone_opts.fetch_opts.callbacks.payload = session;
 
+
+    // Verify source
+    const char *source_url = session->repository->spec.source_url;
+    if (session->repository->spec.source_url_type == GK_REPOSITORY_SOURCE_URL_FILESYSTEM) {
+        // verify that the path exists
+        if (gk_directory_exists(source_url) == 0) {
+            return gk_session_failure_ex(session, purpose, GK_ERR_CLONE_INEXISTENT_SOURCE_PATH, "repoistory source path [%s] does not exist", source_url);
+        }
+    }
+    
     /* Do the clone */
     log_info(COMP_CLONE, "Cloning repo");
-    log_info(COMP_CLONE, "  - URL:        [%s]", session->repository->repository_spec.remote_url);
-    log_info(COMP_CLONE, "  - Local path: [%s]", session->repository->repository_spec.local_path);
+    log_info(COMP_CLONE, "  - URL:        [%s]", source_url);
+    log_info(COMP_CLONE, "  - Local path: [%s]", session->repository->spec.local_path);
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
-    rc = git_clone((git_repository **)&(session->repository->lg2_resources->repository), session->repository->repository_spec.remote_url, session->repository->repository_spec.local_path, &clone_opts);
+    rc = git_clone((git_repository **)&(session->repository->lg2_resources->repository), session->repository->spec.source_url, session->repository->spec.local_path, &clone_opts);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
 
     if (rc != 0) {
@@ -108,8 +119,8 @@ int gk_clone(gk_session *session) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
 
-    if (git_remote_add_push(session->repository->lg2_resources->repository, session->repository->repository_spec.remote_name, session->repository->repository_spec.push_refspec) != 0) {
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add push refspec [%s] to remote [%s]", session->repository->repository_spec.push_refspec, session->repository->repository_spec.remote_name);
+    if (git_remote_add_push(session->repository->lg2_resources->repository, session->repository->spec.remote_name, session->repository->spec.push_refspec) != 0) {
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add push refspec [%s] to remote [%s]", session->repository->spec.push_refspec, session->repository->spec.remote_name);
     }
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);
@@ -153,7 +164,7 @@ int gk_fetch(gk_session *session, const char *remote_name) {
         gk_lg2_free_references(session->repository);
         return gk_session_failure(session);
     }
-    rc = gk_analyze_merge_into_head(session, session->repository->repository_spec.remote_ref_name, NULL);
+    rc = gk_analyze_merge_into_head(session, session->repository->spec.remote_ref_name, NULL);
     gk_lg2_free_references(session->repository);
 
     if (rc != 0) {

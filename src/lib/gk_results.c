@@ -62,3 +62,15 @@ gk_result *gk_fail_result(log_Component *component, int code, const char *messag
     log_log(LOG_ERROR, __FILE__, __LINE__, component, gk_result_message(result));
     return result;
 }
+
+const char *gk_result_code_as_string(int code) {
+    switch(code) {
+    case GK_SUCCESS: return "GK_SUCCESS"; break;
+    case GK_FAILURE: return "GK_FAILURE"; break;
+    case GK_ERR: return "GK_ERR"; break;
+    case GK_ERR_CLONE_INEXISTENT_SOURCE_PATH: return "GK_ERR_CLONE_INEXISTENT_SOURCE_PATH"; break;
+    default:
+        log_error(COMP_TEST, "Unknown GK error code [%d]", code);
+        return "<unknown code>";
+    }
+}

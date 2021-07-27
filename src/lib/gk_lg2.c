@@ -69,7 +69,7 @@ int gk_lg2_load_references(gk_session *session) {
         gk_lg2_free_references(session->repository);
     }
 
-    const char *from_ref_name = session->repository->repository_spec.remote_ref_name;
+    const char *from_ref_name = session->repository->spec.remote_ref_name;
     int rc = git_revparse_ext(&lg2_resources->fetch_head_object, &lg2_resources->fetch_head_ref, lg2_resources->repository, from_ref_name);
     if (rc == GIT_ENOTFOUND) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "could not revparse refname [%s], ref not found", from_ref_name);
@@ -192,9 +192,9 @@ int gk_lg2_repository_open(gk_session *session) {
     }
 
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
-    if (git_repository_open(&lg2_resources->repository, session->repository->repository_spec.local_path) != 0) {
+    if (git_repository_open(&lg2_resources->repository, session->repository->spec.local_path) != 0) {
         gk_lg2_repository_free(session->repository);
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "repository at local path [%s] could not be opened", session->repository->repository_spec.local_path);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "repository at local path [%s] could not be opened", session->repository->spec.local_path);
     }
     return gk_session_success(session, purpose);
 }

@@ -19,7 +19,7 @@ int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, i
         return gk_session_failure_ex(session, purpose, GK_ERR, "remote reference is NULL");
     }
 
-    log_info(COMP_MERGE, "Initiating merge analysis for merging ref [%s] into HEAD in repository [%s]", from_ref_name, session->repository->repository_spec.local_path);
+    log_info(COMP_MERGE, "Initiating merge analysis for merging ref [%s] into HEAD in repository [%s]", from_ref_name, session->repository->spec.local_path);
     git_merge_analysis_t analysis;
     git_merge_preference_t preference;
 
@@ -69,7 +69,7 @@ static int create_merge_commit(gk_session *session) {
     }
 
     char commit_message[128];
-    snprintf(commit_message, 128, "Merge %s into %s", session->repository->repository_spec.remote_ref_name, session->repository->repository_spec.main_branch_name);
+    snprintf(commit_message, 128, "Merge %s into %s", session->repository->spec.remote_ref_name, session->repository->spec.main_branch_name);
     git_oid commit_oid;
     int rc = git_commit_create(&commit_oid,
                            lg2_resources->repository, git_reference_name(lg2_resources->repository_head_ref),
@@ -230,7 +230,7 @@ int gk_merge_into_head(gk_session *session) {
     if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
-    const char* from_ref_name = session->repository->repository_spec.remote_ref_name;
+    const char* from_ref_name = session->repository->spec.remote_ref_name;
 
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging [%s] into HEAD", from_ref_name);

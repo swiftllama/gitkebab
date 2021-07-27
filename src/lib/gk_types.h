@@ -11,7 +11,9 @@ typedef struct gk_lg2_resources gk_lg2_resources;
 typedef struct gk_execution_context gk_execution_context;
 
 enum GK_RESULT_CODE {
-    GK_SUCCESS, GK_FAILURE, GK_ERR
+    GK_SUCCESS, GK_FAILURE, GK_ERR,
+    // Clone
+    GK_ERR_CLONE_INEXISTENT_SOURCE_PATH
 };
 
 typedef enum {
@@ -125,10 +127,17 @@ typedef enum {
     GK_REPOSITORY_STATE_FETCH_IN_PROGRESS          = (1 << 7),
     GK_REPOSITORY_STATE_MERGE_IN_PROGRESS          = (1 << 8),
 } gk_repository_state;
+
+typedef enum {
+    GK_REPOSITORY_SOURCE_URL_SSH,
+    GK_REPOSITORY_SOURCE_URL_HTTP,
+    GK_REPOSITORY_SOURCE_URL_FILESYSTEM
+} gk_repository_source_url_type;
     
 typedef struct {
     const char *local_path;
-    const char *remote_url;
+    const char *source_url;
+    gk_repository_source_url_type source_url_type;
     const char *user;
     const char *main_branch_name;
     const char *remote_ref_name;
@@ -153,7 +162,7 @@ typedef struct {
 } gk_session_callbacks;
 
 struct gk_repository {
-    gk_repository_spec repository_spec;
+    gk_repository_spec spec;
     gk_session_callbacks callbacks;
     gk_repository_state state;
     gk_status_summary status_summary;

@@ -98,3 +98,30 @@ int mv(const char *source_path, const char *dest_path) {
     snprintf(mv_command, 2048, "mv %s %s", source_path, dest_path);
     return system(mv_command);
 }
+
+
+void prepare_error_listing(const char *error_listing_name) {
+    char catalog_path[256];
+    snprintf(catalog_path, 256, "test-staging/error-catalog-%s", error_listing_name);
+    rm_rf(catalog_path);
+    char cp_command[2048];
+    snprintf(cp_command, 2048, "touch %s", catalog_path);
+    system(cp_command);
+}
+
+void append_to_error_listing(const char *error_listing_name, const char *scenario, const char *returned_error_code, const char *context_stack_trace) {
+    char catalog_path[256];
+    snprintf(catalog_path, 256, "test-staging/error-catalog-%s", error_listing_name);   
+    FILE *write_stream = fopen(catalog_path, "a");
+    const char *header = "\n----------------\n\nSCENARIO: ";
+    const char *returned_label = "\n\nERROR CODE: ";
+    const char *stack_trace_label = "\n\nCONTEXT STACK TRACE: \n";
+    fwrite(header, 1, strlen(header), write_stream);
+    fwrite(scenario, 1, strlen(scenario), write_stream);
+    fwrite(returned_label, 1, strlen(returned_label), write_stream);
+    fwrite(returned_error_code, 1, strlen(returned_error_code), write_stream);
+    fwrite(stack_trace_label, 1, strlen(stack_trace_label), write_stream);
+    fwrite(context_stack_trace, 1, strlen(context_stack_trace), write_stream);
+    fwrite("\n", 1, 1, write_stream);
+    fclose(write_stream);
+}

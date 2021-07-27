@@ -16,5 +16,6 @@ int gk_result_code(gk_result *result);
 const char *gk_result_message(gk_result *result);
 
 gk_result *gk_fail_result(log_Component *component, int code, const char *message, ...);
+const char *gk_result_code_as_string(int code);
 
 #endif // __GITKEBAB_RESULTS_H__
