@@ -10,11 +10,11 @@ add_executable(tests general_tests.c)
 target_link_libraries(tests cmocka)
 
 
-#add_executable(test_session_progress test_session_progress.c)
-#target_link_libraries(test_session_progress cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-#add_test(NAME TestSessionProgress
-#  COMMAND test_session_progress
-#  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_executable(test_session_progress test_session_progress.c)
+target_link_libraries(test_session_progress cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestSessionProgress
+  COMMAND test_session_progress
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 add_executable(test_clone test_clone.c gk_test_filesystem_utils.c)
 target_link_libraries(test_clone cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
