@@ -12,8 +12,8 @@ static void test_no_init_clone(void **state) {
 
     gk_clone(session);
 
-    assert_int_not_equal(gk_result_code(session->last_result), 0);
-    assert_string_equal(gk_result_message(session->last_result), "Gitkebab not initialized");
+    assert_int_not_equal(gk_session_last_result_code(session), 0);
+    assert_string_equal(gk_session_last_result_message(session), "Gitkebab not initialized");
 
     gk_session_free(session);
 }
