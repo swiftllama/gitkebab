@@ -111,7 +111,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     gk_index_remove_path(session, "file2");
 
     gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     assert_int_equal(gk_session_status_summary_entrycount(session), 3);
     assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
     assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
@@ -126,7 +126,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     assert_int_equal(entrycount, 2);
     
     gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     assert_int_equal(gk_session_status_summary_entrycount(session), 1);
     assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
     assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
@@ -136,7 +136,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     gk_commit(session, "HEAD", "commit modification", NULL);
     
     gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     assert_int_equal(gk_session_status_summary_entrycount(session), 0);
 
     gk_session_free(session);

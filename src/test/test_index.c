@@ -39,14 +39,14 @@ static void test_index_add_remove_individual_files(void **state) {
     assert_non_null(session);
 
     gk_index_add_path(session, "new-file1");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     gk_index_add_path(session, "file1");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     gk_index_remove_path(session, "file2");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     
     gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     assert_int_equal(session->status_summary.count_new, 2);
     assert_int_equal(session->status_summary.count_modified, 1);
@@ -85,10 +85,10 @@ static void test_index_update_all(void **state) {
     assert_non_null(session);
 
     gk_index_update_all(session, "*");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     
     gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     assert_int_equal(session->status_summary.count_new, 2);
     assert_int_equal(session->status_summary.count_modified, 1);
@@ -127,10 +127,10 @@ static void test_index_add_all(void **state) {
     assert_non_null(session);
 
     gk_index_add_all(session, "*");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     
     gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     assert_int_equal(session->status_summary.count_new, 2);
     assert_int_equal(session->status_summary.count_modified, 1);

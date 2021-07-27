@@ -38,19 +38,19 @@ static void test_push_no_changes(void **state) {
 
     gk_object_id source_current_commit = {0};
     gk_resolve_reference(session2, "HEAD", &source_current_commit);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
     
     // Clone repo, commit and push
     gk_session *session = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
     assert_non_null(session);
     
     gk_push(session, "origin");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     // Verify that current commit has not changed on source repo
     gk_object_id source_last_commit = {0};
     gk_resolve_reference(session2, "HEAD", &source_last_commit);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     assert_string_equal(source_last_commit.id, source_current_commit.id);
 
@@ -67,7 +67,7 @@ static void test_push_one_commit(void **state) {
 
     gk_object_id source_current_commit = {0};
     gk_resolve_reference(session2, "HEAD", &source_current_commit);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
 
     // Clone repo, commit and push
@@ -77,19 +77,19 @@ static void test_push_one_commit(void **state) {
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
 
     gk_index_add_path(session, "file1");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_object_id new_commit = {0};
     gk_commit(session, "HEAD", "change file1", &new_commit);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gkpush(session, "origin");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     // Check new commit in source repo
     gk_object_id source_last_commit = {0};
     gk_resolve_reference(session2, "HEAD", &source_last_commit);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     assert_string_equal(new_commit.id, source_last_commit.id);
     assert_string_not_equal(new_commit.id, source_current_commit.id);
@@ -110,7 +110,7 @@ static void test_fetch_no_changes(void **state) {
     
     // Fetch 
     gk_fetch(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id fetched_commit = {0};
     gk_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
@@ -121,7 +121,7 @@ static void test_fetch_no_changes(void **state) {
     // Compare
     assert_string_equal(fetched_commit.id, repo_first_commit.id);
     assert_string_equal(fetched_commit.id, repo_new_commit.id);
-    assert_int_equal(gk_session_state_disabled(session1, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_repository_state_disabled(session1, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_session_free(session1);    
 }
@@ -139,15 +139,15 @@ static void test_fetch_one_commit_with_no_push(void **state) {
 
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     gk_index_add_path(session, "file1");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     gk_object_id new_commit = {0};
     gk_commit(session, "HEAD", "change file1", &new_commit);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
 
     // Fetch repo
     gk_fetch(session, "origin");
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_object_id fetched_commit = {0};
     gk_resolve_reference(session, "refs/remotes/origin/master", &fetched_commit);
@@ -160,7 +160,7 @@ static void test_fetch_one_commit_with_no_push(void **state) {
     assert_string_not_equal(original_head.id, new_head.id);
     assert_string_equal(new_head.id, new_commit.id);
 
-    assert_int_equal(gk_session_state_disabled(session, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_session_free(session);
 }
@@ -181,16 +181,16 @@ static void test_fetch_one_commit(void **state) {
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_index_add_path(session1, "file1");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id new_commit = {0};
     gk_commit(session1, "HEAD", "change file1", &new_commit);
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     // Fetch repo-B
     gk_fetch(session2, "origin");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id fetched_commit = {0};
     gk_resolve_reference(session2, "refs/remotes/origin/master", &fetched_commit);
@@ -202,7 +202,7 @@ static void test_fetch_one_commit(void **state) {
     assert_string_equal(repo_A_original_head.id, repo_B_first_commit.id);
     assert_string_not_equal(repo_A_original_head.id, new_commit.id);
     assert_string_equal(fetched_commit.id, new_commit.id);
-    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_session_free(session1);
     gk_session_free(session2);
@@ -225,12 +225,12 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_index_add_path(session1, "file1");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
     gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id repo_A_new_head = {0};
     gk_resolve_reference(session1, "HEAD", &repo_A_new_head);
@@ -241,14 +241,14 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file2");
     gk_index_add_path(session2, "file2");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
     gk_object_id repo_B_new_commit = {0};
     gk_commit(session2, "HEAD", "change file2", &repo_B_new_commit);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Repo-B fetch
     gk_fetch(session2, "origin");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id fetched_commit = {0};
     gk_resolve_reference(session2, "refs/remotes/origin/master", &fetched_commit);

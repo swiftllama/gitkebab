@@ -43,7 +43,7 @@ static void test_merge_no_changes(void **state) {
     
     // Fetch 
     gk_fetch(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id fetched_commit = {0};
     gk_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
@@ -53,7 +53,7 @@ static void test_merge_no_changes(void **state) {
 
     // Merge
     gk_merge_into_head(session1);
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id new_head_after_merge = {0};
     gk_resolve_reference(session1, "HEAD", &new_head_after_merge);
@@ -63,9 +63,9 @@ static void test_merge_no_changes(void **state) {
     assert_string_equal(original_head.id, new_head_before_merge.id);
     assert_string_equal(original_head.id, new_head_after_merge.id);
 
-    assert_int_equal(0, gk_repository_state_enabled(session1->repository, GK_SESSION_STATE_MERGE_IN_PROGRESS));
-    assert_int_equal(0, gk_repository_state_enabled(session1->repository, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(0, gk_repository_state_enabled(session1->repository, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
+    assert_int_equal(0, gk_repository_state_enabled(session1->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(0, gk_repository_state_enabled(session1->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS));
+    assert_int_equal(0, gk_repository_state_enabled(session1->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK));
 
     gk_session_free(session1);
 }
@@ -89,25 +89,25 @@ static void test_merge_one_commit(void **state) {
     // Modify repo-A, commit and push
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_index_add_path(session1, "file1");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
     gk_session_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     // Fetch repo-B
     gk_fetch(session2, "origin");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
-    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
             
     gk_object_id repo_B_fetched_commit = {0};
     gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
         
     // Merge in repo-B
     gk_merge_into_head(session2);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
-    assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
+    assert_int_equal(gk_repository_state_disabled(session2->repository, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_new_head = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_new_head);
@@ -118,9 +118,9 @@ static void test_merge_one_commit(void **state) {
     assert_string_equal(repo_B_fetched_commit.id, repo_A_new_commit.id);
     assert_string_equal(repo_B_new_head.id, repo_A_new_commit.id);
 
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_IN_PROGRESS));
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK));
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -142,12 +142,12 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_index_add_path(session1, "file1");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
     gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id repo_A_new_head = {0};
     gk_resolve_reference(session1, "HEAD", &repo_A_new_head);
@@ -158,14 +158,14 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file2");
     gk_index_add_path(session2, "file2");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
     gk_object_id repo_B_new_commit = {0};
     gk_commit(session2, "HEAD", "change file2", &repo_B_new_commit);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Repo-B fetch
     gk_fetch(session2, "origin");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id repo_B_fetched_commit = {0};
     gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
@@ -175,8 +175,8 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
 
     // Merge
     gk_merge_into_head(session2);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
-    assert_int_equal(gk_session_state_disabled(session2, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
+    assert_int_equal(gk_repository_state_disabled(session2->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_head_after_merge = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
@@ -198,10 +198,10 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     assert_string_not_equal(repo_B_head_after_merge.id, repo_A_new_commit.id);
     assert_string_not_equal(repo_B_head_after_merge.id, repo_B_new_commit.id);
 
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_IN_PROGRESS));
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
-    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 0);
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK));
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING), 0);
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -223,12 +223,12 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_index_add_path(session1, "file1");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
     gk_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id repo_A_new_head = {0};
     gk_resolve_reference(session1, "HEAD", &repo_A_new_head);
@@ -239,14 +239,14 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     
     copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified-incompatible", "test-staging/simple-repo1-B/file1");
     gk_index_add_path(session2, "file1");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
     gk_object_id repo_B_new_commit = {0};
     gk_commit(session2, "HEAD", "change file1 incompatbile", &repo_B_new_commit);
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Repo-B fetch
     gk_fetch(session2, "origin");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id repo_B_fetched_commit = {0};
     gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
@@ -257,8 +257,8 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     // Merge
     gk_merge_into_head(session2);
 
-    assert_int_equal(gk_result_code(session2->last_result), 0);
-    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_head_after_merge = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_head_after_merge);
@@ -280,11 +280,11 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     assert_string_not_equal(repo_B_head_after_merge.id, repo_A_new_commit.id);
     assert_string_equal(repo_B_head_after_merge.id, repo_B_new_commit.id); // no commit created because of conflicts
 
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_IN_PROGRESS));
-    assert_int_equal(1, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(1, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK));
 
-    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_FINALIZATION_PENDING), 1);
+    assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING), 1);
     
     gk_session_free(session1);
     gk_session_free(session2);
@@ -298,9 +298,9 @@ static void test_merge_open_existing_merge_conflicted_repo(void **state) {
     gk_session *session2 = gk_test_session_from_local_path("test-staging/simple-repo1-B_merge-conflicts");
 
     // Compare
-    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_IN_PROGRESS));
-    assert_int_equal(1, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_HAS_CONFLICTS));
-    assert_int_equal(1, gk_repository_state_enabled(session2->repository, GK_SESSION_STATE_MERGE_PENDING_ON_DISK));
+    assert_int_equal(0, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS));
+    assert_int_equal(1, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS));
+    assert_int_equal(1, gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK));
 
     // TODO: test resolving on-disk merge
     

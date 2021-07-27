@@ -90,15 +90,15 @@ void gk_test_session_progress_null(gk_session_progress *progress) {
 
 
 gk_session *gk_test_session_from_local_path(const char *repo_path) {
-    gk_session *session = gk_session_new("", repo_path, GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "git", &gk_test_session_progress_verbose, NULL);
-    if (gk_result_code(session->last_result) != 0) {
-        log_error(COMP_TEST, "Error initializing session from path '%s': %s", repo_path, gk_result_message(session->last_result));
+    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, repo_path, "git", &gk_test_session_progress_verbose, NULL);
+    if (gk_session_last_result_code(session) != 0) {
+        log_error(COMP_TEST, "Error initializing session from path '%s': %s", repo_path, gk_session_last_result_message(session));
         gk_session_free(session);
         return NULL;
     }
-    gk_session_open_local_repository(session);
-    if (gk_result_code(session->last_result) != 0) {
-        log_error(COMP_TEST, "Error opening local repository in path '%s': %s", repo_path, gk_result_message(session->last_result));
+    gk_open_local_repository(session);
+    if (gk_session_last_result_code(session) != 0) {
+        log_error(COMP_TEST, "Error opening local repository in path '%s': %s", repo_path, gk_session_last_result_message(session));
         gk_session_free(session);
         return NULL;
     }
@@ -107,21 +107,21 @@ gk_session *gk_test_session_from_local_path(const char *repo_path) {
 
 
 gk_session *gk_test_session_from_clone(const char *remote_repo, const char *local_path) {
-    gk_session *session = gk_session_new(remote_repo, local_path, GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "git", &gk_test_session_progress_verbose, NULL);
-    if (gk_result_code(session->last_result) != 0) {
-        log_error(COMP_TEST, "Error initializing session for clone from '%s' to path '%s': %s", remote_repo, local_path, gk_result_message(session->last_result));
+    gk_session *session = gk_session_new(remote_repo, GK_REPOSITORY_SOURCE_URL_FILESYSTEM, local_path, "git", &gk_test_session_progress_verbose, NULL);
+    if (gk_session_last_result_code(session) != 0) {
+        log_error(COMP_TEST, "Error initializing session for clone from '%s' to path '%s': %s", remote_repo, local_path, gk_session_last_result_message(session));
         gk_session_free(session);
         return NULL;
     }
 
     gk_clone(session);
-    if (gk_result_code(session->last_result) != 0) {
-        log_error(COMP_TEST, "Error cloning repository from '%s' to local path '%s': %s", remote_repo, local_path, gk_result_message(session->last_result));
+    if (gk_session_last_result_code(session) != 0) {
+        log_error(COMP_TEST, "Error cloning repository from '%s' to local path '%s': %s", remote_repo, local_path, gk_session_last_result_message(session));
         gk_session_free(session);
         return NULL;        
     }
 
-    if (gk_session_state_disabled(session, GK_SESSION_STATE_LOCAL_CHECKOUT_EXISTS)) {
+    if (gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS)) {
         log_error(COMP_TEST, "Error cloning repository from '%s' to local path '%s': local checkout does not exist after clone", remote_repo, local_path);
         gk_session_free(session);
         return NULL;        
@@ -183,11 +183,11 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     gk_index_add_path(session1, "file5");
     gk_index_add_path(session1, "file6");
     gk_index_add_path(session1, "file7");
-    gk_commit(session1, "HEAD", "commit repo A modifications", NULL);
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    gk_commit(session1, "HEAD", NULL);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_push(session1, "origin");
-    assert_int_equal(gk_result_code(session1->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session1), 0);
 
     ////
     //// Modify repo-B, commit
@@ -232,8 +232,8 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     gk_index_add_path(session2, "file5/child1");
     gk_index_add_path(session2, "file6");
     gk_index_add_path(session2, "file7");
-    gk_commit(session2, "HEAD", "commit repo B modifications", NULL);
-    assert_int_equal(gk_result_code(session2->last_result), 0);// commit and push
+    gk_commit(session2, "HEAD", NULL);
+    assert_int_equal(gk_session_last_result_code(session2), 0);// commit and push
 
     ////
     //// Repo B fetch
@@ -241,7 +241,7 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
 
     // Repo-B fetch
     gk_fetch(session2, "origin");
-    assert_int_equal(gk_result_code(session2->last_result), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // there should now be conflicts in repo B upon merging
 }

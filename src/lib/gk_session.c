@@ -104,11 +104,11 @@ int gk_session_verify(gk_session *session, int condition, const char *purpose) {
 
     if (condition & GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) {
         if (gk_repository_state_disabled(repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS)) {
-            return gk_session_failure_ex(session, purpose, GK_ERR, "local checkout does not exist");
+            return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT, "local checkout does not exist");
         }
 
         if (session->repository->lg2_resources->repository == NULL) {
-            return gk_session_failure_ex(session, purpose, GK_ERR, "internal git2 repository is unexpectedly NULL");
+            return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT, "internal git2 repository is unexpectedly NULL");
         }
     }
 

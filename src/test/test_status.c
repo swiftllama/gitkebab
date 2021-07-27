@@ -1,18 +1,23 @@
 
+#include <string.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
 #include "git2.h"
+
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
 
 void session_progress(gk_session_progress *progress) { (void) progress; }
+const char *error_listing = "status";
 
 static int test_staging_setup(void **state) {
     gk_init();
     return gk_test_environment_setup(state);
+
+    prepare_error_listing(error_listing);
 }
 
 static int test_staging_teardown(void **state) {
@@ -28,13 +33,15 @@ static int test_staging_clean_repo_setup(void **state) {
 static void test_status_without_open_repo(void **state) {
     (void) state;
     
-    gk_session *session = gk_session_new("", "./test-staging/simple-repo1", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "git", &session_progress, NULL);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/simple-repo1", "git", &session_progress, NULL);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
-    gk_session_status_summary_query(session);
-    assert_int_not_equal(gk_result_code(session->last_result), 0);
-    assert_string_equal(gk_result_message(session->last_result), "Cannot query status, local checkout does not exist");
+    gk_status_summary_query(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT);
+    assert_non_null(strstr(gk_session_last_result_message(session), "Cannot query status, local checkout does not exist"));
 
+    append_to_error_listing(error_listing, "Query status without an open repo", gk_result_code_as_string(gk_session_last_result_code(session)), gk_session_last_result_message(session));
+    
     gk_session_free(session);
 }
 
@@ -44,22 +51,22 @@ static void test_status_no_changes(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_status_summary_query(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
-    assert_int_equal(session->status_summary.count_new, 0);
-    assert_int_equal(session->status_summary.count_modified, 0);
-    assert_int_equal(session->status_summary.count_deleted, 0);
-    assert_int_equal(session->status_summary.count_renamed, 0);
-    assert_int_equal(session->status_summary.count_typechange, 0);
-    assert_int_equal(session->status_summary.count_conflicted, 0);
+    assert_int_equal(session->repository->status_summary.count_new, 0);
+    assert_int_equal(session->repository->status_summary.count_modified, 0);
+    assert_int_equal(session->repository->status_summary.count_deleted, 0);
+    assert_int_equal(session->repository->status_summary.count_renamed, 0);
+    assert_int_equal(session->repository->status_summary.count_typechange, 0);
+    assert_int_equal(session->repository->status_summary.count_conflicted, 0);
     
-    assert_int_equal(gk_session_status_summary_entrycount(session), 0);
+    assert_int_equal(gk_status_summary_entrycount(session), 0);
 
-    assert_int_equal(gk_session_state_disabled(session, GK_SESSION_STATE_HAS_CONFLICTS), 1);
-    assert_int_equal(gk_session_state_disabled(session, GK_SESSION_STATE_MERGE_IN_PROGRESS), 1);
+    assert_int_equal(gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS), 1);
+    assert_int_equal(gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS), 1);
                                 
-    gk_session_status_summary_close(session);
+    gk_status_summary_close(session);
     gk_session_free(session);
 }
 
@@ -74,25 +81,25 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_status_summary_query(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
-    assert_int_equal(session->status_summary.count_new, 1);
-    assert_int_equal(session->status_summary.count_modified, 1);
-    assert_int_equal(session->status_summary.count_deleted, 1);
-    assert_int_equal(session->status_summary.count_renamed, 0);
-    assert_int_equal(session->status_summary.count_typechange, 0);
-    assert_int_equal(session->status_summary.count_conflicted, 0);
+    assert_int_equal(session->repository->status_summary.count_new, 1);
+    assert_int_equal(session->repository->status_summary.count_modified, 1);
+    assert_int_equal(session->repository->status_summary.count_deleted, 1);
+    assert_int_equal(session->repository->status_summary.count_renamed, 0);
+    assert_int_equal(session->repository->status_summary.count_typechange, 0);
+    assert_int_equal(session->repository->status_summary.count_conflicted, 0);
     
-    assert_int_equal(gk_session_status_summary_entrycount(session), 3);
+    assert_int_equal(gk_status_summary_entrycount(session), 3);
 
-    assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
-    assert_string_equal(gk_session_status_summary_path_at(session, 1), "file2");
-    assert_string_equal(gk_session_status_summary_path_at(session, 2), "new-file");
+    assert_string_equal(gk_status_summary_path_at(session, 0), "file1");
+    assert_string_equal(gk_status_summary_path_at(session, 1), "file2");
+    assert_string_equal(gk_status_summary_path_at(session, 2), "new-file");
 
-    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
-    assert_int_equal(gk_session_status_summary_status_at(session, 1), GIT_STATUS_WT_DELETED);
-    assert_int_equal(gk_session_status_summary_status_at(session, 2), GIT_STATUS_WT_NEW);
+    assert_int_equal(gk_status_summary_status_at(session, 0), GIT_STATUS_WT_MODIFIED);
+    assert_int_equal(gk_status_summary_status_at(session, 1), GIT_STATUS_WT_DELETED);
+    assert_int_equal(gk_status_summary_status_at(session, 2), GIT_STATUS_WT_NEW);
 
     gk_session_free(session);
 }
@@ -106,21 +113,21 @@ static void test_status_renamed_file(void **state) {
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
 
-    gk_session_status_summary_query(session);
-    assert_int_equal(gk_result_code(session->last_result), 0);
+    gk_status_summary_query(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
-    assert_int_equal(session->status_summary.count_new, 0);
-    assert_int_equal(session->status_summary.count_modified, 0);
-    assert_int_equal(session->status_summary.count_deleted, 0);
-    assert_int_equal(session->status_summary.count_renamed, 1);
-    assert_int_equal(session->status_summary.count_typechange, 0);
-    assert_int_equal(session->status_summary.count_conflicted, 0);
+    assert_int_equal(session->repository->status_summary.count_new, 0);
+    assert_int_equal(session->repository->status_summary.count_modified, 0);
+    assert_int_equal(session->repository->status_summary.count_deleted, 0);
+    assert_int_equal(session->repository->status_summary.count_renamed, 1);
+    assert_int_equal(session->repository->status_summary.count_typechange, 0);
+    assert_int_equal(session->repository->status_summary.count_conflicted, 0);
     
-    assert_int_equal(gk_session_status_summary_entrycount(session), 1);
+    assert_int_equal(gk_status_summary_entrycount(session), 1);
 
-    assert_string_equal(gk_session_status_summary_path_at(session, 0), "file1");
+    assert_string_equal(gk_status_summary_path_at(session, 0), "file1");
 
-    assert_int_equal(gk_session_status_summary_status_at(session, 0), GIT_STATUS_WT_RENAMED);
+    assert_int_equal(gk_status_summary_status_at(session, 0), GIT_STATUS_WT_RENAMED);
 
     gk_session_free(session);
 }

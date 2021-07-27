@@ -71,6 +71,7 @@ const char *gk_result_code_as_string(int code) {
     case GK_ERR_CLONE_INEXISTENT_SOURCE_PATH: return "GK_ERR_CLONE_INEXISTENT_SOURCE_PATH"; break;
     case GK_ERR_CLONE_INVALID_DESTINATION_PATH: return "GK_ERR_CLONE_INVALID_DESTINATION_PATH"; break;
     case GK_ERR_CLONE_DESTINATION_PATH_NONEMPTY: return "GK_ERR_CLONE_DESTINATION_PATH_NONEMPTY"; break;
+    case GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT: return "GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT"; break;
     default:
         log_error(COMP_TEST, "Unknown GK error code [%d]", code);
         return "<unknown code>";
