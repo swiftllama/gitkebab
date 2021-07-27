@@ -114,7 +114,7 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
         purpose = "resolve conflict (accept ancestor)";
     }
 
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -221,12 +221,21 @@ int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_
     return gk_session_success(session, purpose);
 }
 
-int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *path) {
-    const char *purpose = "create signature";
+int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *path, int relativize_path) {
+    const char *purpose = "write blob contents";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
+    char relative_path[256];
+    const char *safe_path = path;
+    if (relativize_path == 1) {
+        if (gk_prepend_repository_path(session, relative_path, 256, path) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
+        safe_path = relative_path;
+    }
+    
     uint64_t blob_size = 0;
     void *blob_data = NULL;
     if (gk_blob_contents(session, &blob_data, &blob_size, oid_id) != GK_SUCCESS) {
@@ -234,18 +243,18 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
         return gk_session_failure(session, purpose);
     }
     
-    FILE *fptr = fopen(path, "w");
+    FILE *fptr = fopen(safe_path, "w");
     if (fptr == NULL) {
-        return gk_session_failure_ex(session, purpose, GK_ERR, "error opening file [%s] for writing: error %d occurred", path, errno);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "error opening file [%s] for writing: error %d occurred", safe_path, errno);
     }
 
     int rc = fwrite(blob_data, 1, blob_size, fptr);
     fclose(fptr);
     if (rc < 0) {
-        return gk_session_failure_ex(session, purpose, GK_ERR, "error writing to file [%s]: error %d occurred", path, rc);
+        return gk_session_failure_ex(session, purpose, GK_ERR, "error writing to file [%s]: error %d occurred", safe_path, rc);
     }
 
-    log_info(COMP_CONFLICTS, "Wrote blob with object id [%s] to [%s]", oid_id, path);
+    log_info(COMP_CONFLICTS, "Wrote blob with object id [%s] to [%s]", oid_id, safe_path);
     
     free(blob_data);
     blob_data = NULL;
@@ -255,7 +264,7 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
 
 
 static int gk_conflict_resolve_accept_delete(gk_session *session, const char *path, const char *purpose) {
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -281,7 +290,7 @@ int gk_conflict_resolve_accept_local_delete(gk_session *session, const char *pat
 
 const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session, const char *ancestor_oid_id, const char *ours_oid_id, const char *theirs_oid_id, const char *path) {
     const char *purpose = "generate merged buffer";
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) != GK_SUCCESS) {
         return NULL;
     }
     else if (ancestor_oid_id == NULL) {
@@ -351,7 +360,7 @@ void gk_conflict_merged_buffer_free(const char *buffer) {
 // get recycled
 int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, u_int64_t data_length) {
     const char *purpose = "resolve conflict by accepting data from buffer";
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     else if (path == NULL) {

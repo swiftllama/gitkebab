@@ -23,4 +23,5 @@ void gk_repository_state_unset(gk_repository *repository, int states_disable);
 void gk_repository_state_trigger_callback(gk_repository *repository);
 
 int gk_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path);
+void gk_repository_print_state(gk_repository *repository);
 #endif // __GITKEBAB_SESSION_H__

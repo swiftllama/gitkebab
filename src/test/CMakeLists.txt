@@ -47,26 +47,26 @@ add_test(NAME TestCommit
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-#add_executable(test_remotes test_remotes.c gk_test_filesystem_utils.c gk_test_env_utils.c)
-#target_link_libraries(test_remotes cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-#add_test(NAME TestRemotes
-#  COMMAND test_remotes
-#  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-#
-#
-#add_executable(test_merge test_merge.c gk_test_filesystem_utils.c gk_test_env_utils.c)
-#target_link_libraries(test_merge cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-#add_test(NAME TestMerge
-#  COMMAND test_merge
-#  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-#
-#add_executable(test_conflicts test_conflicts.c gk_test_filesystem_utils.c gk_test_env_utils.c)
-#target_link_libraries(test_conflicts cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-#add_test(NAME TestConflicts
-#  COMMAND test_conflicts
-#  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-#
-#
+add_executable(test_remotes test_remotes.c gk_test_filesystem_utils.c gk_test_env_utils.c)
+target_link_libraries(test_remotes cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestRemotes
+  COMMAND test_remotes
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
+add_executable(test_merge test_merge.c gk_test_filesystem_utils.c gk_test_env_utils.c)
+target_link_libraries(test_merge cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestMerge
+  COMMAND test_merge
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+add_executable(test_conflicts test_conflicts.c gk_test_filesystem_utils.c gk_test_env_utils.c)
+target_link_libraries(test_conflicts cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestConflicts
+  COMMAND test_conflicts
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+
 #add_executable(test_execution_context test_execution_context.c)
 #target_link_libraries(test_execution_context cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
 #add_test(NAME TestExecutionContext

@@ -117,6 +117,12 @@ int gk_session_verify(gk_session *session, int condition, const char *purpose) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "must load index first");
         }
     }
+
+    if (condition & GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) {
+        if (session->repository->lg2_resources->merge_index == NULL) {
+            return gk_session_failure_ex(session, purpose, GK_ERR, "merge index is not loaded ");
+        }
+    }
     
     if (condition & GK_REPOSITORY_VERIFY_STATUS_LIST) {
         if (session->repository->lg2_resources->status_list == NULL) {
@@ -125,7 +131,7 @@ int gk_session_verify(gk_session *session, int condition, const char *purpose) {
     }
 
     if (condition & GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) {
-        if (session->repository->lg2_resources->merge_index == NULL) {
+        if (gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS)) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "no merge is in progress");
         }
     }

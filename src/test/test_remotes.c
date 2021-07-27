@@ -83,7 +83,7 @@ static void test_push_one_commit(void **state) {
     gk_commit(session, "HEAD", &new_commit);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
-    gkpush(session, "origin");
+    gk_push(session, "origin");
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     // Check new commit in source repo
@@ -113,7 +113,7 @@ static void test_fetch_no_changes(void **state) {
     assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id fetched_commit = {0};
-    gk_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
+    gk_resolve_reference(session1, session1->repository->spec.remote_ref_name, &fetched_commit);
 
     gk_object_id repo_new_commit = {0};
     gk_resolve_reference(session1, "HEAD", &repo_new_commit);
@@ -121,7 +121,7 @@ static void test_fetch_no_changes(void **state) {
     // Compare
     assert_string_equal(fetched_commit.id, repo_first_commit.id);
     assert_string_equal(fetched_commit.id, repo_new_commit.id);
-    assert_int_equal(gk_repository_state_disabled(session1, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_repository_state_disabled(session1->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_session_free(session1);    
 }

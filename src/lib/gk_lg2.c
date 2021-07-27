@@ -159,7 +159,7 @@ void gk_lg2_merge_index_free(gk_repository *repository) {
 
 int gk_lg2_promote_merge_index(gk_session *session) {
     const char *purpose = "promote merge index";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -342,7 +342,7 @@ int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_opt
 
 int gk_lg2_iterate_conflicts(gk_session *session) {
     const char *purpose = "load conflicts";
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;

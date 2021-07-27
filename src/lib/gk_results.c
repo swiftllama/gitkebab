@@ -73,6 +73,7 @@ const char *gk_result_code_as_string(int code) {
     case GK_ERR_CLONE_DESTINATION_PATH_NONEMPTY: return "GK_ERR_CLONE_DESTINATION_PATH_NONEMPTY"; break;
     case GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT: return "GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT"; break;
     case GK_ERR_NOT_FOUND: return "GK_ERR_NOT_FOUND"; break;
+    case GK_ERR_MERGE_HAS_CONFLICTS: return "GK_ERR_MERGE_HAS_CONFLICTS"; break;
     default:
         log_error(COMP_TEST, "Unknown GK error code [%d]", code);
         return "<unknown code>";

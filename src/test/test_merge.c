@@ -46,7 +46,7 @@ static void test_merge_no_changes(void **state) {
     assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id fetched_commit = {0};
-    gk_resolve_reference(session1, session1->repository.remote_ref_name, &fetched_commit);
+    gk_resolve_reference(session1, session1->repository->spec.remote_ref_name, &fetched_commit);
 
     gk_object_id new_head_before_merge = {0};
     gk_resolve_reference(session1, "HEAD", &new_head_before_merge);
@@ -91,7 +91,7 @@ static void test_merge_one_commit(void **state) {
     gk_index_add_path(session1, "file1");
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
-    gk_session_commit(session1, "HEAD", "change file1", &repo_A_new_commit);
+    gk_commit(session1, "HEAD", &repo_A_new_commit);
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_push(session1, "origin");
     assert_int_equal(gk_session_last_result_code(session1), 0);
@@ -107,7 +107,7 @@ static void test_merge_one_commit(void **state) {
     // Merge in repo-B
     gk_merge_into_head(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
-    assert_int_equal(gk_repository_state_disabled(session2->repository, GK_SESSION_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_repository_state_disabled(session2->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
 
     gk_object_id repo_B_new_head = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_new_head);

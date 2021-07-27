@@ -8,9 +8,12 @@
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
 
+const char *error_listing = "merge";
 
 static int test_staging_setup(void **state) {
     gk_init();
+
+    prepare_error_listing(error_listing);
     //gk_libgit2_set_log_level(LOG_DEBUG);
     return gk_test_environment_setup(state);
 }
@@ -44,7 +47,7 @@ static void test_conflicts_various_types(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // We should now have 6 conflicts of various types
-    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    gk_merge_conflict_summary *summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
     assert_string_equal(summary->conflicts[0]->path, "file1");
     assert_int_equal(summary->conflicts[0]->conflict_type, GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT);
@@ -79,16 +82,13 @@ static void test_conflicts_local_delete_remote_edit_file1(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // file1 should have a local-delete-remote-edit type conflict
-    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    gk_merge_conflict_summary *summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
     assert_string_equal(summary->conflicts[0]->path, "file1");
     assert_int_equal(summary->conflicts[0]->conflict_type, GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT);
     
-    char new_file1_path[256];
-    gk_session_prepend_repository_path(session2, new_file1_path, 256, "new_file1", "prepend repo path");
-    assert_int_equal(gk_session_last_result_code(session2), 0);
-
-    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, new_file1_path);
+    int relativize_path = 1;
+    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, "new_file1", relativize_path);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Verify that the file we "preserved" is the same as our edit
@@ -97,7 +97,7 @@ static void test_conflicts_local_delete_remote_edit_file1(void **state) {
     gk_conflict_resolve_accept_remote_delete(session2, "file1");
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
-    gk_session_merge_conflicts_query(session2);
+    gk_merge_conflicts_query(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
     
     assert_int_equal(summary->num_conflicts, 5);
@@ -123,16 +123,13 @@ static void test_conflicts_local_edit_remote_delete_file2(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // file2 should have a local-edit-remote-delete type conflict
-    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    gk_merge_conflict_summary *summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
     assert_string_equal(summary->conflicts[1]->path, "file2");
     assert_int_equal(summary->conflicts[1]->conflict_type, GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE);
     
-    char new_file1_path[256];
-    gk_session_prepend_repository_path(session2, new_file1_path, 256, "new_file2", "prepend repo path");
-    assert_int_equal(gk_session_last_result_code(session2), 0);
-
-    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, new_file1_path);
+    int relativize_path = 1;
+    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, "new_file2", relativize_path);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Verify that the file we "preserved" is the same as the incoming edit
@@ -141,7 +138,7 @@ static void test_conflicts_local_edit_remote_delete_file2(void **state) {
     gk_conflict_resolve_accept_local_delete(session2, "file2");
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
-    gk_session_merge_conflicts_query(session2);
+    gk_merge_conflicts_query(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
     
     assert_int_equal(summary->num_conflicts, 5);
@@ -168,7 +165,7 @@ static void test_conflicts_incompatible_twosided_edit(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // file3 should have a twosided-incompatible-edit type conflict
-    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    gk_merge_conflict_summary *summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
     assert_string_equal(summary->conflicts[2]->path, "file3");
     assert_int_equal(summary->conflicts[2]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT);
@@ -189,9 +186,9 @@ static void test_conflicts_incompatible_twosided_edit(void **state) {
     gk_conflict_resolve_from_buffer(session2, "file3", new_buffer, 6);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
-    gk_session_merge_conflicts_query(session2);
+    gk_merge_conflicts_query(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
-    summary = &session2->conflict_summary;
+    summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 5);
     assert_string_equal(summary->conflicts[2]->path, "file4");
     
@@ -214,7 +211,7 @@ static void test_conflicts_incompatible_twosided_create(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // file6 should have a twosided-incompatible-create type conflict
-    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    gk_merge_conflict_summary *summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
     assert_string_equal(summary->conflicts[5]->path, "file6");
     assert_int_equal(summary->conflicts[5]->conflict_type, GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE);
@@ -230,9 +227,9 @@ static void test_conflicts_incompatible_twosided_create(void **state) {
     gk_conflict_resolve_accept_existing(session2, "file6", GK_CONFLICT_RESOLUTION_THEIRS);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
-    gk_session_merge_conflicts_query(session2);
+    gk_merge_conflicts_query(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
-    summary = &session2->conflict_summary;
+    summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 5);
     assert_string_equal(summary->conflicts[4]->path, "file5");
                      
@@ -255,7 +252,7 @@ static void test_conflicts_partial_resolution_causes_failed_merge(void **state) 
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // We should now have 6 conflicts of various types
-    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    gk_merge_conflict_summary *summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
 
     // Resolve two out of the six
@@ -266,18 +263,19 @@ static void test_conflicts_partial_resolution_causes_failed_merge(void **state) 
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Query again, we should have four left
-    gk_session_merge_conflicts_query(session2);
+    gk_merge_conflicts_query(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
     assert_int_equal(summary->num_conflicts, 4);
 
     // Try to finalize the merge, it should fail
     gk_merge_into_head_finalize(session2);
+    append_to_error_listing(error_listing, "try to merge into head while there are still conflicts", gk_result_code_as_string(gk_session_last_result_code(session2)), gk_session_last_result_message(session2));
     assert_int_not_equal(gk_session_last_result_code(session2), 0);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING), 1);
 
     // Abort, it should clean things up
     gk_merge_abort(session2);
-    assert_int_not_equal(gk_session_last_result_code(session2), 0);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING), 0);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS), 0);
     
@@ -301,7 +299,7 @@ static void test_conflicts_with_resolution_and_merge(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // We should now have 6 conflicts of various types
-    gk_merge_conflict_summary *summary = &session2->conflict_summary;
+    gk_merge_conflict_summary *summary = &session2->repository->conflict_summary;
     assert_int_equal(summary->num_conflicts, 6);
 
     // Resolve all six conflicts
@@ -325,9 +323,9 @@ static void test_conflicts_with_resolution_and_merge(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // We should now have 0 conflicts
-    gk_session_merge_conflicts_query(session2);
+    gk_merge_conflicts_query(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
-    assert_int_equal(session2->conflict_summary.num_conflicts, 0);
+    assert_int_equal(session2->repository->conflict_summary.num_conflicts, 0);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS), 0);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING), 1);
 

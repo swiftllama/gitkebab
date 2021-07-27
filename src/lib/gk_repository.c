@@ -129,6 +129,7 @@ void gk_repository_state_set(gk_repository *repository, int states_enable) {
         log_warn(COMP_REPOSITORY, "gk_repository_state_set called on NULL repository");
         return;
     }
+    
     repository->state |= states_enable;
 }
 
@@ -140,6 +141,19 @@ void gk_repository_state_unset(gk_repository *repository, int states_disable) {
     repository->state &= ~states_disable;
 }
 
+void gk_repository_print_state(gk_repository *repository) {
+    log_info(COMP_REPOSITORY, "Repository state:\n");
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_HAS_CONFLICTS: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_CLONE_IN_PROGRESS: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_PUSH_IN_PROGRESS: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_PUSH_IN_PROGRESS));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_FETCH_IN_PROGRESS: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_FETCH_IN_PROGRESS));
+    log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_MERGE_IN_PROGRESS: : %d\n", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS));
+}
+
 void gk_repository_state_trigger_callback(gk_repository *repository) {
     if (repository == NULL) {
         log_warn(COMP_REPOSITORY, "gk_repository_state_trigger_callback called on NULL repository");
@@ -149,7 +163,7 @@ void gk_repository_state_trigger_callback(gk_repository *repository) {
 }
 
 int gk_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path) {
-    const char *purpose = "add path to index";
+    const char *purpose = "prepend repository path";
     if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
