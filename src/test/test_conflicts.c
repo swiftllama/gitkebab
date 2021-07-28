@@ -269,7 +269,7 @@ static void test_conflicts_partial_resolution_causes_failed_merge(void **state) 
 
     // Try to finalize the merge, it should fail
     gk_merge_into_head_finalize(session2);
-    append_to_error_listing(error_listing, "try to merge into head while there are still conflicts", gk_result_code_as_string(gk_session_last_result_code(session2)), gk_session_last_result_message(session2));
+    append_to_error_listing(error_listing, "try to finalized merge into head while there are still conflicts", gk_result_code_as_string(gk_session_last_result_code(session2)), gk_session_last_result_message(session2));
     assert_int_not_equal(gk_session_last_result_code(session2), 0);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING), 1);
 
