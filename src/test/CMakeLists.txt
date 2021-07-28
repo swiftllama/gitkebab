@@ -67,9 +67,9 @@ add_test(NAME TestConflicts
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-#add_executable(test_execution_context test_execution_context.c)
-#target_link_libraries(test_execution_context cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-#add_test(NAME TestExecutionContext
-#  COMMAND test_execution_context
-#  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-#
+add_executable(test_execution_context test_execution_context.c)
+target_link_libraries(test_execution_context cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+add_test(NAME TestExecutionContext
+  COMMAND test_execution_context
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+

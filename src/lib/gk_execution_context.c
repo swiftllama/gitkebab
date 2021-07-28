@@ -61,7 +61,7 @@ gk_execution_context *gk_execution_context_last_unresolved(gk_execution_context 
         if (next_context->result == NULL) {
             last_unresolved = next_context;
         }
-        if (next_context->child_context != NULL) {
+        if ((next_context->child_context != NULL) && (next_context->child_context->result == NULL)) {
             next_parent = next_context;
         }
         next_context = next_context->child_context;
