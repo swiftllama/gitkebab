@@ -126,6 +126,7 @@ typedef struct {
 } gk_session_credential;
 
 typedef enum {
+    GK_REPOSITORY_STATE_DEFAULT = 0,
     GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS      = (1 << 0),
     GK_REPOSITORY_STATE_HAS_CONFLICTS              = (1 << 1),
     GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE       = (1 << 2),
@@ -136,6 +137,8 @@ typedef enum {
     GK_REPOSITORY_STATE_FETCH_IN_PROGRESS          = (1 << 7),
     GK_REPOSITORY_STATE_MERGE_IN_PROGRESS          = (1 << 8),
 } gk_repository_state;
+
+#define GK_REPOSITORY_STATE_MAX_EXP 9
 
 typedef enum {
     GK_REPOSITORY_SOURCE_URL_SSH,

@@ -92,11 +92,23 @@ int gk_session_verify(gk_session *session, int condition, const char *purpose) {
     return GK_SUCCESS;
 }
 
+int gk_session_set_repository_state_with_callback(gk_session *session, int states) {
+    gk_repository_state_set(session->repository, states);
+    return gk_session_trigger_repository_state_callback(session);
+}
+
+int gk_session_unset_repository_state_with_callback(gk_session *session, int states) {
+    gk_repository_state_unset(session->repository, states);
+    return gk_session_trigger_repository_state_callback(session);
+}
+                                                  
 int gk_session_trigger_repository_state_callback(gk_session *session) {
     if (gk_session_context_sanity_check(session, &COMP_SESSION, "trigger repository state callback") != GK_SUCCESS) {
         return GK_FAILURE;
     }
-    session->callbacks.state_changed_callback(session->repository);
+    if (session->callbacks.state_changed_callback != NULL) {
+        session->callbacks.state_changed_callback(session->repository);
+    }
     return GK_SUCCESS;
 }
 

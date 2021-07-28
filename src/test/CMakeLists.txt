@@ -16,7 +16,7 @@ add_test(NAME TestSessionProgress
   COMMAND test_session_progress
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-add_executable(test_clone test_clone.c gk_test_filesystem_utils.c)
+add_executable(test_clone test_clone.c gk_test_filesystem_utils.c gk_test_env_utils.c)
 target_link_libraries(test_clone cmocka gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
 add_test(NAME TestClone
   COMMAND test_clone

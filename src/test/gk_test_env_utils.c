@@ -8,6 +8,56 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
+int g_repository_state_record_enabled[GK_REPOSITORY_STATE_MAX_EXP];
+int g_repository_state_record_disabled[GK_REPOSITORY_STATE_MAX_EXP];
+gk_repository_state g_old_state = 0;
+gk_repository_state g_current_state = 0;
+
+void gk_test_reset_state_change_record() {
+    for (int i = 0;  i < GK_REPOSITORY_STATE_MAX_EXP; i += 1) {
+        g_repository_state_record_enabled[i] = 0;
+        g_repository_state_record_disabled[i] = 0;
+    }
+    g_old_state = GK_REPOSITORY_STATE_DEFAULT;
+    g_current_state = GK_REPOSITORY_STATE_DEFAULT;
+}
+
+void gk_test_state_change_callback(gk_repository *repository) {
+    g_old_state = g_current_state;
+    g_current_state = repository->state;
+    for (int i = 0;  i < GK_REPOSITORY_STATE_MAX_EXP; i += 1) {
+        int bitmask = 1 << i;
+        int was_on = (bitmask & g_old_state);
+        int is_on = (bitmask & g_current_state);
+        if ((was_on != 0) && (is_on == 0)) {
+            g_repository_state_record_disabled[i] += 1;
+        }
+        if ((was_on == 0) && (is_on != 0)) {
+            g_repository_state_record_enabled[i] += 1;
+        }
+    }    
+}
+
+int gk_test_state_count_enabled(gk_repository_state state) {
+    for (int i = 0; i < GK_REPOSITORY_STATE_MAX_EXP; i += 1) {
+        if ((unsigned int)(1 << i) == state) {
+            return g_repository_state_record_enabled[i];
+        }
+    }
+    log_error(COMP_TEST, "Could not find single-bit state [%d], returning 0 for count enabled", state);
+    return 0;
+}
+
+int gk_test_state_count_disabled(gk_repository_state state) {
+    for (int i = 0; i < GK_REPOSITORY_STATE_MAX_EXP; i += 1) {
+        if ((unsigned int)(1 << i) == state) {
+            return g_repository_state_record_disabled[i];
+        }
+    }
+    log_error(COMP_TEST, "Could not find single-bit state [%d], returning 0 for count disabled", state);
+    return 0;
+}
+
 void gk_test_copy_source_repo_simplerepo1_dot_git() {
     if (directory_exists("test-staging/simple-repo1.git") == 0) {
         rm_rf("test-staging/simple-repo1.git");

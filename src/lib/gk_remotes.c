@@ -119,10 +119,15 @@ int gk_clone(gk_session *session) {
     log_info(COMP_CLONE, "  - URL:        [%s]", source_url);
     log_info(COMP_CLONE, "  - Local path: [%s]", local_path);
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
     rc = git_clone((git_repository **)&(session->repository->lg2_resources->repository), session->repository->spec.source_url, session->repository->spec.local_path, &clone_opts);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
-
     if (rc != 0) {
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
         git_repository_free(session->repository->lg2_resources->repository);
         session->repository->lg2_resources->repository = NULL;
         return gk_session_lg2_failure(session, purpose, GK_ERR);
@@ -133,6 +138,9 @@ int gk_clone(gk_session *session) {
     }
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
 
     log_info(COMP_CLONE, "Clone succeeded");
     return gk_session_success(session, purpose);
@@ -161,20 +169,33 @@ int gk_fetch(gk_session *session, const char *remote_name) {
 
     const git_strarray *refspecs = NULL;
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_FETCH_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
     int rc = git_remote_fetch(remote, refspecs, &fetch_options, "fetch");
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_FETCH_IN_PROGRESS);
     git_remote_free(remote);
     
     if (rc != 0) {
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to fetch from remote [%s]", remote_name);
     }
 
     if (gk_lg2_load_references(session) != 0) {
         gk_lg2_free_references(session->repository);
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
         return gk_session_failure(session, purpose);
     }
     rc = gk_analyze_merge_into_head(session, session->repository->spec.remote_ref_name, NULL);
+
     gk_lg2_free_references(session->repository);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
 
     if (rc != 0) {
         return gk_session_failure(session, purpose);
@@ -205,8 +226,14 @@ int gk_push(gk_session *session, const char *remote_name) {
     push_options.callbacks.payload = session;
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_PUSH_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
     int rc = git_remote_push(remote, NULL, &push_options);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_PUSH_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
     git_remote_free(remote);
     if (rc != 0) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);

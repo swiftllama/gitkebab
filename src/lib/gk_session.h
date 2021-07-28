@@ -18,4 +18,8 @@ int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code
 int gk_session_last_result_code(gk_session *session);
 const char *gk_session_last_result_message(gk_session *session) ;
 
+int gk_session_trigger_repository_state_callback(gk_session *session);
+int gk_session_set_repository_state_with_callback(gk_session *session, int states);
+int gk_session_unset_repository_state_with_callback(gk_session *session, int states);
+
 #endif //__GK_SESSION_H__
