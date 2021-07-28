@@ -52,13 +52,11 @@ gk_repository *gk_repository_new() {
 }
 
 
-void gk_repository_init(gk_repository *repository, const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
+void gk_repository_init(gk_repository *repository, const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user) {
     if (repository == NULL) {
         return;
     }
     gk_repository_spec_init(&repository->spec, source_url, source_url_type, local_path, user);
-    repository->callbacks.progress_callback = progress_callback;
-    repository->callbacks.state_changed_callback = state_changed_callback;
 
     repository->state = 0;
     gk_status_summary_reset(&repository->status_summary);
@@ -152,14 +150,6 @@ void gk_repository_print_state(gk_repository *repository) {
     log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_PUSH_IN_PROGRESS: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_PUSH_IN_PROGRESS));
     log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_FETCH_IN_PROGRESS: : %d", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_FETCH_IN_PROGRESS));
     log_info(COMP_REPOSITORY, "  GK_REPOSITORY_STATE_MERGE_IN_PROGRESS: : %d\n", gk_repository_state_enabled(repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS));
-}
-
-void gk_repository_state_trigger_callback(gk_repository *repository) {
-    if (repository == NULL) {
-        log_warn(COMP_REPOSITORY, "gk_repository_state_trigger_callback called on NULL repository");
-        return;
-    }
-    repository->callbacks.state_changed_callback(repository);
 }
 
 int gk_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path) {

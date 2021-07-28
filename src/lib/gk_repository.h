@@ -12,7 +12,7 @@
 #include "gk_types.h"
 
 gk_repository *gk_repository_new();
-void gk_repository_init(gk_repository *repository, const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback);
+void gk_repository_init(gk_repository *repository, const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user);
 int gk_open_local_repository(gk_session *session);
 void gk_repository_free(gk_repository *repository);
 

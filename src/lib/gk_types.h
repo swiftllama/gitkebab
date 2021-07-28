@@ -172,7 +172,6 @@ typedef struct {
 
 struct gk_repository {
     gk_repository_spec spec;
-    gk_session_callbacks callbacks;
     gk_repository_state state;
     gk_status_summary status_summary;
     gk_merge_conflict_summary conflict_summary;
@@ -184,6 +183,7 @@ typedef struct {
     gk_execution_context *context;
     gk_repository *repository;
     gk_session_credential credential;
+    gk_session_callbacks callbacks;
     gk_result *internal_last_result;
 } gk_session;
 
