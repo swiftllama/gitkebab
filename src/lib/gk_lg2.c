@@ -427,17 +427,6 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
         next_conflict_node->next = gk_void_linked_node_new();
         next_conflict_node = next_conflict_node->next;
         
-        // DBG
-        /*
-        gk_conflict_diff_summary *summary = NULL;
-        summary = gk_lg2_conflict_diff_summary(session, entry);
-
-        log_error(COMP_CONFLICTS, "DBG C0x found ancestor-to-ours diff: -------\n%s\n---------", summary->ancestor_to_ours_diff);
-        log_error(COMP_CONFLICTS, "DBG C1x found ancestor-to-theirs diff: -------\n%s\n---------", summary->ancestor_to_theirs_diff);
-
-        gk_conflict_diff_summary_free(summary);*/
-        // END DBG
-        
         gk_lg2_conflict_entry_free_members(&conflict_entry);
         index += 1;
         num_conflicts += 1;

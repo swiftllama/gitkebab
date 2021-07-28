@@ -107,7 +107,11 @@ int gk_session_trigger_repository_state_callback(gk_session *session) {
         return GK_FAILURE;
     }
     if (session->callbacks.state_changed_callback != NULL) {
+        log_info(COMP_SESSION, "invoking state change callback with new repository state [%d]", session->repository->state);
         session->callbacks.state_changed_callback(session->repository);
+    }
+    else {
+        log_info(COMP_SESSION, "Session's repository state change callback is NULL, no state change callback will be invoked");
     }
     return GK_SUCCESS;
 }

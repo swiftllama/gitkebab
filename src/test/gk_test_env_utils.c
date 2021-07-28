@@ -25,10 +25,12 @@ void gk_test_reset_state_change_record() {
 void gk_test_state_change_callback(gk_repository *repository) {
     g_old_state = g_current_state;
     g_current_state = repository->state;
+    //log_error(COMP_TEST, "[STATE] state changed, old [%d] new [%d]", g_old_state, g_current_state);
     for (int i = 0;  i < GK_REPOSITORY_STATE_MAX_EXP; i += 1) {
         int bitmask = 1 << i;
         int was_on = (bitmask & g_old_state);
         int is_on = (bitmask & g_current_state);
+        //log_error(COMP_TEST, "[STATE] [%d] was on [%d] is_on [%d]", bitmask, was_on, is_on);
         if ((was_on != 0) && (is_on == 0)) {
             g_repository_state_record_disabled[i] += 1;
         }
@@ -140,7 +142,7 @@ void gk_test_session_progress_null(gk_session_progress *progress) {
 
 
 gk_session *gk_test_session_from_local_path(const char *repo_path) {
-    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, repo_path, "git", &gk_test_session_progress_verbose, NULL);
+    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, repo_path, "git", &gk_test_session_progress_verbose, &gk_test_state_change_callback);
     if (gk_session_last_result_code(session) != 0) {
         log_error(COMP_TEST, "Error initializing session from path '%s': %s", repo_path, gk_session_last_result_message(session));
         gk_session_free(session);
@@ -152,12 +154,13 @@ gk_session *gk_test_session_from_local_path(const char *repo_path) {
         gk_session_free(session);
         return NULL;
     }
+    gk_test_reset_state_change_record();
     return session;
 }
 
 
 gk_session *gk_test_session_from_clone(const char *remote_repo, const char *local_path) {
-    gk_session *session = gk_session_new(remote_repo, GK_REPOSITORY_SOURCE_URL_FILESYSTEM, local_path, "git", &gk_test_session_progress_verbose, NULL);
+    gk_session *session = gk_session_new(remote_repo, GK_REPOSITORY_SOURCE_URL_FILESYSTEM, local_path, "git", &gk_test_session_progress_verbose,  &gk_test_state_change_callback);
     if (gk_session_last_result_code(session) != 0) {
         log_error(COMP_TEST, "Error initializing session for clone from '%s' to path '%s': %s", remote_repo, local_path, gk_session_last_result_message(session));
         gk_session_free(session);

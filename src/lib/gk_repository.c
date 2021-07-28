@@ -127,7 +127,7 @@ void gk_repository_state_set(gk_repository *repository, int states_enable) {
         log_warn(COMP_REPOSITORY, "gk_repository_state_set called on NULL repository");
         return;
     }
-    
+    log_info(COMP_REPOSITORY, "enable state(s) [%d]", states_enable);
     repository->state |= states_enable;
 }
 
@@ -136,6 +136,7 @@ void gk_repository_state_unset(gk_repository *repository, int states_disable) {
         log_warn(COMP_REPOSITORY, "gk_repository_state_unset called on NULL repository");
         return;
     }
+    log_info(COMP_REPOSITORY, "disable state(s) [%d]", states_disable);
     repository->state &= ~states_disable;
 }
 

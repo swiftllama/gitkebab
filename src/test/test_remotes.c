@@ -26,6 +26,8 @@ static int test_staging_clean_repo_setup(void **state) {
     gk_test_delete_simplerepo1B();
     gk_test_delete_simplerepo1_dot_git();
     gk_test_copy_source_repo_simplerepo1_dot_git();
+
+    gk_test_reset_state_change_record();
     return 0;
 }
 
@@ -45,6 +47,8 @@ static void test_push_no_changes(void **state) {
     assert_non_null(session);
     
     gk_push(session, "origin");
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_PUSH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_PUSH_IN_PROGRESS), 1);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     // Verify that current commit has not changed on source repo
@@ -84,6 +88,8 @@ static void test_push_one_commit(void **state) {
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_push(session, "origin");
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_PUSH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_PUSH_IN_PROGRESS), 1);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     // Check new commit in source repo
@@ -107,9 +113,12 @@ static void test_fetch_no_changes(void **state) {
 
     gk_object_id repo_first_commit = {0};
     gk_resolve_reference(session1, "HEAD", &repo_first_commit);
-    
-    // Fetch 
+
+    // Fetch
+    gk_test_reset_state_change_record();
     gk_fetch(session1, "origin");
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 0);
+    
     assert_int_equal(gk_session_last_result_code(session1), 0);
 
     gk_object_id fetched_commit = {0};
@@ -146,7 +155,11 @@ static void test_fetch_one_commit_with_no_push(void **state) {
 
 
     // Fetch repo
+    gk_test_reset_state_change_record();
     gk_fetch(session, "origin");
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_FETCH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_FETCH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 0);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_object_id fetched_commit = {0};
@@ -190,6 +203,9 @@ static void test_fetch_one_commit(void **state) {
 
     // Fetch repo-B
     gk_fetch(session2, "origin");
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_FETCH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_FETCH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id fetched_commit = {0};

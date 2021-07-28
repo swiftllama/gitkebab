@@ -40,10 +40,20 @@ static void test_conflicts_various_types(void **state) {
     // B has committed and fetched, now has conflicts
     gk_session *session1 = NULL;
     gk_session *session2 = NULL;
+
+    gk_test_reset_state_change_record();
     gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(&session1, &session2, state);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_FETCH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_FETCH_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_HAS_CONFLICTS), 0); // don't know tha we have conflicts until we try to merge
     
     // Attempt a merge in repo B
+    gk_test_reset_state_change_record();
     gk_merge_into_head(session2);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_MERGE_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_MERGE_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_HAS_CONFLICTS), 1);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // We should now have 6 conflicts of various types
@@ -65,7 +75,6 @@ static void test_conflicts_various_types(void **state) {
     gk_session_free(session1);
     gk_session_free(session2);
 }
-
 
 static void test_conflicts_local_delete_remote_edit_file1(void **state) {
     (void) state;
@@ -295,7 +304,9 @@ static void test_conflicts_with_resolution_and_merge(void **state) {
     gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(&session1, &session2, state);
     
     // Attempt a merge in repo B
+    gk_test_reset_state_change_record();
     gk_merge_into_head(session2);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_HAS_CONFLICTS), 1);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // We should now have 6 conflicts of various types
@@ -326,10 +337,11 @@ static void test_conflicts_with_resolution_and_merge(void **state) {
     gk_merge_conflicts_query(session2);
     assert_int_equal(gk_session_last_result_code(session2), 0);
     assert_int_equal(session2->repository->conflict_summary.num_conflicts, 0);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_HAS_CONFLICTS), 1);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS), 0);
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING), 1);
 
-    // Finalize the merge
+    // Finalize the merge    
     gk_merge_into_head_finalize(session2);
     assert_int_not_equal(gk_session_last_result_code(session2), 1);
     

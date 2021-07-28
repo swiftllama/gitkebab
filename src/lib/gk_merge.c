@@ -146,6 +146,9 @@ int gk_merge_conflicts_query(gk_session *session) {
     else {
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
     }
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
     return gk_session_success(session, purpose);
 }
 
@@ -235,19 +238,32 @@ int gk_merge_into_head(gk_session *session) {
     int merge_analysis = 0;
     log_info(COMP_MERGE, "merging [%s] into HEAD", from_ref_name);
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
 
     if (gk_lg2_load_references(session) != GK_SUCCESS) {
+        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
         gk_lg2_free_all_but_repository(session->repository);
         return gk_session_failure(session, purpose);
     }
 
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK)) {
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
         return gk_session_failure_ex(session, purpose, GK_ERR, "UNIMPLEMENTED: merge pending on disk");
     }
     
     if (gk_analyze_merge_into_head(session, from_ref_name, &merge_analysis) != GK_SUCCESS) {
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
         gk_lg2_free_all_but_repository(session->repository);
         return gk_session_failure(session, purpose);
     }
@@ -256,6 +272,9 @@ int gk_merge_into_head(gk_session *session) {
         log_info(COMP_MERGE, "will attempt a fast-forward merge");
         if (merge_fast_forward(session, from_ref_name) != GK_SUCCESS) {
             gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+            if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+                return gk_session_failure(session, purpose);
+            }
             gk_lg2_free_all_but_repository(session->repository);
             return gk_session_failure(session, purpose);
         }
@@ -264,12 +283,18 @@ int gk_merge_into_head(gk_session *session) {
         log_info(COMP_MERGE, "will attempt an in-memory merge");
         if (merge_in_memory(session) != GK_SUCCESS) {
             gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+            if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+                return gk_session_failure(session, purpose);
+            }
             gk_lg2_free_all_but_repository(session->repository);
             return gk_session_failure(session, purpose);
         }
     }
     else if ((merge_analysis & GIT_MERGE_ANALYSIS_UNBORN) != 0) {
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
         gk_lg2_free_all_but_repository(session->repository);
         return gk_session_failure_ex(session, purpose, GK_ERR, "head points to an unknonw commit id");
     }
@@ -282,6 +307,9 @@ int gk_merge_into_head(gk_session *session) {
     }
 
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
 
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS)) {
         log_info(COMP_MERGE, "merge attempt ended with conflicts");

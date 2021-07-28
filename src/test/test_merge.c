@@ -28,6 +28,8 @@ static int test_staging_clean_repo_setup(void **state) {
     gk_test_delete_simplerepo1B_mergeconflicts();
     gk_test_copy_source_repo_simplerepo1_dot_git();
     gk_test_copy_simplerepo1_from_simplerepo1B_mergeconflicts_dot_gitbak();
+
+    gk_test_reset_state_change_record();
     return 0;
 }
 
