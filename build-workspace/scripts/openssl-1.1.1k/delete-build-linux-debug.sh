@@ -1,8 +1,8 @@
 set -e
-echo "--- Deleting Zlib 1.2.11 Build for Linux / Debug ---"
+echo "--- Deleting OpenSSL 1.1.1k Build for Linux / Debug ---"
 
-BUILD_FOLDER=build/zlib-1.2.11/linux/debug
-TMP_BUILD_FOLDER=build/tmp/zlib-1.2.11/linux/debug
+BUILD_FOLDER=build/openssl-1.1.1k/linux/debug
+TMP_BUILD_FOLDER=build/tmp/openssl-1.1.1k/linux/debug
 
 set -x
 rm -rf ${BUILD_FOLDER}
