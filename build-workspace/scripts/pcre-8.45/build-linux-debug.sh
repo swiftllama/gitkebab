@@ -14,7 +14,12 @@ mkdir -p ${TMP_BUILD_FOLDER}
 USER=$(whoami)
 USER_ID=$(id -u ${USER})
 
-docker run -v${PWD}:/tmp/workspace --user ${USER_ID} gcc /bin/bash -c "cd /tmp/workspace/${TMP_BUILD_FOLDER}; ../../../../../source/pcre-8.45/configure --prefix=/tmp/workspace/${BUILD_FOLDER}; make && make install;"
+## NOTES
+##  - allow linking resulting static library against shared library later on
+##    - CFLAGS=-fPIC
+##
+
+docker run -v${PWD}:/tmp/workspace --user ${USER_ID} gcc /bin/bash -c "cd /tmp/workspace/${TMP_BUILD_FOLDER}; ../../../../../source/pcre-8.45/configure --prefix=/tmp/workspace/${BUILD_FOLDER} CFLAGS=-fPIC CXXFLAGS=-fPIC; make && make install;"
 
 set +x
 echo "--- DONE ---"

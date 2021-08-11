@@ -118,7 +118,9 @@ to the install folder, that file paths that were only valid inside the
 docker container, causing errors to run when the tests are
 executed. It is currently necessary to run the tests manually.
 
-## Debugging
+# Debugging 
+
+## Debugging cmake builds
 
 To debug Cmake `find_package` or `find_path` issues the `--debug-find`
 argument can be appended to the cmake command in the
@@ -140,4 +142,34 @@ If necessary, the build or source files can be inspected in the respective temp 
 (But note that not all libraries use a tmp folder for the sources,
 some just git-clone it directly into the `sources/` folder).
 
+
+## Debugging binaries with gdb
+
+One issue with debug symbols is that the debug-info set by the
+compiler can have the wrong paths, since they were built inside a
+docker image. To examine the paths:
+
+    objdump -g ./test_merge  | less
+    # Search for ".debug_info section"
+    
+e.g. `/tmp/workspace/...` may not exist on the host machine
+
+     <0><c>: Abbrev Number: 26 (DW_TAG_compile_unit)
+        <d>   DW_AT_producer    : (indirect string, offset: 0x81): GNU C17 11.1.0 -mtune=generic -march=x86-64 -g
+        <11>   DW_AT_language    : 29       (C11)
+        <12>   DW_AT_name        : (indirect line string, offset: 0x3c): /tmp/workspace/source/gitkebab-head/src/test/test_merge.c
+        <16>   DW_AT_comp_dir    : (indirect line string, offset: 0x0): /tmp/workspace/build/tmp/gitkebab-head/linux/debug/src/test
+        
+To fix that one can issue the `directory <path>` command to gdb to
+help it find the sources, e.g. if it has a hard time finding the libgit2 sources:
+
+    directory ~/Projects/gitkebab/build-workspace/build/tmp/libgit2-1.1.1/linux/debug/src/
+
+To debug e.g. `test_merge`:
+
+    gdb test_merge
+    directory ~/Projects/gitkebab/build-workspace/source/libgit2-1.1.1/src/
+    b git_remote_push  # breakpoint on git_remote_push
+    r                  # run the binary, will break on git_remote_push
+    
 
