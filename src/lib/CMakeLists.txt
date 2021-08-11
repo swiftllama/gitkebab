@@ -1,9 +1,8 @@
+set(CMAKE_VERBOSE_MAKEFILE on)
 
+include_directories(${LIBGIT2_include_folder})
 
-include_directories(${PROJECT_SOURCE_DIR}/external/libgit2/include)
-link_directories(${PROJECT_SOURCE_DIR}/external/libgit2/lib)
-
-add_library(gitkebab
+add_library(gitkebab_objects OBJECT
   gitkebab.h
   gk_commit.c
   gk_commit.h
@@ -40,10 +39,35 @@ add_library(gitkebab
   rxi_log.c
   rxi_log.h)
 
-target_include_directories(gitkebab INTERFACE ./) # allow dependencies to find gitkebab's headers
+set_property(TARGET gitkebab_objects PROPERTY POSITION_INDEPENDENT_CODE 1)
+
+#add_library(gitkebab SHARED $<TARGET_OBJECTS:gitkebab_objects>)
+add_library(gitkebab_static STATIC $<TARGET_OBJECTS:gitkebab_objects>)
+
+target_include_directories(gitkebab_static INTERFACE ./) # allow dependencies to find gitkebab's headers
+#target_include_directories(gitkebab INTERFACE ./) # allow dependencies to find gitkebab's headers
   
 #target_link_libraries(testmain git2 ssl crypto ssh2 pthread z pcre)
-target_link_libraries(gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+#target_link_libraries(gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
+target_link_libraries(gitkebab_static pthread)
+#  LIBGIT2_lib OPENSSL_lib CRYPTO_lib LIBSSH2_lib Z_lib PCRE_lib <- need these??
 
 
-
+install(TARGETS gitkebab_static DESTINATION lib)
+install(FILES
+    gitkebab.h
+    gk_commit.h
+    gk_conflicts.h
+    gk_credentials.h
+    gk_filesystem.h
+    gk_index.h
+    gk_init.h
+    gk_logging.h
+    gk_merge.h
+    gk_remotes.h
+    gk_results.h
+    gk_repository.h
+    gk_status.h
+    gk_session.h
+    gk_execution_context.h
+  DESTINATION include)

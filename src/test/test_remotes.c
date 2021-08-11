@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <cmocka.h>
+#include "cmocka.h"
 #include "git2.h"
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
@@ -78,7 +78,7 @@ static void test_push_one_commit(void **state) {
     gk_session *session = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
     assert_non_null(session);
     
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
 
     gk_index_add_path(session, "file1");
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
@@ -146,7 +146,7 @@ static void test_fetch_one_commit_with_no_push(void **state) {
     gk_object_id original_head = {0};
     gk_resolve_reference(session, "HEAD", &original_head);
 
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     gk_index_add_path(session, "file1");
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     gk_object_id new_commit = {0};
@@ -192,7 +192,7 @@ static void test_fetch_one_commit(void **state) {
     gk_object_id repo_A_original_head = {0};
     gk_resolve_reference(session2, "HEAD", &repo_A_original_head);
     
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_index_add_path(session1, "file1");
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id new_commit = {0};
@@ -239,7 +239,7 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     gk_object_id repo_A_original_head = {0};
     gk_resolve_reference(session2, "HEAD", &repo_A_original_head);
     
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     gk_index_add_path(session1, "file1");
     assert_int_equal(gk_session_last_result_code(session1), 0);
     gk_object_id repo_A_new_commit = {0};
@@ -255,7 +255,7 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     gk_object_id repo_B_original_head = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_original_head);
     
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file2");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file2");
     gk_index_add_path(session2, "file2");
     assert_int_equal(gk_session_last_result_code(session2), 0);
     gk_object_id repo_B_new_commit = {0};
@@ -293,9 +293,9 @@ int main(void) {
         cmocka_unit_test_setup(test_fetch_divergent_commits_no_conflict, test_staging_clean_repo_setup),
     };
 
-    if (directory_exists("src/test/fixtures") != 0) {
-        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./src/test/fixtures");
-        log_error(COMP_TEST, "Tests must be run from the project root folder");
+    if (directory_exists("fixtures") != 0) {
+        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./fixtures");
+        log_error(COMP_TEST, "Tests must be run from the build test folder");
         return 1;
     }
     

@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <cmocka.h>
+#include "cmocka.h"
 #include "git2.h"
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
@@ -34,7 +34,7 @@ static void test_index_add_remove_individual_files(void **state) {
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file1");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file2");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
     
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
@@ -79,7 +79,7 @@ static void test_index_update_all(void **state) {
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file1");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file2");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
 
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
@@ -121,7 +121,7 @@ static void test_index_add_all(void **state) {
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file1");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file2");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
-    copy_file("src/test/fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
     rm_rf("test-staging/simple-repo1/file2");
 
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
@@ -182,8 +182,8 @@ int main(void) {
         cmocka_unit_test_setup(test_index_add_nonexistent_file, test_staging_clean_repo_setup),
     };
 
-    if (directory_exists("src/test/fixtures") != 0) {
-        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./src/test/fixtures");
+    if (directory_exists("fixtures") != 0) {
+        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./fixtures");
         log_error(COMP_TEST, "Tests must be run from the project root folder");
         return 1;
     }

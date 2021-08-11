@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <cmocka.h>
+#include "cmocka.h"
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
@@ -44,7 +44,7 @@ static int test_setup(void **state) {
 static void test_clone_simple(void **state) {
     (void) state; /* unused */
     
-    gk_session *session = gk_session_new("./src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-1", "git", &session_progress, &gk_test_state_change_callback);
+    gk_session *session = gk_session_new("./fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-1", "git", &session_progress, &gk_test_state_change_callback);
     gk_clone(session);
     assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_CLONE_IN_PROGRESS), 1);
     assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
@@ -80,7 +80,7 @@ static void test_clone_bad_source_path(void **state) {
 static void test_clone_null_dest_path(void **state) {
     (void) state; /* unused */
     
-    gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, NULL, "git", &session_progress, NULL);
+    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, NULL, "git", &session_progress, NULL);
     gk_clone(session);
 
     assert_int_equal(gk_session_last_result_code(session), GK_ERR_CLONE_INVALID_DESTINATION_PATH);
@@ -92,7 +92,7 @@ static void test_clone_null_dest_path(void **state) {
 static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
     (void) state; /* unused */
     
-    gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/empty-dir1", "git", &session_progress, NULL);
+    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/empty-dir1", "git", &session_progress, NULL);
     gk_clone(session);
 
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
@@ -103,7 +103,7 @@ static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
 static void test_clone_dest_path_nonempty_existing_regular_dir(void **state) {
     (void) state; /* unused */
 
-    gk_session *session = gk_session_new("src/test/fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/nonempty-dir1", "git", &session_progress, NULL);
+    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/nonempty-dir1", "git", &session_progress, NULL);
     gk_clone(session);
     // non-empty dir gets detected before clone starts, state should not change
     assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 0);
@@ -125,8 +125,8 @@ int main(void) {
         cmocka_unit_test_setup(test_clone_dest_path_nonempty_existing_regular_dir, test_setup)
     };
 
-    if (directory_exists("src/test/fixtures") != 0) {
-        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./src/test/fixtures");
+    if (directory_exists("fixtures") != 0) {
+        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./fixtures");
         log_error(COMP_TEST, "Tests must be run from the project root folder");
         return 1;
     }

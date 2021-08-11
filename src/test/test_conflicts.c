@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <cmocka.h>
+#include "cmocka.h"
 #include "git2.h"
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
@@ -360,8 +360,8 @@ int main(void) {
         cmocka_unit_test_setup(test_conflicts_with_resolution_and_merge, test_staging_clean_repo_setup),
     };
 
-    if (directory_exists("src/test/fixtures") != 0) {
-        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./src/test/fixtures");
+    if (directory_exists("fixtures") != 0) {
+        log_error(COMP_TEST, "Cannot run tests: could not find test fixtures at relative path ./fixtures");
         log_error(COMP_TEST, "Tests must be run from the project root folder");
         return 1;
     }
