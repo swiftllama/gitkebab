@@ -11,14 +11,14 @@ function(addTest NAME)
   add_executable(test_${NAME} test_${NAME}.c gk_test_filesystem_utils.c gk_test_env_utils.c)
   target_link_libraries(test_${NAME} ${CMOCKA_lib} gitkebab_static ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib} pthread dl)
   add_test(NAME Test_${NAME}
-    COMMAND test_${NAME}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    COMMAND test_${NAME})
   install(TARGETS test_${NAME} DESTINATION test)
 endfunction()
 
 
 # Install fixtures
 install(DIRECTORY fixtures DESTINATION test)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/CTestTestfile.cmake DESTINATION test)
 
 # Add tests
 addTest("session_progress")
