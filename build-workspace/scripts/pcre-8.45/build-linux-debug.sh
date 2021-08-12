@@ -19,7 +19,7 @@ USER_ID=$(id -u ${USER})
 ##    - CFLAGS=-fPIC
 ##
 
-docker run -v${PWD}:/tmp/workspace --user ${USER_ID} gcc /bin/bash -c "cd /tmp/workspace/${TMP_BUILD_FOLDER}; ../../../../../source/pcre-8.45/configure --prefix=/tmp/workspace/${BUILD_FOLDER} CFLAGS=-fPIC CXXFLAGS=-fPIC; make && make install;"
+docker run -v${PWD}:/tmp/workspace --user ${USER_ID} gcc /bin/bash -c "cd /tmp/workspace/${TMP_BUILD_FOLDER}; ../../../../../source/pcre-8.45/configure --prefix=/tmp/workspace/${BUILD_FOLDER} CFLAGS=-fPIC CXXFLAGS=\"-fPIC\"; make; echo \"Installing...\"; make install;"
 
 set +x
 echo "--- DONE ---"

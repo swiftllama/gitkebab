@@ -106,7 +106,8 @@ void prepare_error_listing(const char *error_listing_name) {
     rm_rf(catalog_path);
     char cp_command[2048];
     snprintf(cp_command, 2048, "touch %s", catalog_path);
-    system(cp_command);
+    int rc = system(cp_command);
+    (void) rc;
 }
 
 void append_to_error_listing(const char *error_listing_name, const char *scenario, const char *returned_error_code, const char *context_stack_trace) {
