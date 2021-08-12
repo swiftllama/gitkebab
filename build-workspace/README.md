@@ -85,7 +85,8 @@ e.g.:
     │   ├── ...
     │   └── gk_status.h
     ├── lib
-    │   └── libgitkebab_static.a
+    │   ├── libgitkebab_static.a
+    │   └── libgitkebab.so
     └── test
         ├── fixtures
         ├── test_clone
@@ -103,20 +104,23 @@ e.g.:
 To run the tests:
 
     cd build/gitkebab-head/linux/debug/test
-    ./test_index # ok to run other tests
+    # run an individual test
+    ./test_index
+    # run all the tests
+    ./run-all-tests.sh    # this is created by src/test/CMakeLists.txt
 
 Note that running the tests using cmake/ctest currently fails, e.g.:
 
     ctest --test-dir build/gitkebab-head/linux/debug/test/ -V
     
-Because even though it copies this file which contains the test
-definitions:
+I did get it partly working by having the cmake install phase copy
+this file
 
     CTestTestfile.cmake
     
-to the install folder, that file paths that were only valid inside the
-docker container, causing errors to run when the tests are
-executed. It is currently necessary to run the tests manually.
+to the install folder, but it contains file paths that were only valid
+inside the docker container, causing errors to run when the tests are
+executed. So currently running tests with cmake doesn't work.
 
 # Debugging 
 
@@ -141,6 +145,17 @@ If necessary, the build or source files can be inspected in the respective temp 
     
 (But note that not all libraries use a tmp folder for the sources,
 some just git-clone it directly into the `sources/` folder).
+
+Note that
+
+    message(FATAL_ERROR "<msg>") 
+    
+will print a message from within a CMakeLists file and stop the
+build, whereas
+
+    message(ERROR "<msg>")
+    
+will print the message but not stop.
 
 
 ## Debugging binaries with gdb
@@ -172,4 +187,12 @@ To debug e.g. `test_merge`:
     b git_remote_push  # breakpoint on git_remote_push
     r                  # run the binary, will break on git_remote_push
     
+
+Although note that I have seen issues with the debugger not finding
+the right sources, in particular it localised a function to `oid.h
+line 2501` but that line has only 51 lines. This may be a result of
+`-O0` (optimization level zero) being used in the CMake builds, I
+tried to force this to `-Og` in the build script but was not
+successful.
+
 
