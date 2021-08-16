@@ -1,32 +1,45 @@
 import 'dart:ffi' as ffi;
+import 'gitkebab_lib.dart' as gitkebab_lib;
+import 'package:ffi/ffi.dart' as ffip;
 
-typedef gkVoid_func = ffi.Void Function();
-typedef gkVoid = void Function();
 
-typedef gkSessionNew_func = ffi.Pointer<ffi.Void> Function(ffi.Pointer<Utf8>, int, ffi.Pointer<Utf8>, ffi.Pointer<Utf8>, );
-typedef gkVoidPointer = ffi.Pointer<void> Function();
+extension FfiUtf8Casting on String {
+  ffi.Pointer<ffi.Int8> toFfiPtr() {
+    return this.toNativeUtf8().cast<ffi.Int8>();
+  }
+}
 
-class GitKebabLib {
-  ffi.DynamicLibrary? gitkebab_lib;
-  gkVoid gk_init = () => print("gk_init not initialized");
-  gkVoidPointer gk_session_new = () { print("gk_session_new not initialized"); return ffi.Pointer.fromAddress(0); };
 
-  GitKebabLib(String libraryPath) {
-    gitkebab_lib = ffi.DynamicLibrary.open(libraryPath);
-    // NOTE: null check doesn't work for class variable, so copy
-    //       to local variable instead
-    ffi.DynamicLibrary? gk_lib = gitkebab_lib;
-    if (gk_lib == null) {
-      throw "Error loading GitKebab lib from path [${libraryPath}]";
+
+class GitKebab {
+  static gitkebab_lib.GitKebabLib? _lib = null;
+  
+  static load(String libraryPath) {
+    _lib = gitkebab_lib.GitKebabLib(ffi.DynamicLibrary.open(libraryPath));
+    _lib!.gk_init();
+    
+  }
+
+  static gitkebab_lib.GitKebabLib get lib {
+    if (_lib == null) {
+      throw "Cannot access GitKebab library, GitKebab not initialized";
     }
-    else {
-      gk_init = gk_lib.lookup<ffi.NativeFunction<gkVoid_func>>('gk_init').asFunction();
-      gk_session_new = gitkebab_lib?.lookup<ffi.NativeFunction<gkSession
+    return _lib!;
+  }
+}
+
+class Session {
+  var session_ptr;
+  
+  Session(String url, int urlType, String localPath, String user) {
+    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), ffi.Pointer.fromAddress(0), ffi.Pointer.fromAddress(0));
+    if (session_ptr == null) {
+      throw "Error initializing session";
     }
   }
-  
-  void init() {
-    gk_init();
+
+  void clone() {
+    GitKebab.lib.gk_clone(session_ptr);
   }
 
   
