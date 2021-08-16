@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name
-project(gitkebab C)
+project(gitkebab)
 
 function(verifyLibraryIsFromBuildSystem LIBPATH LIBNAME)
   if ("${LIBPATH}" MATCHES "^/usr/")
@@ -36,7 +36,7 @@ find_path(LIBGIT2_include_folder NAMES "git2.h" REQUIRED)
 find_path(CMOCKA_include_folder NAMES "cmocka.h" REQUIRED)
 
 # Turn on warnings
-add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-missing-field-initializers) 
+add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-missing-field-initializers)
 add_subdirectory(src/lib)
 add_subdirectory(src/example)
 add_subdirectory(src/test)

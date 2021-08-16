@@ -1,6 +1,8 @@
-set(CMAKE_VERBOSE_MAKEFILE on)
+enable_language(C)
 
 include_directories(${LIBGIT2_include_folder})
+
+add_custom_target(libraries)
 
 add_library(gitkebab_objects OBJECT
   gitkebab.h
@@ -54,9 +56,9 @@ target_link_libraries(gitkebab ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIB
 
 #  LIBGIT2_lib OPENSSL_lib CRYPTO_lib LIBSSH2_lib Z_lib PCRE_lib <- need these??
 
+add_dependencies(libraries gitkebab_static gitkebab)
 
-install(TARGETS gitkebab_static DESTINATION lib)
-install(TARGETS gitkebab DESTINATION lib)
+install(TARGETS gitkebab gitkebab_static DESTINATION lib)
 install(FILES
     gitkebab.h
     gk_commit.h

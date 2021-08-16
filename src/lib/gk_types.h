@@ -23,14 +23,14 @@ enum GK_RESULT_CODE {
     GK_ERR_MERGE_HAS_CONFLICTS
 };
 
-typedef enum {
+typedef enum gk_merge_conflict_entry_type {
     GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_EDIT,
     GK_MERGE_CONFLICT_INCOMPATIBLE_TWOSIDED_CREATE,
     GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE,
     GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT
 } gk_merge_conflict_entry_type;
 
-typedef enum {
+typedef enum gk_repository_verify_condition {
     GK_REPOSITORY_VERIFY_DEFAULT = (1 << 0),
     GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT = (1 << 1),
     GK_REPOSITORY_VERIFY_STATUS_LIST = (1 << 2),
@@ -108,7 +108,7 @@ typedef struct {
 
 typedef void gk_session_progress_callback(gk_session_progress *progress);
 
-typedef enum {
+typedef enum gk_session_credential_type {
     CREDENTIAL_SSH_KEY_MEMORY,
     CREDENTIAL_SSH_KEY_FILE,
     CREDENTIAL_USERNAME_PASSWORD
@@ -125,7 +125,7 @@ typedef struct {
     const char *password;
 } gk_session_credential;
 
-typedef enum {
+typedef enum gk_repository_state {
     GK_REPOSITORY_STATE_DEFAULT = 0,
     GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS      = (1 << 0),
     GK_REPOSITORY_STATE_HAS_CONFLICTS              = (1 << 1),
@@ -140,7 +140,7 @@ typedef enum {
 
 #define GK_REPOSITORY_STATE_MAX_EXP 9
 
-typedef enum {
+typedef enum gk_repository_source_url_type {
     GK_REPOSITORY_SOURCE_URL_SSH,
     GK_REPOSITORY_SOURCE_URL_HTTP,
     GK_REPOSITORY_SOURCE_URL_FILESYSTEM
@@ -198,7 +198,7 @@ struct gk_void_linked_node {
     gk_void_linked_node *next;
 };
 
-typedef enum {
+typedef enum gk_conflict_resolution {
     GK_CONFLICT_RESOLUTION_OURS,
     GK_CONFLICT_RESOLUTION_THEIRS,
     GK_CONFLICT_RESOLUTION_ANCESTOR,
