@@ -1,0 +1,9 @@
+name: 'GitKebabLib'
+description: 'gitkebab dart bindings'
+output: 'gitkebab_lib.dart'
+headers:
+  entry-points:
+    - 'gitkebab-linux-debug/include/gitkebab.h'
+llvm-path:
+  - '/usr/lib/llvm-6.0'
+  - '/usr/lib/llvm-7' # docker llvm path

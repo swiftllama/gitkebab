@@ -1,0 +1,1 @@
+set -x; rm -rf gitkebab-linux-debug; cp -PR ../../build-workspace/build/gitkebab-head/linux/debug gitkebab-linux-debug

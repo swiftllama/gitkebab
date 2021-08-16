@@ -4,3 +4,8 @@ test-staging
 Testing
 build-workspace/source
 build-workspace/execution
+src/dart/.packages
+src/dart/.dart_tool
+src/dart/gitkebab-linux-debug
+src/dart/gitkebab_lib.dart
+src/dart/pubspec.lock

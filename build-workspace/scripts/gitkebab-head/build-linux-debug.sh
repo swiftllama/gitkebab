@@ -31,7 +31,7 @@ CONF_ARGS="-DCMAKE_PREFIX_PATH=\"${CUSTOM_SEARCH_PATH}\" -DCMAKE_BUILD_TYPE=${BU
 
 # Build c libraries and tests
 echo "\n\n=== Building C libraries (root Cmake) ==="
-docker run -v${PWD}:/tmp/workspace --user ${USER_ID} rikorose/gcc-cmake /bin/bash -c "cd /tmp/workspace/${TMP_BUILD_FOLDER}; cmake ../../../../../source/gitkebab-head ${CONF_ARGS}; cmake --build . -- VERBOSE=1;"
+docker run -v${PWD}:/tmp/workspace --user ${USER_ID} rikorose/gcc-cmake /bin/bash -c "cd /tmp/workspace/${TMP_BUILD_FOLDER}; cmake ../../../../../source/gitkebab-head ${CONF_ARGS}; cmake --build . -- VERBOSE=1; cmake --build . --target install"
 
 # Generate dart bindings
 echo "\n\n=== Generating dart bindings ==="
