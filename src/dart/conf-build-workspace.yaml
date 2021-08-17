@@ -7,3 +7,20 @@ headers:
 llvm-path:
   - '/usr/lib/llvm-6.0' # xubuntu thinkpad llvm path
   - '/usr/lib/llvm-7'   # docker llvm path
+enums:
+  rename:
+    'gk_repository_state': 'RepositoryState'
+    'gk_repository_source_url_type': 'RepositorySourceUrlType'
+    'gk_conflict_resolution': 'ConflictResolution'
+    'gk_merge_conflict_entry_type': 'MergeConflictEntryType'
+    'gk_repository_verify_condition': 'RepositoryVerifyCondition'
+    'gk_session_progress_event_type': 'SessionProgressEventType'
+    'gk_session_credential_type': 'SessionCredentialType'
+  member-rename:
+    '(.*)': # Matches any enum.
+      'GK_REPOSITORY_STATE_(.*)': '$1'
+      'GK_REPOSITORY_SOURCE_URL_(.*)': '$1'
+      'GK_MERGE_CONFLICT_(.*)': '$1'
+      'GK_REPOSITORY_(.*)': '$1'
+      'GK_SESSION_PROGRESS_(.*)': '$1'
+      'GK_CONFLICT_RESOLUTION_(.*)': '$1'

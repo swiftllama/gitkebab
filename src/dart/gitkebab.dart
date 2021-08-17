@@ -2,6 +2,7 @@ import 'dart:ffi' as ffi;
 import 'gitkebab_lib.dart' as gitkebab_lib;
 import 'package:ffi/ffi.dart' as ffip;
 
+export 'gitkebab_lib.dart' show ConflictResolution, MergeConflictEntryType, RepositorySourceUrlType, RepositoryState, RepositoryVerifyCondition, SessionCredentialType, SessionProgresEventType;
 
 extension FfiUtf8Casting on String {
   ffi.Pointer<ffi.Int8> toFfiPtr() {
@@ -10,6 +11,15 @@ extension FfiUtf8Casting on String {
 }
 
 
+extension PointerExtensions<T extends ffi.NativeType> on ffi.Pointer<T> {
+  String toDartString() {
+    if (T == ffi.Int8) {
+      return this.cast<ffip.Utf8>().toDartString();
+    }
+
+    throw UnsupportedError('${T} unsupported');
+  }
+}
 
 class GitKebab {
   static gitkebab_lib.GitKebabLib? _lib = null;
