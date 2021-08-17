@@ -1,4 +1,6 @@
 
+#include <string.h>
+
 #include "git2.h"
 
 #include "gk_repository.h"
@@ -21,52 +23,51 @@ static int gk_session_check_progress_pointer(void *payload, const char *progress
     return 0;
 }
 
-static void gk_session_progress_init(gk_session_progress *progress) {
+static gk_session_progress *gk_session_progress_init(int progress_event_type) {
+    gk_session_progress *progress = malloc(sizeof(gk_session_progress));
+    memset(progress, 0, sizeof(gk_session_progress));
+
     progress->percent = 0;
     progress->description[0] = '\0';
+    progress->progress_event_type = progress_event_type;
 
-    progress->fetch.network_percent = 0;
-    progress->fetch.index_percent = 0;
-    progress->fetch.received_bytes = 0;
-    progress->fetch.deltas_resolved_percent = 0;
-
-    progress->checkout.completed_steps = 0;
-    progress->checkout.total_steps = 0;
-    progress->checkout.checkout_percent = 0;
-    progress->checkout.current_path = "";
-}
-
-void gk_session_progress_init_push_transfer(gk_session_progress *progress, unsigned int current, unsigned int total, size_t bytes) {
-    if (progress == NULL) {
-        log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as push transfer progress");
-        return;
+    if (progress_event_type == GK_SESSION_PROGRESS_CHECKOUT) {
+        progress->checkout = malloc(sizeof(gk_checkout_progress));
+        memset(progress->checkout, 0, sizeof(gk_checkout_progress));
+    }
+    else if (progress_event_type == GK_SESSION_PROGRESS_FETCH) {
+        progress->fetch = malloc(sizeof(gk_fetch_progress));
+        memset(progress->fetch, 0, sizeof(gk_fetch_progress));
+    }
+    else if (progress_event_type == GK_SESSION_PROGRESS_PUSH_TRANSFER) {
+        progress->push_transfer = malloc(sizeof(gk_push_transfer_progress));
+        memset(progress->push_transfer, 0, sizeof(gk_push_transfer_progress));
     }
 
-    gk_session_progress_init(progress);
-    progress->progress_event_type = GK_SESSION_PROGRESS_PUSH_TRANSFER;
-
-    progress->push_transfer.current = current;
-    progress->push_transfer.total = total;
-    progress->push_transfer.bytes = bytes;
-    progress->push_transfer.percent = total == 0 ? 0 : (int)(100.0*(float)current / (float)total);
-
-    progress->percent = progress->push_transfer.percent;
-    snprintf(progress->description, 256, "Uploading %d%% (%zuB)", progress->push_transfer.percent, progress->push_transfer.bytes);
+    return progress;
 }
 
-void gk_session_progress_init_fetch(gk_session_progress *progress, size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas) {    
-    if (progress == NULL) {
-        log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as fetch progress");
-        return;
-    }
+gk_session_progress *gk_session_progress_init_push_transfer(unsigned int current, unsigned int total, size_t bytes) {
+    gk_session_progress *progress = gk_session_progress_init(GK_SESSION_PROGRESS_PUSH_TRANSFER);
+    progress->push_transfer->current = current;
+    progress->push_transfer->total = total;
+    progress->push_transfer->bytes = bytes;
+    progress->push_transfer->percent = total == 0 ? 0 : (int)(100.0*(float)current / (float)total);
 
-    gk_session_progress_init(progress);
-    progress->progress_event_type = GK_SESSION_PROGRESS_FETCH;
+    progress->percent = progress->push_transfer->percent;
+    snprintf(progress->description, 1024, "Uploading %d%% (%zuB)", progress->push_transfer->percent, progress->push_transfer->bytes);
+    progress->description_ptr = progress->description;
 
-    progress->fetch.received_bytes = received_bytes;
-    progress->fetch.network_percent = total_objects == 0 ? 0 : (int)((100*received_objects) / total_objects);
-    progress->fetch.index_percent = total_objects == 0 ? 0 : (int)((100*indexed_objects) / total_objects);
-    progress->fetch.deltas_resolved_percent = total_deltas == 0 ? 0 : (int)(100*indexed_deltas / total_deltas);
+    return progress;
+}
+
+gk_session_progress *gk_session_progress_init_fetch(size_t received_bytes, unsigned int total_objects, unsigned int total_deltas, unsigned int received_objects, unsigned int indexed_objects, unsigned int indexed_deltas) {
+    gk_session_progress *progress = gk_session_progress_init(GK_SESSION_PROGRESS_FETCH);
+
+    progress->fetch->received_bytes = received_bytes;
+    progress->fetch->network_percent = total_objects == 0 ? 0 : (int)((100*received_objects) / total_objects);
+    progress->fetch->index_percent = total_objects == 0 ? 0 : (int)((100*indexed_objects) / total_objects);
+    progress->fetch->deltas_resolved_percent = total_deltas == 0 ? 0 : (int)(100*indexed_deltas / total_deltas);
 
     // Approximate progress->percent as a linear function of the three different percentages
     // this mostly works but is prone to sudden jumps
@@ -77,35 +78,56 @@ void gk_session_progress_init_fetch(gk_session_progress *progress, size_t receiv
     if (total_objects > 0) {
         if (received_objects < total_objects) {
             snprintf(progress->description, 256, "Receiving objects");
-            progress->percent = (int)(0.33*(progress->fetch.network_percent + progress->fetch.index_percent));
+            progress->percent = (int)(0.33*(progress->fetch->network_percent + progress->fetch->index_percent));
         }
         else if (indexed_objects < total_objects) {
             snprintf(progress->description, 256, "Indexing objects");
-            progress->percent = (int)(0.33*(progress->fetch.network_percent + progress->fetch.index_percent));
+            progress->percent = (int)(0.33*(progress->fetch->network_percent + progress->fetch->index_percent));
         }
     }
     if (progress->description[0] == '\0') {
-        snprintf(progress->description, 256, "Resolving deltas");
-        progress->percent = 67 + (int)(0.33*(progress->fetch.deltas_resolved_percent));
+        snprintf(progress->description, 1024, "Resolving deltas");
+        progress->percent = 67 + (int)(0.33*(progress->fetch->deltas_resolved_percent));
     }
+    progress->description_ptr = progress->description;
+
+    return progress;
 }
 
-void gk_session_progress_init_checkout(gk_session_progress *progress, const char *path, size_t current_steps, size_t total_steps) {
+gk_session_progress *gk_session_progress_init_checkout(const char *path, size_t current_steps, size_t total_steps) {
+
+    gk_session_progress *progress = gk_session_progress_init(GK_SESSION_PROGRESS_CHECKOUT);
+
+    progress->checkout->completed_steps = current_steps;
+    progress->checkout->total_steps = total_steps;
+    progress->checkout->checkout_percent = total_steps == 0 ? 0 : (int)(100*(float)current_steps/(float)total_steps);
+    progress->checkout->current_path = path == NULL ? "" : path;
+
+    progress->percent = progress->checkout->checkout_percent;
+    progress->percent = total_steps == 0 ? 0 : (int)(100*(float)current_steps/(float)total_steps);
+    snprintf(progress->description, 1024, "%s", path == NULL ? "" : path);
+    progress->description_ptr = progress->description;
+
+    return progress;
+}
+
+void gk_session_progress_free(gk_session_progress *progress) {
     if (progress == NULL) {
-        log_error(COMP_PROGRESS, "Cannot initialize NULL session progress as checkout progress");
         return;
     }
 
-    gk_session_progress_init(progress);
-    progress->progress_event_type = GK_SESSION_PROGRESS_CHECKOUT;
-
-    progress->checkout.completed_steps = current_steps;
-    progress->checkout.total_steps = total_steps;
-    progress->checkout.checkout_percent = total_steps == 0 ? 0 : (int)(100*(float)current_steps/(float)total_steps);
-    progress->checkout.current_path = path == NULL ? "" : path;
-
-    progress->percent = progress->checkout.checkout_percent;
-    snprintf(progress->description, 256, "%s", path == NULL ? "" : path);
+    if (progress->checkout != NULL) {
+        free(progress->checkout);
+        progress->checkout = NULL;
+    }
+    if (progress->fetch != NULL) {
+        free(progress->fetch);
+        progress->fetch = NULL;
+    }
+    if (progress->push_transfer != NULL) {
+        free(progress->push_transfer);
+        progress->push_transfer = NULL;
+    }
 }
 
 int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
@@ -119,9 +141,10 @@ int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
     }
     
     gk_session *session = (gk_session *)payload;
-    gk_session_progress progress;
-    gk_session_progress_init_fetch(&progress, stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
-    session->callbacks.progress_callback(&progress);
+    gk_session_progress *progress =  gk_session_progress_init_fetch(stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
+    session->callbacks.progress_callback(progress);
+    gk_session_progress_free(progress);
+    
     return 0;
 }
 
@@ -132,9 +155,9 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
     }
 
     gk_session *session = (gk_session *)payload;
-    gk_session_progress progress;
-    gk_session_progress_init_checkout(&progress, path, current_steps, total_steps); 
-    session->callbacks.progress_callback(&progress);
+    gk_session_progress *progress = gk_session_progress_init_checkout(path, current_steps, total_steps);
+    session->callbacks.progress_callback(progress);
+    gk_session_progress_free(progress);
 }
 
 int gk_session_progress_push_transfer_callback(unsigned int current, unsigned int total, size_t bytes, void *payload) {
@@ -143,9 +166,9 @@ int gk_session_progress_push_transfer_callback(unsigned int current, unsigned in
     }
 
     gk_session *session = (gk_session *)payload;
-    gk_session_progress progress;
-    gk_session_progress_init_push_transfer(&progress, current, total, bytes);
-    session->callbacks.progress_callback(&progress);
+    gk_session_progress *progress = gk_session_progress_init_push_transfer(current, total, bytes);
+    session->callbacks.progress_callback(progress);
+    gk_session_progress_free(progress);
     return 0;
 }
 
