@@ -16,6 +16,7 @@ enums:
     'gk_repository_verify_condition': 'RepositoryVerifyCondition'
     'gk_session_progress_event_type': 'SessionProgressEventType'
     'gk_session_credential_type': 'SessionCredentialType'
+    'GK_RESULT_CODE': 'ResultCode'
   member-rename:
     '(.*)': # Matches any enum.
       'GK_REPOSITORY_STATE_(.*)': '$1'
@@ -24,3 +25,7 @@ enums:
       'GK_REPOSITORY_(.*)': '$1'
       'GK_SESSION_PROGRESS_(.*)': '$1'
       'GK_CONFLICT_RESOLUTION_(.*)': '$1'
+      'GK_SUCCESS': 'SUCCESS'
+      'GK_FAILURE': 'FAILURE'
+      'GK_ERR': 'ERROR'
+      'GK_ERR_(.*)': 'ERROR_$1'

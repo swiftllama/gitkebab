@@ -2,7 +2,10 @@ import 'dart:ffi' as ffi;
 import 'gitkebab_lib.dart' as gitkebab_lib;
 import 'package:ffi/ffi.dart' as ffip;
 
-export 'gitkebab_lib.dart' show ConflictResolution, MergeConflictEntryType, RepositorySourceUrlType, RepositoryState, RepositoryVerifyCondition, SessionCredentialType, SessionProgresEventType;
+export 'gitkebab_lib.dart' show ConflictResolution, MergeConflictEntryType,
+  RepositorySourceUrlType, RepositoryState, RepositoryVerifyCondition,
+  SessionCredentialType, SessionProgressEventType,
+  gk_repository, ResultCode;
 
 extension FfiUtf8Casting on String {
   ffi.Pointer<ffi.Int8> toFfiPtr() {
@@ -81,17 +84,20 @@ void session_state_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer<gi
   }
 
   var repository = repositoryPtr.ref;
-  session.onStateChanged(session, repository);
+  session.state = SessionState(repository.state);
+  session.onStateChanged(session);
 }
 
 typedef void SessionProgressCallback(Session session, gitkebab_lib.gk_session_progress progress);
-typedef void SessionStateCallback(Session session, gitkebab_lib.gk_repository repository);
+typedef void SessionStateCallback(Session session);
 
 class Session {
   ffi.Pointer<gitkebab_lib.gk_session> session_ptr = ffi.Pointer.fromAddress(0);
   String id = "<unknown>";
+  SessionState state = SessionState(0);
+  
   SessionProgressCallback onProgress = (session, progress) => {};
-  SessionStateCallback onStateChanged = (session, repository) => {};
+  SessionStateCallback onStateChanged = (session) => {};
   
   Session(String url, int urlType, String localPath, String user) {
     session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), ffi.Pointer.fromFunction(session_progress_callback), ffi.Pointer.fromFunction(session_state_callback));
@@ -123,7 +129,104 @@ class Session {
     return GitKebab.lib.gk_session_last_result_message(session_ptr).cast<ffip.Utf8>().toDartString();
   }
 
-  void progressCallback(gitkebab_lib.gk_session_progress sessionProgress) {
-    
+  int addPath(String path) {
+    return GitKebab.lib.gk_index_add_path(session_ptr, path.toFfiPtr());
   }
+
+  int removePath(String path) {
+    return GitKebab.lib.gk_index_remove_path(session_ptr, path.toFfiPtr());
+  }
+
+  int addAll(String pattern) {
+    return GitKebab.lib.gk_index_add_all(session_ptr, pattern.toFfiPtr());
+  }
+
+  int updateAll(String pattern) {
+    return GitKebab.lib.gk_index_update_all(session_ptr, pattern.toFfiPtr());
+  }
+
+  int queryStatus() {
+    int rc = GitKebab.lib.gk_status_summary_query(session_ptr);
+    if (rc != 0) {
+      return rc;
+    }
+    int entrycount = GitKebab.lib.gk_status_summary_entrycount(session_ptr);
+    print("DBG found $entrycount entry items");
+    //for (var i = 0; i < entrycount; i += 1) {
+    //  var path = GitKebab.lib.gk_status_summary_path_at(session_ptr, i);
+    //  
+    //}
+    return 0;
+  }
+}
+
+class SessionState {
+    final bool localCheckoutExists;
+    final bool hasConflicts;
+    final bool hasChangesToMerge;
+    final bool cloneInProgress;
+    final bool mergeFinalizationPending;
+    final bool mergePendingOnDisk;
+    final bool pushInProgress;
+    final bool fetchInProgress;
+    final bool mergeInProgress;
+
+    SessionState(int state):
+      localCheckoutExists = ((state > 0) && (state & gitkebab_lib.RepositoryState.LOCAL_CHECKOUT_EXISTS) == state),
+      hasConflicts = ((state > 0) && (state & gitkebab_lib.RepositoryState.HAS_CONFLICTS) == state),
+      hasChangesToMerge = ((state > 0) && (state & gitkebab_lib.RepositoryState.HAS_CHANGES_TO_MERGE) == state),
+      cloneInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.CLONE_IN_PROGRESS) == state),
+      mergeFinalizationPending = ((state > 0) && (state & gitkebab_lib.RepositoryState.MERGE_FINALIZATION_PENDING) == state),
+      mergePendingOnDisk = ((state > 0) && (state & gitkebab_lib.RepositoryState.MERGE_PENDING_ON_DISK) == state),
+      pushInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.PUSH_IN_PROGRESS) == state),
+      fetchInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.FETCH_IN_PROGRESS) == state),
+      mergeInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS) == state) {
+    }
+
+    Map<String, String> diff(SessionState other) {
+      Map<String, String> diffs = {};
+      if (localCheckoutExists != other.localCheckoutExists) {
+        diffs["localCheckoutExists"] = localCheckoutExists ? "off" : "on";
+      }
+      if (hasConflicts != other.hasConflicts) {
+        diffs["hasConflicts"] = hasConflicts ? "off" : "on";
+      }
+      if (hasChangesToMerge != other.hasChangesToMerge) {
+        diffs["hasChangesToMerge"] = hasChangesToMerge ? "off" : "on";
+      }
+      if (cloneInProgress != other.cloneInProgress) {
+        diffs["cloneInProgress"] = cloneInProgress ? "off" : "on";
+      }
+      if (mergeFinalizationPending != other.mergeFinalizationPending) {
+        diffs["mergeFinalizationPending"] = mergeFinalizationPending ? "off" : "on";
+      }
+      if (mergePendingOnDisk != other.mergePendingOnDisk) {
+        diffs["mergePendingOnDisk"] = mergePendingOnDisk ? "off" : "on";
+      }
+      if (pushInProgress != other.pushInProgress) {
+        diffs["pushInProgress"] = pushInProgress ? "off" : "on";
+      }
+      if (fetchInProgress != other.fetchInProgress) {
+        diffs["fetchInProgress"] = fetchInProgress ? "off" : "on";
+      }
+      if (mergeInProgress != other.mergeInProgress) {
+        diffs["mergeInProgress"] = mergeInProgress ? "off" : "on";
+      }
+      return diffs;
+    }
+
+    String toString() {
+      String str = "<SessionState ";
+      str += localCheckoutExists ? "localCheckoutExists " : "";
+      str += hasConflicts ? "hasConflicts " : "";
+      str += hasChangesToMerge ? "hasChangesToMerge " : "";
+      str += cloneInProgress ? "cloneInProgress " : "";
+      str += mergeFinalizationPending ? "mergeFinalizationPending " : "";
+      str += mergePendingOnDisk ? "mergePendingOnDisk " : "";
+      str += pushInProgress ? "pushInProgress " : "";
+      str += fetchInProgress ? "fetchInProgress " : "";
+      str += mergeInProgress ? "mergeInProgress " : "";      
+      str += ">";
+      return str;
+    }
 }
