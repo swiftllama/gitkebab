@@ -42,5 +42,19 @@ class Session {
     GitKebab.lib.gk_clone(session_ptr);
   }
 
-  
+  void fetch(String remoteName) {
+    GitKebab.lib.gk_fetch(session_ptr, remoteName.toFfiPtr());
+  }
+
+  void push(String remoteName) {
+    GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr());
+  }
+
+  int lastResultCode() {
+    return GitKebab.lib.gk_session_last_result_code(session_ptr);
+  }
+
+  String lastResultMessage() {
+    return GitKebab.lib.gk_session_last_result_message(session_ptr).cast<ffip.Utf8>().toDartString();
+  }
 }
