@@ -10,8 +10,6 @@
 
 const char *error_listing = "index";
 
-void session_progress(gk_session_progress *progress) { (void) progress; }
-
 static int test_staging_setup(void **state) {
     gk_init();
     prepare_error_listing(error_listing);

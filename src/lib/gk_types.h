@@ -105,9 +105,10 @@ typedef struct gk_session_progress {
     int percent;
     char description[1024];
     char *description_ptr; // Note: fixed-size char arrays are difficult to access in dart
+    const char *session_id;
 } gk_session_progress;
 
-typedef void gk_session_progress_callback(gk_session_progress *progress);
+typedef void gk_session_progress_callback(const char *session_id, gk_session_progress *progress);
 
 typedef enum gk_session_credential_type {
     CREDENTIAL_SSH_KEY_MEMORY,
@@ -167,7 +168,7 @@ typedef struct {
     size_t count_conflicted;
 } gk_status_summary;
 
-typedef void gk_repository_state_changed_callback(gk_repository *repository);
+typedef void gk_repository_state_changed_callback(const char *session_id, gk_repository *repository);
 
 typedef struct {
     gk_session_progress_callback *progress_callback;
@@ -184,6 +185,8 @@ struct gk_repository {
 };
 
 typedef struct {
+    char id[16];
+    char *id_ptr; // dart string access
     gk_execution_context *context;
     gk_repository *repository;
     gk_session_credential credential;

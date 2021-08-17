@@ -5,8 +5,8 @@
 #include "gitkebab.h"
 
 
-void gk_test_session_progress_verbose(gk_session_progress *progress);
-void gk_test_session_progress_null(gk_session_progress *progress);
+void gk_test_session_progress_verbose(const char *session_id, gk_session_progress *progress);
+void gk_test_session_progress_null(const char *session_id, gk_session_progress *progress);
 
 int gk_test_environment_setup(void **state);
 int gk_test_environment_teardown(void **state);
@@ -26,7 +26,7 @@ gk_session *gk_test_session_from_clone(const char *remote_repo, const char *loca
 void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **session1_ptr, gk_session **session2_ptr, void **state);
 
 void gk_test_reset_state_change_record();
-void gk_test_state_change_callback(gk_repository *repository);
+void gk_test_state_change_callback(const char *session_id, gk_repository *repository);
 
 int gk_test_state_count_disabled(gk_repository_state state);
 int gk_test_state_count_enabled(gk_repository_state state);

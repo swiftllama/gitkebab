@@ -7,7 +7,7 @@
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
 
-void session_progress(gk_session_progress *progress) { (void) progress; }
+void session_progress(const char *session_id, gk_session_progress *progress) { (void) session_id; (void) progress; }
 const char *error_listing = "clone";
 
 static int test_staging_setup(void **state) {

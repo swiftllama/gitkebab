@@ -38,16 +38,71 @@ class GitKebab {
   }
 }
 
+Map<String, Session> g_sessions = {};
+
+void session_progress_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer<gitkebab_lib.gk_session_progress> sessionProgress) {
+  if (session_id_ptr.address == 0) {
+    print("WARNING: received session progress callback with NULL session_id");
+    return;
+  }
+  var session_id = session_id_ptr.toDartString();  
+  if (sessionProgress.address == 0) {
+    print("WARNING: received session progress callback for session [$session_id] with null progress structure");
+    return;
+  }
+
+  Session? session = g_sessions[session_id];
+  if (session == null) {
+    print("WARNING: received session progress callback for session [$session_id] but no such session exists");
+    return;
+  }
+
+  var progress = sessionProgress.ref;
+  session.onProgress(session, progress);
+}
+
+
+
+void session_state_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
+  if (session_id_ptr.address == 0) {
+    print("WARNING: received session state changed callback with NULL session_id");
+    return;
+  }
+  var session_id = session_id_ptr.toDartString();  
+  if (repositoryPtr.address == 0) {
+    print("WARNING: received session state changed callback for session [$session_id] with NULL repository structure");
+    return;
+  }
+
+  Session? session = g_sessions[session_id];
+  if (session == null) {
+    print("WARNING: received session state changed callback for session [$session_id] but no such session exists");
+    return;
+  }
+
+  var repository = repositoryPtr.ref;
+  session.onStateChanged(session, repository);
+}
+
+typedef void SessionProgressCallback(Session session, gitkebab_lib.gk_session_progress progress);
+typedef void SessionStateCallback(Session session, gitkebab_lib.gk_repository repository);
+
 class Session {
-  var session_ptr;
+  ffi.Pointer<gitkebab_lib.gk_session> session_ptr = ffi.Pointer.fromAddress(0);
+  String id = "<unknown>";
+  SessionProgressCallback onProgress = (session, progress) => {};
+  SessionStateCallback onStateChanged = (session, repository) => {};
   
   Session(String url, int urlType, String localPath, String user) {
-    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), ffi.Pointer.fromAddress(0), ffi.Pointer.fromAddress(0));
+    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), ffi.Pointer.fromFunction(session_progress_callback), ffi.Pointer.fromFunction(session_state_callback));
     if (session_ptr == null) {
       throw "Error initializing session";
     }
-  }
 
+    id = session_ptr.ref.id_ptr.toDartString();
+    g_sessions[id] = this;
+  }
+  
   void clone() {
     GitKebab.lib.gk_clone(session_ptr);
   }
@@ -66,5 +121,9 @@ class Session {
 
   String lastResultMessage() {
     return GitKebab.lib.gk_session_last_result_message(session_ptr).cast<ffip.Utf8>().toDartString();
+  }
+
+  void progressCallback(gitkebab_lib.gk_session_progress sessionProgress) {
+    
   }
 }

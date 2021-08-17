@@ -8,9 +8,23 @@
 #include "gk_init.h"
 #include "gk_lg2_private.h"
 #include "gk_results.h"
+#include <time.h>
+
+static int _session_id_counter = 0;
+
+static void gk_session_generate_uid(gk_session *session) {
+    // NOTE: replace with real UUIDs?
+    time_t rawtime;
+    time(&rawtime);
+    snprintf(session->id, 16, "%d%jd", _session_id_counter, rawtime);
+    _session_id_counter += 1;
+    session->id_ptr = session->id;
+}
 
 gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
     gk_session *session = (gk_session *)malloc(sizeof(gk_session));
+    memset(session, 0, sizeof(gk_session));
+    gk_session_generate_uid(session);
     session->repository = gk_repository_new();
     gk_repository_init(session->repository, source_url, source_url_type, local_path, user);
     gk_session_credential_init(session);
@@ -108,7 +122,7 @@ int gk_session_trigger_repository_state_callback(gk_session *session) {
     }
     if (session->callbacks.state_changed_callback != NULL) {
         log_info(COMP_SESSION, "invoking state change callback with new repository state [%d]", session->repository->state);
-        session->callbacks.state_changed_callback(session->repository);
+        session->callbacks.state_changed_callback(session->id_ptr, session->repository);
     }
     else {
         log_info(COMP_SESSION, "Session's repository state change callback is NULL, no state change callback will be invoked");

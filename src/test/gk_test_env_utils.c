@@ -22,7 +22,8 @@ void gk_test_reset_state_change_record() {
     g_current_state = GK_REPOSITORY_STATE_DEFAULT;
 }
 
-void gk_test_state_change_callback(gk_repository *repository) {
+void gk_test_state_change_callback(const char *session_id, gk_repository *repository) {
+    (void)session_id;
     g_old_state = g_current_state;
     g_current_state = repository->state;
     //log_error(COMP_TEST, "[STATE] state changed, old [%d] new [%d]", g_old_state, g_current_state);
@@ -126,16 +127,17 @@ int gk_test_environment_teardown(void **state) {
 }
 
 
-void gk_test_session_progress_verbose(gk_session_progress *progress) {
+void gk_test_session_progress_verbose(const char *session_id, gk_session_progress *progress) {
     if (progress != NULL) {
-        log_info(COMP_TEST, "PROGRESS [%s] (%zu%%)", progress->description, progress->percent);
+        log_info(COMP_TEST, "PROGRESS session [%s] [%s] (%zu%%)", session_id, progress->description, progress->percent);
     }
     else {
         log_error(COMP_TEST, "Error in progress callback, callback invoked with NULL progress struct");
     }
 }
 
-void gk_test_session_progress_null(gk_session_progress *progress) {
+void gk_test_session_progress_null(const char *session_id, gk_session_progress *progress) {
+    (void) session_id;
     (void) progress;
 }
 

@@ -142,7 +142,7 @@ int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
     
     gk_session *session = (gk_session *)payload;
     gk_session_progress *progress =  gk_session_progress_init_fetch(stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
-    session->callbacks.progress_callback(progress);
+    session->callbacks.progress_callback(session->id_ptr, progress);
     gk_session_progress_free(progress);
     
     return 0;
@@ -156,7 +156,7 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
 
     gk_session *session = (gk_session *)payload;
     gk_session_progress *progress = gk_session_progress_init_checkout(path, current_steps, total_steps);
-    session->callbacks.progress_callback(progress);
+    session->callbacks.progress_callback(session->id_ptr, progress);
     gk_session_progress_free(progress);
 }
 
@@ -167,7 +167,7 @@ int gk_session_progress_push_transfer_callback(unsigned int current, unsigned in
 
     gk_session *session = (gk_session *)payload;
     gk_session_progress *progress = gk_session_progress_init_push_transfer(current, total, bytes);
-    session->callbacks.progress_callback(progress);
+    session->callbacks.progress_callback(session->id_ptr, progress);
     gk_session_progress_free(progress);
     return 0;
 }

@@ -8,7 +8,6 @@
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
 
-void session_progress(gk_session_progress *progress) { (void) progress; }
 
 static int test_staging_setup(void **state);
 static int test_staging_teardown(void **state);
