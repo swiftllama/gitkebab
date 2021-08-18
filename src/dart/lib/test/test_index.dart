@@ -80,4 +80,15 @@ void main() {
     expect(session.state.hasChangesToCommit, equals(true));
     expect(session.state.localCheckoutExists, equals(true));
   });
+
+  test('Index - add non-existent path', () {
+    stateHistory.reset();
+    var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, cloneTest1, "");
+    session.onStateChanged = stateChangedCallbackWithHistory;
+    session.clone();
+    expect(session.lastResultCode(), equals(0));
+
+    session.addPath("non-existent-file1");
+    expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_NOT_FOUND));
+  });
 }
