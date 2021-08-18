@@ -116,3 +116,7 @@ int gk_resolve_reference(gk_session *session, const char *ref_name, gk_object_id
 
     return gk_session_success(session, purpose);
 }
+
+const char * gk_object_id_ptr(gk_object_id *object_id) {
+    return object_id->id;
+}

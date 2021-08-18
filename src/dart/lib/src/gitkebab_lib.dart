@@ -3831,6 +3831,19 @@ class GitKebabLib {
   late final _dart_gk_resolve_reference _gk_resolve_reference =
       _gk_resolve_reference_ptr.asFunction<_dart_gk_resolve_reference>();
 
+  ffi.Pointer<ffi.Int8> gk_object_id_ptr(
+    ffi.Pointer<gk_object_id> object_id,
+  ) {
+    return _gk_object_id_ptr(
+      object_id,
+    );
+  }
+
+  late final _gk_object_id_ptr_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_object_id_ptr>>('gk_object_id_ptr');
+  late final _dart_gk_object_id_ptr _gk_object_id_ptr =
+      _gk_object_id_ptr_ptr.asFunction<_dart_gk_object_id_ptr>();
+
   ffi.Pointer<gk_merge_conflict_entry> gk_merge_conflict_entry_new() {
     return _gk_merge_conflict_entry_new();
   }
@@ -8685,6 +8698,14 @@ typedef _c_gk_resolve_reference = ffi.Int32 Function(
 typedef _dart_gk_resolve_reference = int Function(
   ffi.Pointer<gk_session> session,
   ffi.Pointer<ffi.Int8> ref_name,
+  ffi.Pointer<gk_object_id> object_id,
+);
+
+typedef _c_gk_object_id_ptr = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_object_id> object_id,
+);
+
+typedef _dart_gk_object_id_ptr = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<gk_object_id> object_id,
 );
 

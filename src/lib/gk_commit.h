@@ -11,5 +11,6 @@ size_t gk_count_reflog_entries(gk_session *session, const char* ref_name);
 int gk_commit(gk_session *session, const char* commit_message, gk_object_id *out_commit_id);
 int gk_resolve_reference(gk_session *session, const char *ref_name, gk_object_id *object_id);
 
+const char * gk_object_id_ptr(gk_object_id *object_id);
 
 #endif // __GITKEBAB_COMMIT_H__

@@ -17,7 +17,7 @@ void main() {
     }
   });
 
-  test('Index - add remove individual files', () {
+  test('Commit - no changes', () {
     stateHistory.reset();
 
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, cloneTest1, "");
@@ -25,25 +25,8 @@ void main() {
     session.clone();
     expect(session.lastResultCode(), equals(0));
 
-    File("$cloneTest1/file1").copySync("$cloneTest1/new-file1");
-    File("$cloneTest1/file1").copySync("$cloneTest1/new-file2");
-    File("$cloneTest1/file1").copySync("$cloneTest1/ignored-file1");
-    File("$cloneTest1/file2").deleteSync();
-
-    session.queryStatus();
+    session.commit("commit from dart");
     expect(session.lastResultCode(), equals(0));
-    expect(session.status.entries.length, equals(3));
-    expect(session.status.entries[0].path, equals("file2"));
-    expect(session.status.entries[0].status, gitkebab.FileStatus.worktreeDeleted);
-    expect(session.status.entries[1].path, equals("new-file1"));
-    expect(session.status.entries[1].status, gitkebab.FileStatus.worktreeNew);
-    expect(session.status.entries[2].path, equals("new-file2"));
-    expect(session.status.entries[2].status, gitkebab.FileStatus.worktreeNew);
-
-    expect(stateHistory.changes.length, equals(3));
-    expect(stateHistory.changes.last, equals({"hasChangesToCommit":"on"}));
-    expect(session.state.hasChangesToCommit, equals(true));
-    expect(session.state.localCheckoutExists, equals(true));
   });
 
 

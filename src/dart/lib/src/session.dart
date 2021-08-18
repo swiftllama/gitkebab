@@ -119,6 +119,21 @@ class Session {
     GitKebab.lib.gk_status_summary_close(session_ptr);
     return 0;
   }
+
+  String commit(String commitMessage) {
+    ffi.Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.malloc<gitkebab_lib.gk_object_id>();
+    int rc = GitKebab.lib.gk_commit(session_ptr, commitMessage.toFfiPtr(), object_id_ptr);
+    String lastCommitId = "";
+    if ((rc == 0)) {
+      if (object_id_ptr.address == 0) {
+        print("Error retrieving commit id, returned object_id is null");
+        return "";
+      }
+      lastCommitId = GitKebab.lib.gk_object_id_ptr(object_id_ptr).toDartString();
+      print("DBG got last commit id: [${lastCommitId}]");
+    }
+    return lastCommitId;
+  }
 }
 
 class SessionState {
