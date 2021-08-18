@@ -48,7 +48,6 @@ void session_state_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer<gi
   }
 
   var repository = repositoryPtr.ref;
-  print("DBG session state update [${repository.state}]");
   session.state = SessionState(repository.state);
   session.onStateChanged(session);
 }
@@ -117,6 +116,7 @@ class Session {
       return rc;
     }
     status = RepositoryStatusList.forQueriedSession(session_ptr);
+    GitKebab.lib.gk_status_summary_close(session_ptr);
     return 0;
   }
 }
