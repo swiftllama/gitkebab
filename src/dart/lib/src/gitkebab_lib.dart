@@ -4358,6 +4358,54 @@ class GitKebabLib {
   late final _dart_gk_merge_abort _gk_merge_abort =
       _gk_merge_abort_ptr.asFunction<_dart_gk_merge_abort>();
 
+  ffi.Pointer<ffi.Int8> gk_merge_conflict_entry_ancestor_oid_id(
+    ffi.Pointer<gk_merge_conflict_entry> entry,
+  ) {
+    return _gk_merge_conflict_entry_ancestor_oid_id(
+      entry,
+    );
+  }
+
+  late final _gk_merge_conflict_entry_ancestor_oid_id_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_merge_conflict_entry_ancestor_oid_id>>(
+          'gk_merge_conflict_entry_ancestor_oid_id');
+  late final _dart_gk_merge_conflict_entry_ancestor_oid_id
+      _gk_merge_conflict_entry_ancestor_oid_id =
+      _gk_merge_conflict_entry_ancestor_oid_id_ptr
+          .asFunction<_dart_gk_merge_conflict_entry_ancestor_oid_id>();
+
+  ffi.Pointer<ffi.Int8> gk_merge_conflict_entry_ours_oid_id(
+    ffi.Pointer<gk_merge_conflict_entry> entry,
+  ) {
+    return _gk_merge_conflict_entry_ours_oid_id(
+      entry,
+    );
+  }
+
+  late final _gk_merge_conflict_entry_ours_oid_id_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_merge_conflict_entry_ours_oid_id>>(
+          'gk_merge_conflict_entry_ours_oid_id');
+  late final _dart_gk_merge_conflict_entry_ours_oid_id
+      _gk_merge_conflict_entry_ours_oid_id =
+      _gk_merge_conflict_entry_ours_oid_id_ptr
+          .asFunction<_dart_gk_merge_conflict_entry_ours_oid_id>();
+
+  ffi.Pointer<ffi.Int8> gk_merge_conflict_entry_theirs_oid_id(
+    ffi.Pointer<gk_merge_conflict_entry> entry,
+  ) {
+    return _gk_merge_conflict_entry_theirs_oid_id(
+      entry,
+    );
+  }
+
+  late final _gk_merge_conflict_entry_theirs_oid_id_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_merge_conflict_entry_theirs_oid_id>>(
+          'gk_merge_conflict_entry_theirs_oid_id');
+  late final _dart_gk_merge_conflict_entry_theirs_oid_id
+      _gk_merge_conflict_entry_theirs_oid_id =
+      _gk_merge_conflict_entry_theirs_oid_id_ptr
+          .asFunction<_dart_gk_merge_conflict_entry_theirs_oid_id>();
+
   int gk_clone(
     ffi.Pointer<gk_session> session,
   ) {
@@ -4611,6 +4659,9 @@ class GitKebabLib {
         progress_callback,
     ffi.Pointer<ffi.NativeFunction<gk_repository_state_changed_callback>>
         state_changed_callback,
+    ffi.Pointer<
+            ffi.NativeFunction<gk_repository_did_query_merge_conflict_summary>>
+        merge_conflict_query_callback,
   ) {
     return _gk_session_new(
       source_url,
@@ -4619,6 +4670,7 @@ class GitKebabLib {
       user,
       progress_callback,
       state_changed_callback,
+      merge_conflict_query_callback,
     );
   }
 
@@ -5666,6 +5718,10 @@ abstract class RepositorySourceUrlType {
 class gk_session_callbacks extends ffi.Struct {
   external ffi.Pointer<ffi.NativeFunction<gk_session_progress_callback>>
       progress_callback;
+
+  external ffi.Pointer<
+          ffi.NativeFunction<gk_repository_did_query_merge_conflict_summary>>
+      merge_conflict_query_callback;
 
   external ffi.Pointer<ffi.NativeFunction<gk_repository_state_changed_callback>>
       state_changed_callback;
@@ -9024,6 +9080,35 @@ typedef _dart_gk_merge_abort = int Function(
   ffi.Pointer<gk_session> session,
 );
 
+typedef _c_gk_merge_conflict_entry_ancestor_oid_id = ffi.Pointer<ffi.Int8>
+    Function(
+  ffi.Pointer<gk_merge_conflict_entry> entry,
+);
+
+typedef _dart_gk_merge_conflict_entry_ancestor_oid_id = ffi.Pointer<ffi.Int8>
+    Function(
+  ffi.Pointer<gk_merge_conflict_entry> entry,
+);
+
+typedef _c_gk_merge_conflict_entry_ours_oid_id = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_merge_conflict_entry> entry,
+);
+
+typedef _dart_gk_merge_conflict_entry_ours_oid_id = ffi.Pointer<ffi.Int8>
+    Function(
+  ffi.Pointer<gk_merge_conflict_entry> entry,
+);
+
+typedef _c_gk_merge_conflict_entry_theirs_oid_id = ffi.Pointer<ffi.Int8>
+    Function(
+  ffi.Pointer<gk_merge_conflict_entry> entry,
+);
+
+typedef _dart_gk_merge_conflict_entry_theirs_oid_id = ffi.Pointer<ffi.Int8>
+    Function(
+  ffi.Pointer<gk_merge_conflict_entry> entry,
+);
+
 typedef _c_gk_clone = ffi.Int32 Function(
   ffi.Pointer<gk_session> session,
 );
@@ -9114,6 +9199,11 @@ typedef gk_repository_state_changed_callback = ffi.Void Function(
   ffi.Pointer<gk_repository>,
 );
 
+typedef gk_repository_did_query_merge_conflict_summary = ffi.Void Function(
+  ffi.Pointer<ffi.Int8>,
+  ffi.Pointer<gk_repository>,
+);
+
 typedef _c_gk_session_new = ffi.Pointer<gk_session> Function(
   ffi.Pointer<ffi.Int8> source_url,
   ffi.Int32 source_url_type,
@@ -9123,6 +9213,9 @@ typedef _c_gk_session_new = ffi.Pointer<gk_session> Function(
       progress_callback,
   ffi.Pointer<ffi.NativeFunction<gk_repository_state_changed_callback>>
       state_changed_callback,
+  ffi.Pointer<
+          ffi.NativeFunction<gk_repository_did_query_merge_conflict_summary>>
+      merge_conflict_query_callback,
 );
 
 typedef _dart_gk_session_new = ffi.Pointer<gk_session> Function(
@@ -9134,6 +9227,9 @@ typedef _dart_gk_session_new = ffi.Pointer<gk_session> Function(
       progress_callback,
   ffi.Pointer<ffi.NativeFunction<gk_repository_state_changed_callback>>
       state_changed_callback,
+  ffi.Pointer<
+          ffi.NativeFunction<gk_repository_did_query_merge_conflict_summary>>
+      merge_conflict_query_callback,
 );
 
 typedef _c_gk_session_free = ffi.Void Function(

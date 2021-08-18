@@ -21,7 +21,7 @@ static void gk_session_generate_uid(gk_session *session) {
     session->id_ptr = session->id;
 }
 
-gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback) {
+gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback, gk_repository_did_query_merge_conflict_summary *merge_conflict_query_callback) {
     gk_session *session = (gk_session *)malloc(sizeof(gk_session));
     memset(session, 0, sizeof(gk_session));
     gk_session_generate_uid(session);
@@ -33,6 +33,7 @@ gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type
     session->internal_last_result = gk_result_success();
     session->callbacks.progress_callback = progress_callback;
     session->callbacks.state_changed_callback = state_changed_callback;
+    session->callbacks.merge_conflict_query_callback = merge_conflict_query_callback;
     return session;
 }
 

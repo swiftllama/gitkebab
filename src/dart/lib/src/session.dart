@@ -64,6 +64,7 @@ class Session {
   late RepositorySpec repositorySpec;
   SessionState state = SessionState(0);
   RepositoryStatusList status = RepositoryStatusList();
+  MergeConflictSummary mergeConflictSummary = MergeConflictSummary();
 
   SessionProgressCallback onProgress = (session, progress) => {};
   SessionStateCallback onStateChanged = (session) => {};

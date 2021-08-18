@@ -146,6 +146,9 @@ int gk_merge_conflicts_query(gk_session *session) {
     else {
         gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
     }
+    if (session->callbacks.merge_conflict_query_callback != NULL) {
+        session->callbacks.merge_conflict_query_callback(session->id_ptr, session->repository);
+    }
     if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
         return gk_session_failure(session, purpose);
     }
@@ -307,9 +310,6 @@ int gk_merge_into_head(gk_session *session) {
     }
 
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
-    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
-        return gk_session_failure(session, purpose);
-    }
 
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS)) {
         log_info(COMP_MERGE, "merge attempt ended with conflicts");
@@ -319,6 +319,10 @@ int gk_merge_into_head(gk_session *session) {
     }
     else {
         log_info(COMP_MERGE, "merge attempt ended, all changes merged");
+    }
+
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
     }
 
     gk_lg2_free_all_but_repository(session->repository);
@@ -367,6 +371,9 @@ int gk_merge_into_head_finalize(gk_session *session) {
     }
 
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
 
     log_info(COMP_MERGE, "Successfully finalized merge into head");
     return gk_session_success(session, purpose);
@@ -383,4 +390,28 @@ int gk_merge_abort(gk_session *session) {
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
     log_info(COMP_MERGE, "Aborting merge into head");
     return gk_session_success(session, purpose);
+}
+
+const char *gk_merge_conflict_entry_ancestor_oid_id(gk_merge_conflict_entry *entry) {
+    if (entry == NULL) {
+        log_error(COMP_MERGE, "Cannot return ancestor commit id for NULL entry, returning an empty string");
+        return "";
+    }
+    return entry->ancestor_oid_id;
+}
+
+const char *gk_merge_conflict_entry_ours_oid_id(gk_merge_conflict_entry *entry) {
+    if (entry == NULL) {
+        log_error(COMP_MERGE, "Cannot return ours commit id for NULL entry, returning an empty string");
+        return "";
+    }
+    return entry->ours_oid_id;
+}
+
+const char *gk_merge_conflict_entry_theirs_oid_id(gk_merge_conflict_entry *entry) {
+    if (entry == NULL) {
+        log_error(COMP_MERGE, "Cannot return theirs commit id for NULL entry, returning an empty string");
+        return "";
+    }
+    return entry->theirs_oid_id;
 }

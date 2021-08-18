@@ -44,7 +44,7 @@ static int test_setup(void **state) {
 static void test_clone_simple(void **state) {
     (void) state; /* unused */
     
-    gk_session *session = gk_session_new("./fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-1", "git", &session_progress, &gk_test_state_change_callback);
+    gk_session *session = gk_session_new("./fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-1", "git", &session_progress, &gk_test_state_change_callback, NULL);
     gk_clone(session);
     assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_CLONE_IN_PROGRESS), 1);
     assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
@@ -64,7 +64,7 @@ static void test_clone_simple(void **state) {
 static void test_clone_bad_source_path(void **state) {
     (void) state; /* unused */
     
-    gk_session *session = gk_session_new("test-staging/tmp/non-existent-path/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-2", "git", &session_progress, NULL);
+    gk_session *session = gk_session_new("test-staging/tmp/non-existent-path/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-2", "git", &session_progress, NULL, NULL);
     gk_clone(session);
     // Bad path gets detected before clone actually starts, state shouldn't change at all
     assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 0);
@@ -80,7 +80,7 @@ static void test_clone_bad_source_path(void **state) {
 static void test_clone_null_dest_path(void **state) {
     (void) state; /* unused */
     
-    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, NULL, "git", &session_progress, NULL);
+    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, NULL, "git", &session_progress, NULL, NULL);
     gk_clone(session);
 
     assert_int_equal(gk_session_last_result_code(session), GK_ERR_CLONE_INVALID_DESTINATION_PATH);
@@ -92,7 +92,7 @@ static void test_clone_null_dest_path(void **state) {
 static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
     (void) state; /* unused */
     
-    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/empty-dir1", "git", &session_progress, NULL);
+    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/empty-dir1", "git", &session_progress, NULL, NULL);
     gk_clone(session);
 
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
@@ -103,7 +103,7 @@ static void test_clone_dest_path_empty_existing_regular_dir(void **state) {
 static void test_clone_dest_path_nonempty_existing_regular_dir(void **state) {
     (void) state; /* unused */
 
-    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/nonempty-dir1", "git", &session_progress, NULL);
+    gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/nonempty-dir1", "git", &session_progress, NULL, NULL);
     gk_clone(session);
     // non-empty dir gets detected before clone starts, state should not change
     assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 0);

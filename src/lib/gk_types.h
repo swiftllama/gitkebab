@@ -170,9 +170,11 @@ typedef struct {
 } gk_status_summary;
 
 typedef void gk_repository_state_changed_callback(const char *session_id, gk_repository *repository);
+typedef void gk_repository_did_query_merge_conflict_summary(const char *session_id, gk_repository *repository);
 
 typedef struct {
     gk_session_progress_callback *progress_callback;
+    gk_repository_did_query_merge_conflict_summary *merge_conflict_query_callback;
     gk_repository_state_changed_callback *state_changed_callback;
 } gk_session_callbacks;
 

@@ -10,5 +10,8 @@ int gk_merge_into_head(gk_session *session);
 int gk_merge_into_head_finalize(gk_session *session);
 int gk_merge_abort(gk_session *session);
 
+const char *gk_merge_conflict_entry_ancestor_oid_id(gk_merge_conflict_entry *entry);
+const char *gk_merge_conflict_entry_ours_oid_id(gk_merge_conflict_entry *entry);
+const char *gk_merge_conflict_entry_theirs_oid_id(gk_merge_conflict_entry *entry);
 
 #endif // __GK_MERGE_H__
