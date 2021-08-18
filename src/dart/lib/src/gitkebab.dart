@@ -1,8 +1,9 @@
 import 'dart:ffi' as ffi;
-import 'gitkebab_lib.dart' as gitkebab_lib;
+
 import 'package:ffi/ffi.dart' as ffip;
 
-export 'gitkebab_lib.dart' show ConflictResolution, MergeConflictEntryType,
+import 'gitkebab_lib.dart' as gitkebab_lib;
+import 'gitkebab_lib.dart' show ConflictResolution, MergeConflictEntryType,
   RepositorySourceUrlType, RepositoryState, RepositoryVerifyCondition,
   SessionCredentialType, SessionProgressEventType,
   gk_repository, ResultCode;
