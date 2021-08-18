@@ -13,7 +13,6 @@ extension FfiUtf8Casting on String {
   }
 }
 
-
 extension PointerExtensions<T extends ffi.NativeType> on ffi.Pointer<T> {
   String toDartString() {
     if (T == ffi.Int8) {

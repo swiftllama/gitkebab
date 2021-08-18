@@ -5,3 +5,4 @@ export 'src/gitkebab_lib.dart' show ConflictResolution, MergeConflictEntryType,
   gk_repository, ResultCode;
 export 'src/session.dart';
 export 'src/status.dart';
+export 'src/errors.dart';

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:ffigen_test/src/errors.dart';
 import 'package:test/test.dart';
 import '../gitkebab.dart' as gitkebab;
 
@@ -71,7 +72,8 @@ void main() {
     session.clone();
     expect(session.lastResultCode(), equals(0));
 
-    session.addPath("non-existent-file1");
-    expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_NOT_FOUND));
+    expect(() { session.addPath("non-existent-file1"); },
+        throwsA(isA<gitkebab.GitKebabException>().having(
+                (error) => error.code, 'code', gitkebab.ResultCode.ERROR_NOT_FOUND)));
   });
 }

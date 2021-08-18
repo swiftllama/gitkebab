@@ -15,7 +15,7 @@ void main() {
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
     session.clone();
-    expect(session.lastResultCode(), equals(0));
+
     expect(stateHistory.changes.length, equals(2));
     expect(stateHistory.changes[0], equals({"cloneInProgress": "on"}));
     expect(stateHistory.changes[1], equals({"cloneInProgress": "off", "localCheckoutExists":"on"}));
@@ -33,8 +33,11 @@ void main() {
     String localPath = "${testStagingPath()}/clone-test-1";
     var session = gitkebab.Session("${testFixturesPath()}/tmp/non-existent-source-path", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
-    session.clone();
-    expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_CLONE_INEXISTENT_SOURCE_PATH));
+    expect( (){ session.clone();},
+        throwsA(isA<gitkebab.GitKebabException>().having(
+            (error) => error.code, 'code', gitkebab.ResultCode.ERROR_CLONE_INEXISTENT_SOURCE_PATH))
+    );
+
     expect(session.state.localCheckoutExists, equals(false));
     expect(stateHistory.changes.length, equals(0));
   });
@@ -44,8 +47,10 @@ void main() {
     String localPath = "";
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
-    session.clone();
-    expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_CLONE_INVALID_DESTINATION_PATH));
+    expect( (){ session.clone();},
+        throwsA(isA<gitkebab.GitKebabException>().having(
+                (error) => error.code, 'code', gitkebab.ResultCode.ERROR_CLONE_INVALID_DESTINATION_PATH))
+    );
     expect(session.state.localCheckoutExists, equals(false));
     expect(stateHistory.changes.length, equals(0));
   });

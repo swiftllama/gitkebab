@@ -4,6 +4,7 @@ import 'package:ffi/ffi.dart' as ffip;
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart' as gitkebab_lib;
 import 'status.dart';
+import 'errors.dart';
 
 Map<String, Session> g_sessions = {};
 
@@ -75,7 +76,9 @@ class Session {
   }
 
   void clone() {
-    GitKebab.lib.gk_clone(session_ptr);
+    if (GitKebab.lib.gk_clone(session_ptr) != 0) {
+      throw GitKebabException(lastResultCode(), lastResultMessage());
+    }
   }
 
   void fetch(String remoteName) {
@@ -94,8 +97,10 @@ class Session {
     return GitKebab.lib.gk_session_last_result_message(session_ptr).cast<ffip.Utf8>().toDartString();
   }
 
-  int addPath(String path) {
-    return GitKebab.lib.gk_index_add_path(session_ptr, path.toFfiPtr());
+  void addPath(String path)  {
+    if (GitKebab.lib.gk_index_add_path(session_ptr, path.toFfiPtr()) != 0) {
+      throw GitKebabException(lastResultCode(), lastResultMessage());
+    }
   }
 
   int removePath(String path) {
