@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import '../gitkebab.dart' as gitkebab;
 
+import 'common.dart';
 
 class SessionStateChangeHistory {
   List<Map<String, String>> changes = [];
@@ -23,21 +24,13 @@ void stateChangedCallback(gitkebab.Session session) {
 
 
 void main() {
-  var libraryPath = Directory.current.path + "/gitkebab-linux-debug/lib/libgitkebab.so";
-  gitkebab.GitKebab.load(libraryPath);
-
-  var fixtures = "${Directory.current.path}/../test/fixtures";
-  var testStagingDir = Directory("${Directory.current.path}/test-staging");
-  if (testStagingDir.existsSync()) {
-    testStagingDir.deleteSync(recursive: true);
-  }
-  print("DBG creating [${testStagingDir.path}]");
-  testStagingDir.createSync();
+  initGitkebab();
+  recreateTestStagingDirectory();
 
   test('Clone Simple', () {
     stateHistory.reset();
-    String localPath = "${testStagingDir.path}/clone-test-1";
-    var session = gitkebab.Session("$fixtures/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
+    String localPath = "${testStagingPath()}/clone-test-1";
+    var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallback;
     session.clone();
     expect(session.lastResultCode(), equals(0));
@@ -55,8 +48,8 @@ void main() {
 
   test('Clone - bad source path', () {
     stateHistory.reset();
-    String localPath = "${testStagingDir.path}/clone-test-1";
-    var session = gitkebab.Session("$fixtures/tmp/non-existent-source-path", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
+    String localPath = "${testStagingPath()}/clone-test-1";
+    var session = gitkebab.Session("${testFixturesPath()}/tmp/non-existent-source-path", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallback;
     session.clone();
     expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_CLONE_INEXISTENT_SOURCE_PATH));
@@ -67,7 +60,7 @@ void main() {
   test('Clone - empty dest path', () {
     stateHistory.reset();
     String localPath = "";
-    var session = gitkebab.Session("$fixtures/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
+    var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallback;
     session.clone();
     expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_CLONE_INVALID_DESTINATION_PATH));
