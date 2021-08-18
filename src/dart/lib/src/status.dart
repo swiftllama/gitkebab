@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart';
+import 'pointer_casting.dart';
 
 enum FileStatus {
   current,

@@ -24,7 +24,6 @@ void main() {
     expect(stateHistory.changes[1], equals({"cloneInProgress": "off", "localCheckoutExists":"on"}));
     expect(session.state.localCheckoutExists, equals(true));
     expect(session.state.cloneInProgress, equals(false));
-    print("DBG path [$localPath]");
     expect(Directory(localPath).existsSync(), equals(true));
     expect(File("$localPath/file1").existsSync(), equals(true));
     expect(Directory("$localPath/folder1").existsSync(), equals(true));

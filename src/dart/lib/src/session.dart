@@ -1,14 +1,16 @@
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 import 'package:ffi/ffi.dart' as ffip;
 
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart' as gitkebab_lib;
+import 'pointer_casting.dart';
 import 'status.dart';
 import 'errors.dart';
+import 'repository.dart';
 
 Map<String, Session> g_sessions = {};
 
-void session_progress_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer<gitkebab_lib.gk_session_progress> sessionProgress) {
+void session_progress_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_session_progress> sessionProgress) {
   if (session_id_ptr.address == 0) {
     print("WARNING: received session progress callback with NULL session_id");
     return;
@@ -31,7 +33,7 @@ void session_progress_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer
 
 
 
-void session_state_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
+void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
   if (session_id_ptr.address == 0) {
     print("WARNING: received session state changed callback with NULL session_id");
     return;
@@ -57,8 +59,9 @@ typedef void SessionProgressCallback(Session session, gitkebab_lib.gk_session_pr
 typedef void SessionStateCallback(Session session);
 
 class Session {
-  ffi.Pointer<gitkebab_lib.gk_session> session_ptr = ffi.Pointer.fromAddress(0);
+  Pointer<gitkebab_lib.gk_session> session_ptr = Pointer.fromAddress(0);
   String id = "<unknown>";
+  late RepositorySpec repositorySpec;
   SessionState state = SessionState(0);
   RepositoryStatusList status = RepositoryStatusList();
 
@@ -66,11 +69,16 @@ class Session {
   SessionStateCallback onStateChanged = (session) => {};
 
   Session(String url, int urlType, String localPath, String user) {
-    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), ffi.Pointer.fromFunction(session_progress_callback), ffi.Pointer.fromFunction(session_state_callback));
+    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), Pointer.fromFunction(session_progress_callback), Pointer.fromFunction(session_state_callback));
     if (session_ptr.address == 0) {
       throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "GitKebab session unexpectedly null");
     }
+    if (session_ptr.ref.repository.address == 0) {
+      throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "GitKebab session repository unexpectedly null");
+    }
     id = session_ptr.ref.id_ptr.toDartString();
+    repositorySpec = RepositorySpec(session_ptr.ref.repository.ref.spec);
+
     g_sessions[id] = this;
   }
 
@@ -134,23 +142,70 @@ class Session {
   ////
   // Commit
   String commit(String commitMessage) {
-    ffi.Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<gitkebab_lib.gk_object_id>();
-    String lastCommitId = "";
+    Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<gitkebab_lib.gk_object_id>();
 
     int rc = GitKebab.lib.gk_commit(session_ptr, commitMessage.toFfiPtr(), object_id_ptr);
-    if (rc == 0) {
-      if (object_id_ptr.address == 0) {
-        throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "commit ID after commit is unexpectedly null");
-      }
-      lastCommitId = GitKebab.lib.gk_object_id_ptr(object_id_ptr).toDartString();
-    }
+    String commitId = object_id_ptr.address == 0 ? "" : GitKebab.lib.gk_object_id_ptr(object_id_ptr).toDartString();
     ffip.calloc.free(object_id_ptr);
 
-    if ((rc != 0)) {
+    if (rc != 0) {
       throw lastResultException();
     }
-    return lastCommitId;
+    if (object_id_ptr.address == 0) {
+      throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "commit ID after commit is unexpectedly null");
+    }
+
+    return commitId;
   }
+
+  ////
+  // Merge
+  void mergeIntoHead() {
+    if (GitKebab.lib.gk_merge_into_head(session_ptr) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  void mergeIntoHeadFinalize() {
+    if (GitKebab.lib.gk_merge_into_head_finalize(session_ptr) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  void mergeAbort() {
+    if (GitKebab.lib.gk_merge_abort(session_ptr) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  ////
+  // Misc
+  String resolveReference(String reference) {
+    Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<gitkebab_lib.gk_object_id>();
+
+    int rc = GitKebab.lib.gk_resolve_reference(session_ptr, reference.toFfiPtr(), object_id_ptr);
+    String commitId = object_id_ptr.address == 0 ? "" : GitKebab.lib.gk_object_id_ptr(object_id_ptr).toDartString();
+    ffip.calloc.free(object_id_ptr);
+
+    if (rc != 0) {
+      throw lastResultException();
+    }
+    if (object_id_ptr.address == 0) {
+        throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "commit ID of reference is unexpectedly null");
+    }
+
+    return commitId;
+  }
+
+  /*
+  void mergeConflictsQuery() {
+    if (GitKebab.lib.gk_merge_conflicts_query(session_ptr) != 0) {
+      throw lastResultException();
+    }
+  }*/
+
+
+
 }
 
 class SessionState {

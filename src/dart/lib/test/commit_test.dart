@@ -10,6 +10,7 @@ void main() {
   initGitkebab();
   recreateTestStagingDirectory();
   String cloneTest1 = "${testStagingPath()}/clone-test-1";
+  setUp(() { deleteDirIfExists(cloneTest1); });
 
   setUp(() {
     if (Directory(cloneTest1).existsSync()) {
