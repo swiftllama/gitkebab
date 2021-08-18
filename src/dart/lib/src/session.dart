@@ -3,6 +3,7 @@ import 'package:ffi/ffi.dart' as ffip;
 
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart' as gitkebab_lib;
+import 'status.dart';
 
 Map<String, Session> g_sessions = {};
 
@@ -47,6 +48,7 @@ void session_state_callback(ffi.Pointer<ffi.Int8> session_id_ptr, ffi.Pointer<gi
   }
 
   var repository = repositoryPtr.ref;
+  print("DBG session state update [${repository.state}]");
   session.state = SessionState(repository.state);
   session.onStateChanged(session);
 }
@@ -58,14 +60,15 @@ class Session {
   ffi.Pointer<gitkebab_lib.gk_session> session_ptr = ffi.Pointer.fromAddress(0);
   String id = "<unknown>";
   SessionState state = SessionState(0);
+  RepositoryStatusList status = RepositoryStatusList();
 
   SessionProgressCallback onProgress = (session, progress) => {};
   SessionStateCallback onStateChanged = (session) => {};
 
   Session(String url, int urlType, String localPath, String user) {
     session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), ffi.Pointer.fromFunction(session_progress_callback), ffi.Pointer.fromFunction(session_state_callback));
-    if (session_ptr == null) {
-      throw "Error initializing session";
+    if (session_ptr.address == 0) {
+      throw "Error initializing session, received null pointer";
     }
 
     id = session_ptr.ref.id_ptr.toDartString();
@@ -113,12 +116,7 @@ class Session {
     if (rc != 0) {
       return rc;
     }
-    int entrycount = GitKebab.lib.gk_status_summary_entrycount(session_ptr);
-    print("DBG found $entrycount entry items");
-    //for (var i = 0; i < entrycount; i += 1) {
-    //  var path = GitKebab.lib.gk_status_summary_path_at(session_ptr, i);
-    //
-    //}
+    status = RepositoryStatusList.forQueriedSession(session_ptr);
     return 0;
   }
 }
@@ -126,6 +124,7 @@ class Session {
 class SessionState {
   final bool localCheckoutExists;
   final bool hasConflicts;
+  final bool hasChangesToCommit;
   final bool hasChangesToMerge;
   final bool cloneInProgress;
   final bool mergeFinalizationPending;
@@ -135,15 +134,20 @@ class SessionState {
   final bool mergeInProgress;
 
   SessionState(int state):
-        localCheckoutExists = ((state > 0) && (state & gitkebab_lib.RepositoryState.LOCAL_CHECKOUT_EXISTS) == state),
-        hasConflicts = ((state > 0) && (state & gitkebab_lib.RepositoryState.HAS_CONFLICTS) == state),
-        hasChangesToMerge = ((state > 0) && (state & gitkebab_lib.RepositoryState.HAS_CHANGES_TO_MERGE) == state),
-        cloneInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.CLONE_IN_PROGRESS) == state),
-        mergeFinalizationPending = ((state > 0) && (state & gitkebab_lib.RepositoryState.MERGE_FINALIZATION_PENDING) == state),
-        mergePendingOnDisk = ((state > 0) && (state & gitkebab_lib.RepositoryState.MERGE_PENDING_ON_DISK) == state),
-        pushInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.PUSH_IN_PROGRESS) == state),
-        fetchInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.FETCH_IN_PROGRESS) == state),
-        mergeInProgress = ((state > 0) && (state & gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS) == state) {
+        localCheckoutExists = stateIncludes(state, gitkebab_lib.RepositoryState.LOCAL_CHECKOUT_EXISTS),
+        hasConflicts = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CONFLICTS),
+        hasChangesToCommit = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CHANGES_TO_COMMIT),
+        hasChangesToMerge = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CHANGES_TO_MERGE),
+        cloneInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.CLONE_IN_PROGRESS),
+        mergeFinalizationPending = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_FINALIZATION_PENDING),
+        mergePendingOnDisk = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_PENDING_ON_DISK),
+        pushInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.PUSH_IN_PROGRESS),
+        fetchInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.FETCH_IN_PROGRESS),
+        mergeInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS) {
+  }
+
+  static bool stateIncludes(int totalState, int flag) {
+    return (totalState > 0) && ((totalState & flag) == flag);
   }
 
   Map<String, String> diff(SessionState other) {
@@ -153,6 +157,9 @@ class SessionState {
     }
     if (hasConflicts != other.hasConflicts) {
       diffs["hasConflicts"] = hasConflicts ? "off" : "on";
+    }
+    if (hasChangesToCommit != other.hasChangesToCommit) {
+      diffs["hasChangesToCommit"] = hasChangesToMerge ? "off" : "on";
     }
     if (hasChangesToMerge != other.hasChangesToMerge) {
       diffs["hasChangesToMerge"] = hasChangesToMerge ? "off" : "on";

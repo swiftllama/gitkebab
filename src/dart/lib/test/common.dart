@@ -23,3 +23,22 @@ void recreateTestStagingDirectory() {
 String testStagingPath() {
   return "${Directory.current.path}/test-staging";
 }
+
+
+class SessionStateChangeHistory {
+  List<Map<String, String>> changes = [];
+
+  void reset() {
+    changes = [];
+  }
+}
+
+
+var stateHistory = SessionStateChangeHistory();
+gitkebab.SessionState lastSessionState = gitkebab.SessionState(0);
+
+void stateChangedCallbackWithHistory(gitkebab.Session session) {
+  var diff = lastSessionState.diff(session.state);
+  stateHistory.changes.add(diff);
+  lastSessionState = session.state;
+}

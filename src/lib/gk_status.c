@@ -5,6 +5,22 @@
 #include "gk_lg2_private.h"
 #include "gk_session.h"
 
+const int GK_FILE_STATUS_CURRENT = GIT_STATUS_CURRENT;
+const int GK_FILE_STATUS_INDEX_NEW = GIT_STATUS_INDEX_NEW;
+const int GK_FILE_STATUS_INDEX_MODIFIED = GIT_STATUS_INDEX_MODIFIED;
+const int GK_FILE_STATUS_INDEX_DELETED = GIT_STATUS_INDEX_DELETED;
+const int GK_FILE_STATUS_INDEX_RENAMED = GIT_STATUS_INDEX_RENAMED;
+const int GK_FILE_STATUS_INDEX_TYPECHANGE = GIT_STATUS_INDEX_TYPECHANGE;
+const int GK_FILE_STATUS_WT_NEW = GIT_STATUS_WT_NEW;
+const int GK_FILE_STATUS_WT_MODIFIED = GIT_STATUS_WT_MODIFIED;
+const int GK_FILE_STATUS_WT_DELETED = GIT_STATUS_WT_DELETED;
+const int GK_FILE_STATUS_WT_TYPECHANGE = GIT_STATUS_WT_TYPECHANGE;
+const int GK_FILE_STATUS_WT_RENAMED = GIT_STATUS_WT_RENAMED;
+const int GK_FILE_STATUS_WT_UNREADABLE = GIT_STATUS_WT_UNREADABLE;
+const int GK_FILE_STATUS_IGNORED = GIT_STATUS_IGNORED;
+const int GK_FILE_STATUS_CONFLICTED = GIT_STATUS_CONFLICTED;
+
+
 void gk_status_summary_reset(gk_status_summary *status_summary) {
     if (status_summary == NULL) {
         log_error(COMP_STATUS, "Cannot reset NULL status summary");
@@ -79,6 +95,19 @@ int gk_status_summary_query(gk_session *session) {
         gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
         log_info(COMP_STATUS, "Repository is conflict free");
     }
+
+    if ((repository->status_summary.count_new > 0) ||
+        (repository->status_summary.count_modified > 0) ||
+        (repository->status_summary.count_deleted > 0) ||
+        (repository->status_summary.count_renamed > 0) ||
+        (repository->status_summary.count_typechange > 0)) {
+        gk_repository_state_set(repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_COMMIT);
+        log_info(COMP_STATUS, "Repository has changes to commit");
+    }
+    else {
+        gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_COMMIT);
+        log_info(COMP_STATUS, "Repository has no changes to commit");
+    }
         
     int status = git_repository_state(lg2_resources->repository);
     if (status == GIT_REPOSITORY_STATE_MERGE) {
@@ -89,6 +118,8 @@ int gk_status_summary_query(gk_session *session) {
         gk_repository_state_unset(repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK);
     }
 
+    gk_session_trigger_repository_state_callback(session);
+    
     return gk_session_success(session, purpose);
 }
 

@@ -3744,22 +3744,6 @@ class GitKebabLib {
       _gk_repository_state_unset_ptr
           .asFunction<_dart_gk_repository_state_unset>();
 
-  void gk_repository_state_trigger_callback(
-    ffi.Pointer<gk_repository> repository,
-  ) {
-    return _gk_repository_state_trigger_callback(
-      repository,
-    );
-  }
-
-  late final _gk_repository_state_trigger_callback_ptr =
-      _lookup<ffi.NativeFunction<_c_gk_repository_state_trigger_callback>>(
-          'gk_repository_state_trigger_callback');
-  late final _dart_gk_repository_state_trigger_callback
-      _gk_repository_state_trigger_callback =
-      _gk_repository_state_trigger_callback_ptr
-          .asFunction<_dart_gk_repository_state_trigger_callback>();
-
   int gk_prepend_repository_path(
     ffi.Pointer<gk_session> session,
     ffi.Pointer<ffi.Int8> buffer,
@@ -4492,6 +4476,118 @@ class GitKebabLib {
   late final _dart_gk_status_summary_entrycount _gk_status_summary_entrycount =
       _gk_status_summary_entrycount_ptr
           .asFunction<_dart_gk_status_summary_entrycount>();
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_CURRENT =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_CURRENT');
+
+  int get GK_FILE_STATUS_CURRENT => _GK_FILE_STATUS_CURRENT.value;
+
+  set GK_FILE_STATUS_CURRENT(int value) =>
+      _GK_FILE_STATUS_CURRENT.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_INDEX_NEW =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_INDEX_NEW');
+
+  int get GK_FILE_STATUS_INDEX_NEW => _GK_FILE_STATUS_INDEX_NEW.value;
+
+  set GK_FILE_STATUS_INDEX_NEW(int value) =>
+      _GK_FILE_STATUS_INDEX_NEW.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_INDEX_MODIFIED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_INDEX_MODIFIED');
+
+  int get GK_FILE_STATUS_INDEX_MODIFIED => _GK_FILE_STATUS_INDEX_MODIFIED.value;
+
+  set GK_FILE_STATUS_INDEX_MODIFIED(int value) =>
+      _GK_FILE_STATUS_INDEX_MODIFIED.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_INDEX_DELETED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_INDEX_DELETED');
+
+  int get GK_FILE_STATUS_INDEX_DELETED => _GK_FILE_STATUS_INDEX_DELETED.value;
+
+  set GK_FILE_STATUS_INDEX_DELETED(int value) =>
+      _GK_FILE_STATUS_INDEX_DELETED.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_INDEX_RENAMED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_INDEX_RENAMED');
+
+  int get GK_FILE_STATUS_INDEX_RENAMED => _GK_FILE_STATUS_INDEX_RENAMED.value;
+
+  set GK_FILE_STATUS_INDEX_RENAMED(int value) =>
+      _GK_FILE_STATUS_INDEX_RENAMED.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_INDEX_TYPECHANGE =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_INDEX_TYPECHANGE');
+
+  int get GK_FILE_STATUS_INDEX_TYPECHANGE =>
+      _GK_FILE_STATUS_INDEX_TYPECHANGE.value;
+
+  set GK_FILE_STATUS_INDEX_TYPECHANGE(int value) =>
+      _GK_FILE_STATUS_INDEX_TYPECHANGE.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_WT_NEW =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_WT_NEW');
+
+  int get GK_FILE_STATUS_WT_NEW => _GK_FILE_STATUS_WT_NEW.value;
+
+  set GK_FILE_STATUS_WT_NEW(int value) => _GK_FILE_STATUS_WT_NEW.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_WT_MODIFIED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_WT_MODIFIED');
+
+  int get GK_FILE_STATUS_WT_MODIFIED => _GK_FILE_STATUS_WT_MODIFIED.value;
+
+  set GK_FILE_STATUS_WT_MODIFIED(int value) =>
+      _GK_FILE_STATUS_WT_MODIFIED.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_WT_DELETED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_WT_DELETED');
+
+  int get GK_FILE_STATUS_WT_DELETED => _GK_FILE_STATUS_WT_DELETED.value;
+
+  set GK_FILE_STATUS_WT_DELETED(int value) =>
+      _GK_FILE_STATUS_WT_DELETED.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_WT_TYPECHANGE =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_WT_TYPECHANGE');
+
+  int get GK_FILE_STATUS_WT_TYPECHANGE => _GK_FILE_STATUS_WT_TYPECHANGE.value;
+
+  set GK_FILE_STATUS_WT_TYPECHANGE(int value) =>
+      _GK_FILE_STATUS_WT_TYPECHANGE.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_WT_RENAMED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_WT_RENAMED');
+
+  int get GK_FILE_STATUS_WT_RENAMED => _GK_FILE_STATUS_WT_RENAMED.value;
+
+  set GK_FILE_STATUS_WT_RENAMED(int value) =>
+      _GK_FILE_STATUS_WT_RENAMED.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_WT_UNREADABLE =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_WT_UNREADABLE');
+
+  int get GK_FILE_STATUS_WT_UNREADABLE => _GK_FILE_STATUS_WT_UNREADABLE.value;
+
+  set GK_FILE_STATUS_WT_UNREADABLE(int value) =>
+      _GK_FILE_STATUS_WT_UNREADABLE.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_IGNORED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_IGNORED');
+
+  int get GK_FILE_STATUS_IGNORED => _GK_FILE_STATUS_IGNORED.value;
+
+  set GK_FILE_STATUS_IGNORED(int value) =>
+      _GK_FILE_STATUS_IGNORED.value = value;
+
+  late final ffi.Pointer<ffi.Int32> _GK_FILE_STATUS_CONFLICTED =
+      _lookup<ffi.Int32>('GK_FILE_STATUS_CONFLICTED');
+
+  int get GK_FILE_STATUS_CONFLICTED => _GK_FILE_STATUS_CONFLICTED.value;
+
+  set GK_FILE_STATUS_CONFLICTED(int value) =>
+      _GK_FILE_STATUS_CONFLICTED.value = value;
 
   ffi.Pointer<gk_session> gk_session_new(
     ffi.Pointer<ffi.Int8> source_url,
@@ -5538,13 +5634,14 @@ abstract class RepositoryState {
   static const int DEFAULT = 0;
   static const int LOCAL_CHECKOUT_EXISTS = 1;
   static const int HAS_CONFLICTS = 2;
-  static const int HAS_CHANGES_TO_MERGE = 4;
-  static const int CLONE_IN_PROGRESS = 8;
-  static const int MERGE_FINALIZATION_PENDING = 16;
-  static const int MERGE_PENDING_ON_DISK = 32;
-  static const int PUSH_IN_PROGRESS = 64;
-  static const int FETCH_IN_PROGRESS = 128;
-  static const int MERGE_IN_PROGRESS = 256;
+  static const int HAS_CHANGES_TO_COMMIT = 4;
+  static const int HAS_CHANGES_TO_MERGE = 8;
+  static const int CLONE_IN_PROGRESS = 16;
+  static const int MERGE_FINALIZATION_PENDING = 32;
+  static const int MERGE_PENDING_ON_DISK = 64;
+  static const int PUSH_IN_PROGRESS = 128;
+  static const int FETCH_IN_PROGRESS = 256;
+  static const int MERGE_IN_PROGRESS = 512;
 }
 
 abstract class RepositorySourceUrlType {
@@ -6041,7 +6138,7 @@ const int TIME_UTC = 1;
 
 const String LOG_VERSION = '0.1.0';
 
-const int GK_REPOSITORY_STATE_MAX_EXP = 9;
+const int GK_REPOSITORY_STATE_MAX_EXP = 10;
 
 const int GK_OBJECT_ID_STR_LENGTH = 40;
 
@@ -8533,14 +8630,6 @@ typedef _c_gk_repository_state_unset = ffi.Void Function(
 typedef _dart_gk_repository_state_unset = void Function(
   ffi.Pointer<gk_repository> repository,
   int states_disable,
-);
-
-typedef _c_gk_repository_state_trigger_callback = ffi.Void Function(
-  ffi.Pointer<gk_repository> repository,
-);
-
-typedef _dart_gk_repository_state_trigger_callback = void Function(
-  ffi.Pointer<gk_repository> repository,
 );
 
 typedef _c_gk_prepend_repository_path = ffi.Int32 Function(

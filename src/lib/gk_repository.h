@@ -20,7 +20,6 @@ int gk_repository_state_enabled(gk_repository *repository, unsigned int states);
 int gk_repository_state_disabled(gk_repository *repository, unsigned int states);
 void gk_repository_state_set(gk_repository *repository, int states_enable);
 void gk_repository_state_unset(gk_repository *repository, int states_disable);
-void gk_repository_state_trigger_callback(gk_repository *repository);
 
 int gk_prepend_repository_path(gk_session *session, char *buffer, size_t buffer_length, const char *path);
 void gk_repository_print_state(gk_repository *repository);

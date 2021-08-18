@@ -5,24 +5,6 @@ import '../gitkebab.dart' as gitkebab;
 
 import 'common.dart';
 
-class SessionStateChangeHistory {
-  List<Map<String, String>> changes = [];
-
-  void reset() {
-    changes = [];
-  }
-}
-
-var stateHistory = SessionStateChangeHistory();
-gitkebab.SessionState lastSessionState = gitkebab.SessionState(0);
-
-void stateChangedCallback(gitkebab.Session session) {
-  var diff = lastSessionState.diff(session.state);
-  stateHistory.changes.add(diff);
-  lastSessionState = session.state;
-}
-
-
 void main() {
   initGitkebab();
   recreateTestStagingDirectory();
@@ -31,7 +13,7 @@ void main() {
     stateHistory.reset();
     String localPath = "${testStagingPath()}/clone-test-1";
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
-    session.onStateChanged = stateChangedCallback;
+    session.onStateChanged = stateChangedCallbackWithHistory;
     session.clone();
     expect(session.lastResultCode(), equals(0));
     expect(stateHistory.changes.length, equals(2));
@@ -50,7 +32,7 @@ void main() {
     stateHistory.reset();
     String localPath = "${testStagingPath()}/clone-test-1";
     var session = gitkebab.Session("${testFixturesPath()}/tmp/non-existent-source-path", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
-    session.onStateChanged = stateChangedCallback;
+    session.onStateChanged = stateChangedCallbackWithHistory;
     session.clone();
     expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_CLONE_INEXISTENT_SOURCE_PATH));
     expect(session.state.localCheckoutExists, equals(false));
@@ -61,7 +43,7 @@ void main() {
     stateHistory.reset();
     String localPath = "";
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
-    session.onStateChanged = stateChangedCallback;
+    session.onStateChanged = stateChangedCallbackWithHistory;
     session.clone();
     expect(session.lastResultCode(), equals(gitkebab.ResultCode.ERROR_CLONE_INVALID_DESTINATION_PATH));
     expect(session.state.localCheckoutExists, equals(false));
