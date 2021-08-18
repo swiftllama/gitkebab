@@ -9,9 +9,12 @@ void main() {
   initGitkebab();
   recreateTestStagingDirectory();
 
+  String cloneTest1 = "${testStagingPath()}/clone-test-1";
+  setUp(() { deleteDirIfExists(cloneTest1); });
+
   test('Clone Simple', () {
     stateHistory.reset();
-    String localPath = "${testStagingPath()}/clone-test-1";
+    String localPath = cloneTest1;
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
     session.clone();

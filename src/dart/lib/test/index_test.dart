@@ -11,12 +11,7 @@ void main() {
   initGitkebab();
   recreateTestStagingDirectory();
   String cloneTest1 = "${testStagingPath()}/clone-test-1";
-
-  setUp(() {
-    if (Directory(cloneTest1).existsSync()) {
-      Directory(cloneTest1).deleteSync(recursive: true);
-    }
-  });
+  setUp(() { deleteDirIfExists(cloneTest1); });
 
   test('Commit - no changes', () {
     stateHistory.reset();

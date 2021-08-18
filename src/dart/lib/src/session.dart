@@ -68,27 +68,14 @@ class Session {
   Session(String url, int urlType, String localPath, String user) {
     session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), ffi.Pointer.fromFunction(session_progress_callback), ffi.Pointer.fromFunction(session_state_callback));
     if (session_ptr.address == 0) {
-      throw "Error initializing session, received null pointer";
+      throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "GitKebab session unexpectedly null");
     }
-
     id = session_ptr.ref.id_ptr.toDartString();
     g_sessions[id] = this;
   }
 
-  void clone() {
-    if (GitKebab.lib.gk_clone(session_ptr) != 0) {
-      throw GitKebabException(lastResultCode(), lastResultMessage());
-    }
-  }
-
-  void fetch(String remoteName) {
-    GitKebab.lib.gk_fetch(session_ptr, remoteName.toFfiPtr());
-  }
-
-  void push(String remoteName) {
-    GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr());
-  }
-
+  ////
+  // Errors
   int lastResultCode() {
     return GitKebab.lib.gk_session_last_result_code(session_ptr);
   }
@@ -97,45 +84,70 @@ class Session {
     return GitKebab.lib.gk_session_last_result_message(session_ptr).cast<ffip.Utf8>().toDartString();
   }
 
+  GitKebabException lastResultException() {
+    return GitKebabException(lastResultCode(), lastResultMessage());
+  }
+
+  ////
+  //  Remotes
+  void clone() {
+    if (GitKebab.lib.gk_clone(session_ptr) != 0) { throw lastResultException(); }
+  }
+
+  void fetch(String remoteName) {
+    if (GitKebab.lib.gk_fetch(session_ptr, remoteName.toFfiPtr()) != 0) { throw lastResultException(); }
+  }
+
+  void push(String remoteName) {
+    if (GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr()) != 0) { throw lastResultException(); }
+  }
+
+  ////
+  // Index
   void addPath(String path)  {
-    if (GitKebab.lib.gk_index_add_path(session_ptr, path.toFfiPtr()) != 0) {
-      throw GitKebabException(lastResultCode(), lastResultMessage());
-    }
+    if (GitKebab.lib.gk_index_add_path(session_ptr, path.toFfiPtr()) != 0) { throw lastResultException(); }
   }
 
-  int removePath(String path) {
-    return GitKebab.lib.gk_index_remove_path(session_ptr, path.toFfiPtr());
+  void removePath(String path) {
+    if (GitKebab.lib.gk_index_remove_path(session_ptr, path.toFfiPtr()) != 0) { throw lastResultException(); }
   }
 
-  int addAll(String pattern) {
-    return GitKebab.lib.gk_index_add_all(session_ptr, pattern.toFfiPtr());
+  void addAll(String pattern) {
+    if (GitKebab.lib.gk_index_add_all(session_ptr, pattern.toFfiPtr()) != 0) { throw lastResultException(); }
   }
 
-  int updateAll(String pattern) {
-    return GitKebab.lib.gk_index_update_all(session_ptr, pattern.toFfiPtr());
+  void updateAll(String pattern) {
+    if (GitKebab.lib.gk_index_update_all(session_ptr, pattern.toFfiPtr()) != 0) { throw lastResultException(); }
   }
 
-  int queryStatus() {
-    int rc = GitKebab.lib.gk_status_summary_query(session_ptr);
-    if (rc != 0) {
-      return rc;
+  ////
+  // Status
+
+  void queryStatus() {
+    if (GitKebab.lib.gk_status_summary_query(session_ptr) != 0) {
+      throw lastResultException();
     }
     status = RepositoryStatusList.forQueriedSession(session_ptr);
     GitKebab.lib.gk_status_summary_close(session_ptr);
-    return 0;
   }
 
+  ////
+  // Commit
   String commit(String commitMessage) {
-    ffi.Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.malloc<gitkebab_lib.gk_object_id>();
-    int rc = GitKebab.lib.gk_commit(session_ptr, commitMessage.toFfiPtr(), object_id_ptr);
+    ffi.Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<gitkebab_lib.gk_object_id>();
     String lastCommitId = "";
-    if ((rc == 0)) {
+
+    int rc = GitKebab.lib.gk_commit(session_ptr, commitMessage.toFfiPtr(), object_id_ptr);
+    if (rc == 0) {
       if (object_id_ptr.address == 0) {
-        print("Error retrieving commit id, returned object_id is null");
-        return "";
+        throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "commit ID after commit is unexpectedly null");
       }
       lastCommitId = GitKebab.lib.gk_object_id_ptr(object_id_ptr).toDartString();
-      print("DBG got last commit id: [${lastCommitId}]");
+    }
+    ffip.calloc.free(object_id_ptr);
+
+    if ((rc != 0)) {
+      throw lastResultException();
     }
     return lastCommitId;
   }

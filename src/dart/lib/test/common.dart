@@ -24,6 +24,11 @@ String testStagingPath() {
   return "${Directory.current.path}/test-staging";
 }
 
+void deleteDirIfExists(String path) {
+  if (Directory(path).existsSync()) {
+    Directory(path).deleteSync(recursive: true);
+  }
+}
 
 class SessionStateChangeHistory {
   List<Map<String, String>> changes = [];
