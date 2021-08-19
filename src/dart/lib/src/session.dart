@@ -10,53 +10,77 @@ import 'repository.dart';
 
 Map<String, Session> g_sessions = {};
 
-void session_progress_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_session_progress> sessionProgress) {
+Session sessionFromSessionIdPtr(Pointer<Int8> session_id_ptr, String callbackName) {
   if (session_id_ptr.address == 0) {
-    print("WARNING: received session progress callback with NULL session_id");
-    return;
+    throw "received $callbackName callback with NULL session_id";
   }
   var session_id = session_id_ptr.toDartString();
-  if (sessionProgress.address == 0) {
-    print("WARNING: received session progress callback for session [$session_id] with null progress structure");
-    return;
-  }
-
   Session? session = g_sessions[session_id];
   if (session == null) {
-    print("WARNING: received session progress callback for session [$session_id] but no such session exists");
-    return;
+    throw "received $callbackName callback for session [$session_id] but no such session exists";
   }
+  return session;
+}
 
-  var progress = sessionProgress.ref;
-  session.onProgress(session, progress);
+void session_progress_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_session_progress> sessionProgress) {
+  String sessionId = "(unknown-id)";
+  try {
+    Session session = sessionFromSessionIdPtr(session_id_ptr, "session progress");
+    sessionId = session.id;
+    if (sessionProgress.address == 0) {
+      print("WARNING: received session progress callback for session [${session.id}] with null progress structure");
+      return;
+    }
+    var progress = sessionProgress.ref;
+    session.onProgress(session, progress);
+  }
+  catch (exc ){
+    print("Error during session progress callback for session [$sessionId]: $exc");
+  }
 }
 
 
-
 void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
-  if (session_id_ptr.address == 0) {
-    print("WARNING: received session state changed callback with NULL session_id");
-    return;
+  String sessionId = "(unknown-id)";
+  try {
+    Session session = sessionFromSessionIdPtr(session_id_ptr, "state changed");
+    String sessionId = session.id;
+    if (repositoryPtr.address == 0) {
+      print(
+          "WARNING: received session state changed callback for session [${session.id}] with NULL repository structure");
+      return;
+    }
+    var repository = repositoryPtr.ref;
+    session.state = SessionState(repository.state);
+    session.onStateChanged(session);
   }
-  var session_id = session_id_ptr.toDartString();
-  if (repositoryPtr.address == 0) {
-    print("WARNING: received session state changed callback for session [$session_id] with NULL repository structure");
-    return;
+  catch (exc) {
+    print("Error during session state changed callback for session [$sessionId]: $exc");
   }
+}
 
-  Session? session = g_sessions[session_id];
-  if (session == null) {
-    print("WARNING: received session state changed callback for session [$session_id] but no such session exists");
-    return;
+void session_merge_conflicts_query_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
+  String sessionId = "(unknown-id)";
+  try {
+    Session session = sessionFromSessionIdPtr(session_id_ptr, "merge conflicts query");
+    sessionId = session.id;
+    if (repositoryPtr.address == 0) {
+      print("WARNING: received merge conflicts query callback for session [${sessionId}] with NULL repository structure");
+      return;
+    }
+    // NOTE: possible optimization, compare fetch/repository heads to
+    //       existing conflict summary and only process if different
+    session.mergeConflictSummary = MergeConflictSummary.forRepositoryPointer(repositoryPtr);
+    session.onDidQueryMergeConflicts(session);
   }
-
-  var repository = repositoryPtr.ref;
-  session.state = SessionState(repository.state);
-  session.onStateChanged(session);
+  catch (exc) {
+    print("Error during session state changed callback for session [$sessionId]: $exc");
+  }
 }
 
 typedef void SessionProgressCallback(Session session, gitkebab_lib.gk_session_progress progress);
 typedef void SessionStateCallback(Session session);
+typedef void MergeStateQueryCallback(Session session);
 
 class Session {
   Pointer<gitkebab_lib.gk_session> session_ptr = Pointer.fromAddress(0);
@@ -68,9 +92,13 @@ class Session {
 
   SessionProgressCallback onProgress = (session, progress) => {};
   SessionStateCallback onStateChanged = (session) => {};
+  MergeStateQueryCallback onDidQueryMergeConflicts = (session) => {};
 
   Session(String url, int urlType, String localPath, String user) {
-    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(), Pointer.fromFunction(session_progress_callback), Pointer.fromFunction(session_state_callback));
+    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(),
+        Pointer.fromFunction(session_progress_callback),
+        Pointer.fromFunction(session_state_callback),
+        Pointer.fromFunction(session_merge_conflicts_query_callback));
     if (session_ptr.address == 0) {
       throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "GitKebab session unexpectedly null");
     }
@@ -198,12 +226,11 @@ class Session {
     return commitId;
   }
 
-  /*
   void mergeConflictsQuery() {
     if (GitKebab.lib.gk_merge_conflicts_query(session_ptr) != 0) {
       throw lastResultException();
     }
-  }*/
+  }
 
 
 

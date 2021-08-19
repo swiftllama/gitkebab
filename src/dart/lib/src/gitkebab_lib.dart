@@ -4406,6 +4406,39 @@ class GitKebabLib {
       _gk_merge_conflict_entry_theirs_oid_id_ptr
           .asFunction<_dart_gk_merge_conflict_entry_theirs_oid_id>();
 
+  ffi.Pointer<ffi.Int8> gk_merge_conflict_summary_fetch_head_oid_id(
+    ffi.Pointer<gk_repository> repository,
+  ) {
+    return _gk_merge_conflict_summary_fetch_head_oid_id(
+      repository,
+    );
+  }
+
+  late final _gk_merge_conflict_summary_fetch_head_oid_id_ptr = _lookup<
+          ffi.NativeFunction<_c_gk_merge_conflict_summary_fetch_head_oid_id>>(
+      'gk_merge_conflict_summary_fetch_head_oid_id');
+  late final _dart_gk_merge_conflict_summary_fetch_head_oid_id
+      _gk_merge_conflict_summary_fetch_head_oid_id =
+      _gk_merge_conflict_summary_fetch_head_oid_id_ptr
+          .asFunction<_dart_gk_merge_conflict_summary_fetch_head_oid_id>();
+
+  ffi.Pointer<ffi.Int8> gk_merge_conflict_summary_repository_head_oid_id(
+    ffi.Pointer<gk_repository> repository,
+  ) {
+    return _gk_merge_conflict_summary_repository_head_oid_id(
+      repository,
+    );
+  }
+
+  late final _gk_merge_conflict_summary_repository_head_oid_id_ptr = _lookup<
+          ffi.NativeFunction<
+              _c_gk_merge_conflict_summary_repository_head_oid_id>>(
+      'gk_merge_conflict_summary_repository_head_oid_id');
+  late final _dart_gk_merge_conflict_summary_repository_head_oid_id
+      _gk_merge_conflict_summary_repository_head_oid_id =
+      _gk_merge_conflict_summary_repository_head_oid_id_ptr
+          .asFunction<_dart_gk_merge_conflict_summary_repository_head_oid_id>();
+
   int gk_clone(
     ffi.Pointer<gk_session> session,
   ) {
@@ -9107,6 +9140,26 @@ typedef _c_gk_merge_conflict_entry_theirs_oid_id = ffi.Pointer<ffi.Int8>
 typedef _dart_gk_merge_conflict_entry_theirs_oid_id = ffi.Pointer<ffi.Int8>
     Function(
   ffi.Pointer<gk_merge_conflict_entry> entry,
+);
+
+typedef _c_gk_merge_conflict_summary_fetch_head_oid_id = ffi.Pointer<ffi.Int8>
+    Function(
+  ffi.Pointer<gk_repository> repository,
+);
+
+typedef _dart_gk_merge_conflict_summary_fetch_head_oid_id
+    = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_repository> repository,
+);
+
+typedef _c_gk_merge_conflict_summary_repository_head_oid_id
+    = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_repository> repository,
+);
+
+typedef _dart_gk_merge_conflict_summary_repository_head_oid_id
+    = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_repository> repository,
 );
 
 typedef _c_gk_clone = ffi.Int32 Function(

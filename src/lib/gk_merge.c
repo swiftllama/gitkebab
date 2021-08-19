@@ -415,3 +415,19 @@ const char *gk_merge_conflict_entry_theirs_oid_id(gk_merge_conflict_entry *entry
     }
     return entry->theirs_oid_id;
 }
+
+const char *gk_merge_conflict_summary_fetch_head_oid_id(gk_repository *repository) {
+    if (repository == NULL) {
+        log_error(COMP_MERGE, "Cannot return fetch head oid id for NULL repository, returning an empty string");
+        return "";
+    }
+    return repository->conflict_summary.fetch_head_oid_id;
+}
+
+const char *gk_merge_conflict_summary_repository_head_oid_id(gk_repository *repository) {
+    if (repository == NULL) {
+        log_error(COMP_MERGE, "Cannot return repository head oid id for NULL repository, returning an empty string");
+        return "";
+    }
+    return repository->conflict_summary.repository_head_oid_id;
+}

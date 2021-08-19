@@ -52,8 +52,11 @@ class MergeConflictSummary {
   String fetchHeadCommitId = "";
   List<MergeConflict> conflicts = [];
 
-  static MergeConflictSummary forRepository(gk_repository repository) {
+  static MergeConflictSummary forRepositoryPointer(Pointer<gk_repository> repository_ptr) {
+    gk_repository repository = repository_ptr.ref;
     MergeConflictSummary summary = MergeConflictSummary();
+    summary.fetchHeadCommitId = GitKebab.lib.gk_merge_conflict_summary_fetch_head_oid_id(repository_ptr).toDartString();
+    summary.repositoryHeadCommitId = GitKebab.lib.gk_merge_conflict_summary_repository_head_oid_id(repository_ptr).toDartString();
     for (var i = 0; i < repository.conflict_summary.num_conflicts; i += 1) {
       String path = repository.conflict_summary.conflicts[i].ref.path.toDartString();
       MergeConflictType conflictType = MergeConflictTypeFromInt(repository.conflict_summary.conflicts[i].ref.conflict_type);
