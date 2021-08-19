@@ -1,6 +1,7 @@
 name: 'GitKebabLib'
 description: 'gitkebab dart bindings'
 output: 'gitkebab_lib.dart'
+compiler-opts: '-I/usr/lib/llvm-6.0/lib/clang/6.0.0/include/'
 headers:
   entry-points:
     - '../../../../../../source/gitkebab-head/src/lib/gitkebab.h'
