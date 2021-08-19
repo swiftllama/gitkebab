@@ -202,31 +202,31 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     //// Modify repo-A, commit and push
     ////
     
-    // modify file1 (should conflict)
+    // modify file1 (should conflict with delete)
     rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
     assert_int_equal(rc, 0);
     
-    // delete file2 (should conflict)
+    // delete file2 (should conflict should conflict with modification)
     rc = rm_rf("test-staging/simple-repo1-A/file2");
     assert_int_equal(rc, 0);
     
-    // modify file 3 in incomptabile ways (should conflict)
+    // modify file 3 (should conflict with incompatible edit)
     rc = copy_file("fixtures/simple-repo1-modifications/file3-mod-incompatible-a", "test-staging/simple-repo1-A/file3");
     assert_int_equal(rc, 0);
     
-    // modify file 4 in incompatible ways (should conflict)
+    // modify file 4 (should conflict with incompatible edit)
     rc = copy_file("fixtures/simple-repo1-modifications/file4-mod-incompatible-a", "test-staging/simple-repo1-A/file4");
     assert_int_equal(rc, 0);
     
-    // modify file 5 (should conflict)
+    // modify file 5 (should conflict with directory of same name)
     rc = copy_file("fixtures/simple-repo1-modifications/file5-mod-compatible-a", "test-staging/simple-repo1-A/file5");
     assert_int_equal(rc, 0);
 
-    // create binary file 6 (should conflict)
+    // create binary file 6 (should conflict with new text file)
     rc = copy_file("fixtures/simple-repo1-modifications/green.png", "test-staging/simple-repo1-A/file6");
     assert_int_equal(rc, 0);
 
-    // create same new file 7 (should NOT conflict)
+    // create same new file 7 (should NOT conflict with identical file)
     rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file7");
     assert_int_equal(rc, 0);
 
