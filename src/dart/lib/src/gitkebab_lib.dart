@@ -1384,13 +1384,13 @@ class GitKebabLib {
   int _IO_vfscanf(
     ffi.Pointer<_IO_FILE> arg0,
     ffi.Pointer<ffi.Int8> arg1,
-    int __gnuc_va_list,
+    ffi.Pointer<__va_list_tag> arg2,
     ffi.Pointer<ffi.Int32> arg3,
   ) {
     return __IO_vfscanf(
       arg0,
       arg1,
-      __gnuc_va_list,
+      arg2,
       arg3,
     );
   }
@@ -1403,12 +1403,12 @@ class GitKebabLib {
   int _IO_vfprintf(
     ffi.Pointer<_IO_FILE> arg0,
     ffi.Pointer<ffi.Int8> arg1,
-    int __gnuc_va_list,
+    ffi.Pointer<__va_list_tag> arg2,
   ) {
     return __IO_vfprintf(
       arg0,
       arg1,
-      __gnuc_va_list,
+      arg2,
     );
   }
 
@@ -1437,12 +1437,12 @@ class GitKebabLib {
   int _IO_sgetn(
     ffi.Pointer<_IO_FILE> arg0,
     ffi.Pointer<ffi.Void> arg1,
-    int size_t,
+    int arg2,
   ) {
     return __IO_sgetn(
       arg0,
       arg1,
-      size_t,
+      arg2,
     );
   }
 
@@ -1704,7 +1704,7 @@ class GitKebabLib {
 
   ffi.Pointer<_IO_FILE> open_memstream(
     ffi.Pointer<ffi.Pointer<ffi.Int8>> __bufloc,
-    ffi.Pointer<ffi.Int32> __sizeloc,
+    ffi.Pointer<ffi.Uint64> __sizeloc,
   ) {
     return _open_memstream(
       __bufloc,
@@ -1817,7 +1817,7 @@ class GitKebabLib {
   int vfprintf(
     ffi.Pointer<_IO_FILE> __s,
     ffi.Pointer<ffi.Int8> __format,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vfprintf(
       __s,
@@ -1833,7 +1833,7 @@ class GitKebabLib {
 
   int vprintf(
     ffi.Pointer<ffi.Int8> __format,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vprintf(
       __format,
@@ -1847,7 +1847,7 @@ class GitKebabLib {
   int vsprintf(
     ffi.Pointer<ffi.Int8> __s,
     ffi.Pointer<ffi.Int8> __format,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vsprintf(
       __s,
@@ -1882,7 +1882,7 @@ class GitKebabLib {
     ffi.Pointer<ffi.Int8> __s,
     int __maxlen,
     ffi.Pointer<ffi.Int8> __format,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vsnprintf(
       __s,
@@ -1900,7 +1900,7 @@ class GitKebabLib {
   int vdprintf(
     int __fd,
     ffi.Pointer<ffi.Int8> __fmt,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vdprintf(
       __fd,
@@ -1967,7 +1967,7 @@ class GitKebabLib {
   int vfscanf(
     ffi.Pointer<_IO_FILE> __s,
     ffi.Pointer<ffi.Int8> __format,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vfscanf(
       __s,
@@ -1981,7 +1981,7 @@ class GitKebabLib {
 
   int vscanf(
     ffi.Pointer<ffi.Int8> __format,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vscanf(
       __format,
@@ -1995,7 +1995,7 @@ class GitKebabLib {
   int vsscanf(
     ffi.Pointer<ffi.Int8> __s,
     ffi.Pointer<ffi.Int8> __format,
-    int __arg,
+    ffi.Pointer<__va_list_tag> __arg,
   ) {
     return _vsscanf(
       __s,
@@ -2192,7 +2192,7 @@ class GitKebabLib {
 
   int __getdelim(
     ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-    ffi.Pointer<ffi.Int32> __n,
+    ffi.Pointer<ffi.Uint64> __n,
     int __delimiter,
     ffi.Pointer<_IO_FILE> __stream,
   ) {
@@ -2211,7 +2211,7 @@ class GitKebabLib {
 
   int getdelim(
     ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-    ffi.Pointer<ffi.Int32> __n,
+    ffi.Pointer<ffi.Uint64> __n,
     int __delimiter,
     ffi.Pointer<_IO_FILE> __stream,
   ) {
@@ -2230,7 +2230,7 @@ class GitKebabLib {
 
   int getline(
     ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-    ffi.Pointer<ffi.Int32> __n,
+    ffi.Pointer<ffi.Uint64> __n,
     ffi.Pointer<_IO_FILE> __stream,
   ) {
     return _getline(
@@ -3134,10 +3134,10 @@ class GitKebabLib {
       _log_set_level_ptr.asFunction<_dart_log_set_level>();
 
   void log_set_quiet(
-    int enable,
+    bool enable,
   ) {
     return _log_set_quiet(
-      enable,
+      enable ? 1 : 0,
     );
   }
 
@@ -3288,7 +3288,7 @@ class GitKebabLib {
   ffi.Pointer<gk_result> gk_result_vargs(
     int code,
     ffi.Pointer<ffi.Int8> message,
-    int args,
+    ffi.Pointer<__va_list_tag> args,
   ) {
     return _gk_result_vargs(
       code,
@@ -5388,14 +5388,14 @@ class _IO_FILE extends ffi.Struct {
 
   external ffi.Pointer<ffi.Void> __pad4;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int __pad5;
 
   @ffi.Int32()
   external int _mode;
 
-  @ffi.Int8()
-  external int _unused2;
+  @ffi.Array.multi([20])
+  external ffi.Array<ffi.Int8> _unused2;
 }
 
 class __mbstate_t extends ffi.Opaque {}
@@ -5414,6 +5414,18 @@ abstract class __codecvt_result {
 }
 
 class _IO_FILE_plus extends ffi.Opaque {}
+
+class __va_list_tag extends ffi.Struct {
+  @ffi.Uint32()
+  external int gp_offset;
+
+  @ffi.Uint32()
+  external int fp_offset;
+
+  external ffi.Pointer<ffi.Void> overflow_arg_area;
+
+  external ffi.Pointer<ffi.Void> reg_save_area;
+}
 
 class tm extends ffi.Struct {
   @ffi.Int32()
@@ -5474,8 +5486,8 @@ class __locale_struct extends ffi.Struct {
 }
 
 class log_Event extends ffi.Struct {
-  @ffi.Int32()
-  external int ap;
+  @ffi.Array.multi([1])
+  external ffi.Array<__va_list_tag> ap;
 
   external ffi.Pointer<ffi.Int8> fmt;
 
@@ -5521,22 +5533,22 @@ class gk_repository_spec extends ffi.Struct {
 }
 
 class gk_status_summary extends ffi.Struct {
-  @ffi.Int32()
+  @ffi.Uint64()
   external int count_new;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int count_modified;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int count_deleted;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int count_renamed;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int count_typechange;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int count_conflicted;
 }
 
@@ -5557,7 +5569,7 @@ class gk_merge_conflict_entry extends ffi.Struct {
 }
 
 class gk_merge_conflict_summary extends ffi.Struct {
-  @ffi.Int32()
+  @ffi.Uint64()
   external int num_conflicts;
 
   external ffi.Pointer<ffi.Pointer<gk_merge_conflict_entry>> conflicts;
@@ -5642,7 +5654,7 @@ class gk_fetch_progress extends ffi.Struct {
   @ffi.Int32()
   external int index_percent;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int received_bytes;
 
   @ffi.Int32()
@@ -5650,10 +5662,10 @@ class gk_fetch_progress extends ffi.Struct {
 }
 
 class gk_checkout_progress extends ffi.Struct {
-  @ffi.Int32()
+  @ffi.Uint64()
   external int completed_steps;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int total_steps;
 
   @ffi.Int32()
@@ -5675,7 +5687,7 @@ class gk_push_transfer_progress extends ffi.Struct {
   @ffi.Uint32()
   external int total;
 
-  @ffi.Int32()
+  @ffi.Uint64()
   external int bytes;
 
   @ffi.Int32()
@@ -5865,6 +5877,8 @@ const int __GLIBC_USE_IEC_60559_BFP_EXT = 1;
 const int __GLIBC_USE_IEC_60559_FUNCS_EXT = 1;
 
 const int __GLIBC_USE_IEC_60559_TYPES_EXT = 1;
+
+const int NULL = 0;
 
 const int _STDLIB_H = 1;
 
@@ -6070,11 +6084,11 @@ const int _G_BUFSIZ = 8192;
 
 const int _IO_BUFSIZ = 8192;
 
+const int __GNUC_VA_LIST = 1;
+
 const int _IO_UNIFIED_JUMPTABLES = 1;
 
 const int EOF = -1;
-
-const int NULL = 0;
 
 const int _IOS_INPUT = 1;
 
@@ -6198,6 +6212,12 @@ const int L_ctermid = 9;
 
 const int FOPEN_MAX = 16;
 
+const int true_1 = 1;
+
+const int false_1 = 0;
+
+const int __bool_true_false_are_defined = 1;
+
 const int _TIME_H = 1;
 
 const int _BITS_TIME_H = 1;
@@ -6246,7 +6266,7 @@ const int GK_OBJECT_ID_STR_LENGTH = 40;
 
 const String GK_FILESYSTEM_PATH_SEPARATOR = '/';
 
-typedef _c___ctype_get_mb_cur_max = ffi.Int32 Function();
+typedef _c___ctype_get_mb_cur_max = ffi.Uint64 Function();
 
 typedef _dart___ctype_get_mb_cur_max = int Function();
 
@@ -6465,7 +6485,7 @@ typedef _dart_srandom = void Function(
 typedef _c_initstate = ffi.Pointer<ffi.Int8> Function(
   ffi.Uint32 __seed,
   ffi.Pointer<ffi.Int8> __statebuf,
-  ffi.Int32 __statelen,
+  ffi.Uint64 __statelen,
 );
 
 typedef _dart_initstate = ffi.Pointer<ffi.Int8> Function(
@@ -6505,7 +6525,7 @@ typedef _dart_srandom_r = int Function(
 typedef _c_initstate_r = ffi.Int32 Function(
   ffi.Uint32 __seed,
   ffi.Pointer<ffi.Int8> __statebuf,
-  ffi.Int32 __statelen,
+  ffi.Uint64 __statelen,
   ffi.Pointer<random_data> __buf,
 );
 
@@ -6703,7 +6723,7 @@ typedef _dart_lcong48_r = int Function(
 );
 
 typedef _c_malloc = ffi.Pointer<ffi.Void> Function(
-  ffi.Int32 __size,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_malloc = ffi.Pointer<ffi.Void> Function(
@@ -6711,8 +6731,8 @@ typedef _dart_malloc = ffi.Pointer<ffi.Void> Function(
 );
 
 typedef _c_calloc = ffi.Pointer<ffi.Void> Function(
-  ffi.Int32 __nmemb,
-  ffi.Int32 __size,
+  ffi.Uint64 __nmemb,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_calloc = ffi.Pointer<ffi.Void> Function(
@@ -6722,7 +6742,7 @@ typedef _dart_calloc = ffi.Pointer<ffi.Void> Function(
 
 typedef _c_realloc = ffi.Pointer<ffi.Void> Function(
   ffi.Pointer<ffi.Void> __ptr,
-  ffi.Int32 __size,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_realloc = ffi.Pointer<ffi.Void> Function(
@@ -6739,7 +6759,7 @@ typedef _dart_free = void Function(
 );
 
 typedef _c_alloca = ffi.Pointer<ffi.Void> Function(
-  ffi.Int32 __size,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_alloca = ffi.Pointer<ffi.Void> Function(
@@ -6747,7 +6767,7 @@ typedef _dart_alloca = ffi.Pointer<ffi.Void> Function(
 );
 
 typedef _c_valloc = ffi.Pointer<ffi.Void> Function(
-  ffi.Int32 __size,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_valloc = ffi.Pointer<ffi.Void> Function(
@@ -6756,8 +6776,8 @@ typedef _dart_valloc = ffi.Pointer<ffi.Void> Function(
 
 typedef _c_posix_memalign = ffi.Int32 Function(
   ffi.Pointer<ffi.Pointer<ffi.Void>> __memptr,
-  ffi.Int32 __alignment,
-  ffi.Int32 __size,
+  ffi.Uint64 __alignment,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_posix_memalign = int Function(
@@ -6767,8 +6787,8 @@ typedef _dart_posix_memalign = int Function(
 );
 
 typedef _c_aligned_alloc = ffi.Pointer<ffi.Void> Function(
-  ffi.Int32 __alignment,
-  ffi.Int32 __size,
+  ffi.Uint64 __alignment,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_aligned_alloc = ffi.Pointer<ffi.Void> Function(
@@ -6996,7 +7016,7 @@ typedef _c_ecvt_r = ffi.Int32 Function(
   ffi.Pointer<ffi.Int32> __decpt,
   ffi.Pointer<ffi.Int32> __sign,
   ffi.Pointer<ffi.Int8> __buf,
-  ffi.Int32 __len,
+  ffi.Uint64 __len,
 );
 
 typedef _dart_ecvt_r = int Function(
@@ -7014,7 +7034,7 @@ typedef _c_fcvt_r = ffi.Int32 Function(
   ffi.Pointer<ffi.Int32> __decpt,
   ffi.Pointer<ffi.Int32> __sign,
   ffi.Pointer<ffi.Int8> __buf,
-  ffi.Int32 __len,
+  ffi.Uint64 __len,
 );
 
 typedef _dart_fcvt_r = int Function(
@@ -7028,7 +7048,7 @@ typedef _dart_fcvt_r = int Function(
 
 typedef _c_mblen = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> __s,
-  ffi.Int32 __n,
+  ffi.Uint64 __n,
 );
 
 typedef _dart_mblen = int Function(
@@ -7039,7 +7059,7 @@ typedef _dart_mblen = int Function(
 typedef _c_mbtowc = ffi.Int32 Function(
   ffi.Pointer<ffi.Int32> __pwc,
   ffi.Pointer<ffi.Int8> __s,
-  ffi.Int32 __n,
+  ffi.Uint64 __n,
 );
 
 typedef _dart_mbtowc = int Function(
@@ -7058,10 +7078,10 @@ typedef _dart_wctomb = int Function(
   int __wchar,
 );
 
-typedef _c_mbstowcs = ffi.Int32 Function(
+typedef _c_mbstowcs = ffi.Uint64 Function(
   ffi.Pointer<ffi.Int32> __pwcs,
   ffi.Pointer<ffi.Int8> __s,
-  ffi.Int32 __n,
+  ffi.Uint64 __n,
 );
 
 typedef _dart_mbstowcs = int Function(
@@ -7070,10 +7090,10 @@ typedef _dart_mbstowcs = int Function(
   int __n,
 );
 
-typedef _c_wcstombs = ffi.Int32 Function(
+typedef _c_wcstombs = ffi.Uint64 Function(
   ffi.Pointer<ffi.Int8> __s,
   ffi.Pointer<ffi.Int32> __pwcs,
-  ffi.Int32 __n,
+  ffi.Uint64 __n,
 );
 
 typedef _dart_wcstombs = int Function(
@@ -7207,27 +7227,27 @@ typedef _dart__IO_ftrylockfile = int Function(
 typedef _c__IO_vfscanf = ffi.Int32 Function(
   ffi.Pointer<_IO_FILE> arg0,
   ffi.Pointer<ffi.Int8> arg1,
-  ffi.Int32 __gnuc_va_list,
+  ffi.Pointer<__va_list_tag> arg2,
   ffi.Pointer<ffi.Int32> arg3,
 );
 
 typedef _dart__IO_vfscanf = int Function(
   ffi.Pointer<_IO_FILE> arg0,
   ffi.Pointer<ffi.Int8> arg1,
-  int __gnuc_va_list,
+  ffi.Pointer<__va_list_tag> arg2,
   ffi.Pointer<ffi.Int32> arg3,
 );
 
 typedef _c__IO_vfprintf = ffi.Int32 Function(
   ffi.Pointer<_IO_FILE> arg0,
   ffi.Pointer<ffi.Int8> arg1,
-  ffi.Int32 __gnuc_va_list,
+  ffi.Pointer<__va_list_tag> arg2,
 );
 
 typedef _dart__IO_vfprintf = int Function(
   ffi.Pointer<_IO_FILE> arg0,
   ffi.Pointer<ffi.Int8> arg1,
-  int __gnuc_va_list,
+  ffi.Pointer<__va_list_tag> arg2,
 );
 
 typedef _c__IO_padn = ffi.Int64 Function(
@@ -7242,16 +7262,16 @@ typedef _dart__IO_padn = int Function(
   int arg2,
 );
 
-typedef _c__IO_sgetn = ffi.Int32 Function(
+typedef _c__IO_sgetn = ffi.Uint64 Function(
   ffi.Pointer<_IO_FILE> arg0,
   ffi.Pointer<ffi.Void> arg1,
-  ffi.Int32 size_t,
+  ffi.Uint64 arg2,
 );
 
 typedef _dart__IO_sgetn = int Function(
   ffi.Pointer<_IO_FILE> arg0,
   ffi.Pointer<ffi.Void> arg1,
-  int size_t,
+  int arg2,
 );
 
 typedef _c__IO_seekoff = ffi.Int64 Function(
@@ -7408,7 +7428,7 @@ typedef _dart_fdopen = ffi.Pointer<_IO_FILE> Function(
 
 typedef _c_fmemopen = ffi.Pointer<_IO_FILE> Function(
   ffi.Pointer<ffi.Void> __s,
-  ffi.Int32 __len,
+  ffi.Uint64 __len,
   ffi.Pointer<ffi.Int8> __modes,
 );
 
@@ -7420,12 +7440,12 @@ typedef _dart_fmemopen = ffi.Pointer<_IO_FILE> Function(
 
 typedef _c_open_memstream = ffi.Pointer<_IO_FILE> Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __bufloc,
-  ffi.Pointer<ffi.Int32> __sizeloc,
+  ffi.Pointer<ffi.Uint64> __sizeloc,
 );
 
 typedef _dart_open_memstream = ffi.Pointer<_IO_FILE> Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __bufloc,
-  ffi.Pointer<ffi.Int32> __sizeloc,
+  ffi.Pointer<ffi.Uint64> __sizeloc,
 );
 
 typedef _c_setbuf = ffi.Void Function(
@@ -7442,7 +7462,7 @@ typedef _c_setvbuf = ffi.Int32 Function(
   ffi.Pointer<_IO_FILE> __stream,
   ffi.Pointer<ffi.Int8> __buf,
   ffi.Int32 __modes,
-  ffi.Int32 __n,
+  ffi.Uint64 __n,
 );
 
 typedef _dart_setvbuf = int Function(
@@ -7455,7 +7475,7 @@ typedef _dart_setvbuf = int Function(
 typedef _c_setbuffer = ffi.Void Function(
   ffi.Pointer<_IO_FILE> __stream,
   ffi.Pointer<ffi.Int8> __buf,
-  ffi.Int32 __size,
+  ffi.Uint64 __size,
 );
 
 typedef _dart_setbuffer = void Function(
@@ -7503,40 +7523,40 @@ typedef _dart_sprintf = int Function(
 typedef _c_vfprintf = ffi.Int32 Function(
   ffi.Pointer<_IO_FILE> __s,
   ffi.Pointer<ffi.Int8> __format,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vfprintf = int Function(
   ffi.Pointer<_IO_FILE> __s,
   ffi.Pointer<ffi.Int8> __format,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_vprintf = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> __format,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vprintf = int Function(
   ffi.Pointer<ffi.Int8> __format,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_vsprintf = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> __s,
   ffi.Pointer<ffi.Int8> __format,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vsprintf = int Function(
   ffi.Pointer<ffi.Int8> __s,
   ffi.Pointer<ffi.Int8> __format,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_snprintf = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> __s,
-  ffi.Int32 __maxlen,
+  ffi.Uint64 __maxlen,
   ffi.Pointer<ffi.Int8> __format,
 );
 
@@ -7548,28 +7568,28 @@ typedef _dart_snprintf = int Function(
 
 typedef _c_vsnprintf = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> __s,
-  ffi.Int32 __maxlen,
+  ffi.Uint64 __maxlen,
   ffi.Pointer<ffi.Int8> __format,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vsnprintf = int Function(
   ffi.Pointer<ffi.Int8> __s,
   int __maxlen,
   ffi.Pointer<ffi.Int8> __format,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_vdprintf = ffi.Int32 Function(
   ffi.Int32 __fd,
   ffi.Pointer<ffi.Int8> __fmt,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vdprintf = int Function(
   int __fd,
   ffi.Pointer<ffi.Int8> __fmt,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_dprintf = ffi.Int32 Function(
@@ -7613,35 +7633,35 @@ typedef _dart_sscanf = int Function(
 typedef _c_vfscanf = ffi.Int32 Function(
   ffi.Pointer<_IO_FILE> __s,
   ffi.Pointer<ffi.Int8> __format,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vfscanf = int Function(
   ffi.Pointer<_IO_FILE> __s,
   ffi.Pointer<ffi.Int8> __format,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_vscanf = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> __format,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vscanf = int Function(
   ffi.Pointer<ffi.Int8> __format,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_vsscanf = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> __s,
   ffi.Pointer<ffi.Int8> __format,
-  ffi.Int32 __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _dart_vsscanf = int Function(
   ffi.Pointer<ffi.Int8> __s,
   ffi.Pointer<ffi.Int8> __format,
-  int __arg,
+  ffi.Pointer<__va_list_tag> __arg,
 );
 
 typedef _c_fgetc = ffi.Int32 Function(
@@ -7772,41 +7792,41 @@ typedef _dart_fgets = ffi.Pointer<ffi.Int8> Function(
 
 typedef _c___getdelim = ffi.Int64 Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-  ffi.Pointer<ffi.Int32> __n,
+  ffi.Pointer<ffi.Uint64> __n,
   ffi.Int32 __delimiter,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
 typedef _dart___getdelim = int Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-  ffi.Pointer<ffi.Int32> __n,
+  ffi.Pointer<ffi.Uint64> __n,
   int __delimiter,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
 typedef _c_getdelim = ffi.Int64 Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-  ffi.Pointer<ffi.Int32> __n,
+  ffi.Pointer<ffi.Uint64> __n,
   ffi.Int32 __delimiter,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
 typedef _dart_getdelim = int Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-  ffi.Pointer<ffi.Int32> __n,
+  ffi.Pointer<ffi.Uint64> __n,
   int __delimiter,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
 typedef _c_getline = ffi.Int64 Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-  ffi.Pointer<ffi.Int32> __n,
+  ffi.Pointer<ffi.Uint64> __n,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
 typedef _dart_getline = int Function(
   ffi.Pointer<ffi.Pointer<ffi.Int8>> __lineptr,
-  ffi.Pointer<ffi.Int32> __n,
+  ffi.Pointer<ffi.Uint64> __n,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
@@ -7838,10 +7858,10 @@ typedef _dart_ungetc = int Function(
   ffi.Pointer<_IO_FILE> __stream,
 );
 
-typedef _c_fread = ffi.Int32 Function(
+typedef _c_fread = ffi.Uint64 Function(
   ffi.Pointer<ffi.Void> __ptr,
-  ffi.Int32 __size,
-  ffi.Int32 __n,
+  ffi.Uint64 __size,
+  ffi.Uint64 __n,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
@@ -7852,10 +7872,10 @@ typedef _dart_fread = int Function(
   ffi.Pointer<_IO_FILE> __stream,
 );
 
-typedef _c_fwrite = ffi.Int32 Function(
+typedef _c_fwrite = ffi.Uint64 Function(
   ffi.Pointer<ffi.Void> __ptr,
-  ffi.Int32 __size,
-  ffi.Int32 __n,
+  ffi.Uint64 __size,
+  ffi.Uint64 __n,
   ffi.Pointer<_IO_FILE> __s,
 );
 
@@ -7866,10 +7886,10 @@ typedef _dart_fwrite = int Function(
   ffi.Pointer<_IO_FILE> __s,
 );
 
-typedef _c_fread_unlocked = ffi.Int32 Function(
+typedef _c_fread_unlocked = ffi.Uint64 Function(
   ffi.Pointer<ffi.Void> __ptr,
-  ffi.Int32 __size,
-  ffi.Int32 __n,
+  ffi.Uint64 __size,
+  ffi.Uint64 __n,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
@@ -7880,10 +7900,10 @@ typedef _dart_fread_unlocked = int Function(
   ffi.Pointer<_IO_FILE> __stream,
 );
 
-typedef _c_fwrite_unlocked = ffi.Int32 Function(
+typedef _c_fwrite_unlocked = ffi.Uint64 Function(
   ffi.Pointer<ffi.Void> __ptr,
-  ffi.Int32 __size,
-  ffi.Int32 __n,
+  ffi.Uint64 __size,
+  ffi.Uint64 __n,
   ffi.Pointer<_IO_FILE> __stream,
 );
 
@@ -8114,9 +8134,9 @@ typedef _dart_mktime = int Function(
   ffi.Pointer<tm> __tp,
 );
 
-typedef _c_strftime = ffi.Int32 Function(
+typedef _c_strftime = ffi.Uint64 Function(
   ffi.Pointer<ffi.Int8> __s,
-  ffi.Int32 __maxsize,
+  ffi.Uint64 __maxsize,
   ffi.Pointer<ffi.Int8> __format,
   ffi.Pointer<tm> __tp,
 );
@@ -8128,9 +8148,9 @@ typedef _dart_strftime = int Function(
   ffi.Pointer<tm> __tp,
 );
 
-typedef _c_strftime_l = ffi.Int32 Function(
+typedef _c_strftime_l = ffi.Uint64 Function(
   ffi.Pointer<ffi.Int8> __s,
-  ffi.Int32 __maxsize,
+  ffi.Uint64 __maxsize,
   ffi.Pointer<ffi.Int8> __format,
   ffi.Pointer<tm> __tp,
   ffi.Pointer<__locale_struct> __loc,
@@ -8395,7 +8415,7 @@ typedef _dart_log_set_level = void Function(
 );
 
 typedef _c_log_set_quiet = ffi.Void Function(
-  ffi.Int32 enable,
+  ffi.Uint8 enable,
 );
 
 typedef _dart_log_set_quiet = void Function(
@@ -8451,13 +8471,13 @@ typedef _dart_gk_result_v = ffi.Pointer<gk_result> Function(
 typedef _c_gk_result_vargs = ffi.Pointer<gk_result> Function(
   ffi.Int32 code,
   ffi.Pointer<ffi.Int8> message,
-  ffi.Int32 args,
+  ffi.Pointer<__va_list_tag> args,
 );
 
 typedef _dart_gk_result_vargs = ffi.Pointer<gk_result> Function(
   int code,
   ffi.Pointer<ffi.Int8> message,
-  int args,
+  ffi.Pointer<__va_list_tag> args,
 );
 
 typedef _c_gk_result_success = ffi.Pointer<gk_result> Function();
@@ -8576,8 +8596,8 @@ typedef _dart_gk_session_fetch_progress_callback = int Function(
 
 typedef _c_gk_session_checkout_progress_callback = ffi.Void Function(
   ffi.Pointer<ffi.Int8> path,
-  ffi.Int32 cur,
-  ffi.Int32 tot,
+  ffi.Uint64 cur,
+  ffi.Uint64 tot,
   ffi.Pointer<ffi.Void> payload,
 );
 
@@ -8591,7 +8611,7 @@ typedef _dart_gk_session_checkout_progress_callback = void Function(
 typedef _c_gk_session_progress_push_transfer_callback = ffi.Int32 Function(
   ffi.Uint32 current,
   ffi.Uint32 total,
-  ffi.Int32 bytes,
+  ffi.Uint64 bytes,
   ffi.Pointer<ffi.Void> payload,
 );
 
@@ -8604,7 +8624,7 @@ typedef _dart_gk_session_progress_push_transfer_callback = int Function(
 
 typedef _c_gk_session_progress_init_fetch = ffi.Pointer<gk_session_progress>
     Function(
-  ffi.Int32 received_bytes,
+  ffi.Uint64 received_bytes,
   ffi.Uint32 total_objects,
   ffi.Uint32 total_deltas,
   ffi.Uint32 received_objects,
@@ -8625,8 +8645,8 @@ typedef _dart_gk_session_progress_init_fetch = ffi.Pointer<gk_session_progress>
 typedef _c_gk_session_progress_init_checkout = ffi.Pointer<gk_session_progress>
     Function(
   ffi.Pointer<ffi.Int8> path,
-  ffi.Int32 cur,
-  ffi.Int32 tot,
+  ffi.Uint64 cur,
+  ffi.Uint64 tot,
 );
 
 typedef _dart_gk_session_progress_init_checkout
@@ -8640,7 +8660,7 @@ typedef _c_gk_session_progress_init_push_transfer
     = ffi.Pointer<gk_session_progress> Function(
   ffi.Uint32 current,
   ffi.Uint32 total,
-  ffi.Int32 bytes,
+  ffi.Uint64 bytes,
 );
 
 typedef _dart_gk_session_progress_init_push_transfer
@@ -8737,7 +8757,7 @@ typedef _dart_gk_repository_state_unset = void Function(
 typedef _c_gk_prepend_repository_path = ffi.Int32 Function(
   ffi.Pointer<gk_session> session,
   ffi.Pointer<ffi.Int8> buffer,
-  ffi.Int32 buffer_length,
+  ffi.Uint64 buffer_length,
   ffi.Pointer<ffi.Int8> path,
 );
 
@@ -8756,7 +8776,7 @@ typedef _dart_gk_repository_print_state = void Function(
   ffi.Pointer<gk_repository> repository,
 );
 
-typedef _c_gk_count_reflog_entries = ffi.Int32 Function(
+typedef _c_gk_count_reflog_entries = ffi.Uint64 Function(
   ffi.Pointer<gk_session> session,
   ffi.Pointer<ffi.Int8> ref_name,
 );
@@ -8823,7 +8843,7 @@ typedef _dart_gk_merge_conflict_entry_type_string = ffi.Pointer<ffi.Int8>
 
 typedef _c_gk_conflicts_allocate = ffi.Int32 Function(
   ffi.Pointer<gk_repository> repository,
-  ffi.Int32 num_conflicts,
+  ffi.Uint64 num_conflicts,
 );
 
 typedef _dart_gk_conflicts_allocate = int Function(
@@ -8985,7 +9005,7 @@ typedef _dart_gk_compare_blobs = int Function(
 
 typedef _c_gk_concatenate_paths = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> buffer,
-  ffi.Int32 buffer_length,
+  ffi.Uint64 buffer_length,
   ffi.Pointer<ffi.Int8> path1,
   ffi.Pointer<ffi.Int8> path2,
 );
@@ -9216,7 +9236,7 @@ typedef _dart_gk_status_summary_query = int Function(
 
 typedef _c_gk_status_summary_status_at = ffi.Int32 Function(
   ffi.Pointer<gk_session> session,
-  ffi.Int32 index,
+  ffi.Uint64 index,
 );
 
 typedef _dart_gk_status_summary_status_at = int Function(
@@ -9226,7 +9246,7 @@ typedef _dart_gk_status_summary_status_at = int Function(
 
 typedef _c_gk_status_summary_path_at = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<gk_session> session,
-  ffi.Int32 index,
+  ffi.Uint64 index,
 );
 
 typedef _dart_gk_status_summary_path_at = ffi.Pointer<ffi.Int8> Function(
@@ -9234,7 +9254,7 @@ typedef _dart_gk_status_summary_path_at = ffi.Pointer<ffi.Int8> Function(
   int index,
 );
 
-typedef _c_gk_status_summary_entrycount = ffi.Int32 Function(
+typedef _c_gk_status_summary_entrycount = ffi.Uint64 Function(
   ffi.Pointer<gk_session> session,
 );
 
@@ -9503,7 +9523,7 @@ typedef _dart_gk_execution_context_log_stack_failure = void Function(
   ffi.Pointer<gk_execution_context> context,
 );
 
-typedef _c_gk_execution_context_stack_size = ffi.Int32 Function(
+typedef _c_gk_execution_context_stack_size = ffi.Uint64 Function(
   ffi.Pointer<gk_execution_context> context,
 );
 

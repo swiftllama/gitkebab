@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart';
 import 'pointer_casting.dart';
+import 'string_utils.dart';
 
 class RepositorySpec {
   final gk_repository_spec spec;
@@ -45,6 +46,10 @@ class MergeConflict {
   final String oursCommitId;
   final String theirsCommitId;
   MergeConflict(this.path, this.conflictType, this.ancestorCommitId, this.oursCommitId, this.theirsCommitId);
+
+  String toString() {
+    return "<MergeConflict [${conflictType.toString().split(".").last} on '$path'] [ancestor: ${shortCommitId(ancestorCommitId)}] [ours: ${shortCommitId(oursCommitId)}] [theirs: ${shortCommitId(theirsCommitId)}]>";
+  }
 }
 
 class MergeConflictSummary {
@@ -66,5 +71,9 @@ class MergeConflictSummary {
       summary.conflicts.add(MergeConflict(path, conflictType, ancestorCommitId, oursCommitId, theirsCommitId));
     }
     return summary;
+  }
+
+  String toString() {
+    return "<MergeConflictSummary \n${conflicts.map((entry) => "  $entry").join("\n")}\n>";
   }
 }

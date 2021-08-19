@@ -115,7 +115,7 @@ List<Session> createConflictingReposAAndBWithExtendedConflicts() {
   File("${simpleRepoBPath()}/file1").deleteSync();
 
   // modify file2 (should conflict with delete)
-  File("${testFixturesPath()}/simple-repo1-modifications/file1-modified").copySync("${simpleRepoAPath()}/file1");
+  File("${testFixturesPath()}/simple-repo1-modifications/file1-modified").copySync("${simpleRepoBPath()}/file2");
 
   // modify file3 (should conflict with incompatible edit)
   File("${testFixturesPath()}/simple-repo1-modifications/file3-mod-incompatible-b").copySync("${simpleRepoBPath()}/file3");
@@ -128,7 +128,7 @@ List<Session> createConflictingReposAAndBWithExtendedConflicts() {
   Directory("${simpleRepoBPath()}/file5").createSync();
 
   // create text file 6 (should conflict with new binary file)
-  File("${testFixturesPath()}/simple-repo1-modifications/file1-modified").copySync("${simpleRepoAPath()}/file6");
+  File("${testFixturesPath()}/simple-repo1-modifications/file1-modified").copySync("${simpleRepoBPath()}/file6");
 
   // create same new file 7 (should NOT conflict with identical file)
   File("${testFixturesPath()}/simple-repo1-modifications/file1-modified").copySync("${simpleRepoBPath()}/file7");
