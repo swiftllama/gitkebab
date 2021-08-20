@@ -5,6 +5,10 @@ extension FfiUtf8Casting on String {
   Pointer<Int8> toFfiPtr() {
     return this.toNativeUtf8().cast<Int8>();
   }
+
+  Pointer<Void> toVoidFfiPtr() {
+    return this.toNativeUtf8().cast<Void>();
+  }
 }
 
 extension PointerExtensions<T extends NativeType> on Pointer<T> {

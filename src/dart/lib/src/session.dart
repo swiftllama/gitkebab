@@ -207,6 +207,62 @@ class Session {
     }
   }
 
+  void mergeConflictsQuery() {
+    if (GitKebab.lib.gk_merge_conflicts_query(session_ptr) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  ////
+  // Conflicts
+  void writeBlobContents(String blobId, String path, {bool relativizePath = true}) {
+    if (GitKebab.lib.gk_blob_write_contents(session_ptr, blobId.toFfiPtr(), path.toFfiPtr(), relativizePath ? 1 : 0) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  void conflictResolveAcceptRemoteDelete(String path) {
+    if (GitKebab.lib.gk_conflict_resolve_accept_remote_delete(session_ptr, path.toFfiPtr()) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  void conflictResolveAcceptLocalDelete(String path) {
+    if (GitKebab.lib.gk_conflict_resolve_accept_local_delete(session_ptr, path.toFfiPtr()) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  void conflictResolveAcceptExisting(String path, ConflictResolution resolution) {
+    if (GitKebab.lib.gk_conflict_resolve_accept_existing(session_ptr, path.toFfiPtr(), resolution.intValue()) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  int compareBlobs(String blob1Id, String blob2Id) {
+    Pointer<Int32> similarityPtr = ffip.calloc<Int32>();
+    int rc = GitKebab.lib.gk_compare_blobs(session_ptr, similarityPtr, blob1Id.toFfiPtr(), blob2Id.toFfiPtr());
+    int similarity = similarityPtr.address == 0 ? 0 : similarityPtr.value;
+    ffip.calloc.free(similarityPtr);
+    if (rc != 0) {
+      throw lastResultException();
+    }
+    return similarity;
+  }
+
+  String mergedBufferWithConflictMarkers(MergeConflict conflict) {
+    Pointer<Int8> bufferPtr = GitKebab.lib.gk_conflict_merged_buffer_with_conflict_markers(session_ptr, conflict.ancestorBlobId.toFfiPtr(), conflict.oursBlobId.toFfiPtr(), conflict.theirsBlobId.toFfiPtr(), conflict.path.toFfiPtr());
+    String buffer = bufferPtr.toDartString();
+    GitKebab.lib.gk_conflict_merged_buffer_free(bufferPtr);
+    return buffer;
+  }
+
+  void conflictResolveFromBuffer(String path, String buffer) {
+    if (GitKebab.lib.gk_conflict_resolve_from_buffer(session_ptr, path.toFfiPtr(), buffer.toVoidFfiPtr(), buffer.codeUnits.length) != 0) {
+      throw lastResultException();
+    }
+  }
+
   ////
   // Misc
   String resolveReference(String reference) {
@@ -226,14 +282,25 @@ class Session {
     return commitId;
   }
 
-  void mergeConflictsQuery() {
-    if (GitKebab.lib.gk_merge_conflicts_query(session_ptr) != 0) {
-      throw lastResultException();
+
+
+
+}
+
+enum ConflictResolution {
+  ours,
+  theirs,
+  ancestor
+}
+
+extension ConflictResolutionIntValue on ConflictResolution {
+  int intValue() {
+    switch (this) {
+      case ConflictResolution.ours: return gitkebab_lib.ConflictResolution.OURS;
+      case ConflictResolution.theirs: return gitkebab_lib.ConflictResolution.THEIRS;
+      case ConflictResolution.ancestor: return gitkebab_lib.ConflictResolution.ANCESTOR;
     }
   }
-
-
-
 }
 
 class SessionState {

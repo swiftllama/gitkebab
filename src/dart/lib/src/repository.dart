@@ -42,13 +42,13 @@ MergeConflictType MergeConflictTypeFromInt(int conflictType) {
 class MergeConflict {
   final String path;
   final MergeConflictType conflictType;
-  final String ancestorCommitId;
-  final String oursCommitId;
-  final String theirsCommitId;
-  MergeConflict(this.path, this.conflictType, this.ancestorCommitId, this.oursCommitId, this.theirsCommitId);
+  final String ancestorBlobId;
+  final String oursBlobId;
+  final String theirsBlobId;
+  MergeConflict(this.path, this.conflictType, this.ancestorBlobId, this.oursBlobId, this.theirsBlobId);
 
   String toString() {
-    return "<MergeConflict [${conflictType.toString().split(".").last} on '$path'] [ancestor: ${shortCommitId(ancestorCommitId)}] [ours: ${shortCommitId(oursCommitId)}] [theirs: ${shortCommitId(theirsCommitId)}]>";
+    return "<MergeConflict [${conflictType.toString().split(".").last} on '$path'] [ancestor: ${shortCommitId(ancestorBlobId)}] [ours: ${shortCommitId(oursBlobId)}] [theirs: ${shortCommitId(theirsBlobId)}]>";
   }
 }
 

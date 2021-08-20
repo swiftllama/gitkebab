@@ -95,7 +95,8 @@ static void test_conflicts_local_delete_remote_edit_file1(void **state) {
     assert_int_equal(summary->num_conflicts, 6);
     assert_string_equal(summary->conflicts[0]->path, "file1");
     assert_int_equal(summary->conflicts[0]->conflict_type, GK_MERGE_CONFLICT_LOCAL_DELETE_REMOTE_EDIT);
-    
+
+    // write "theirs" version onto disk at new location
     int relativize_path = 1;
     gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, "new_file1", relativize_path);
     assert_int_equal(gk_session_last_result_code(session2), 0);
@@ -138,7 +139,7 @@ static void test_conflicts_local_edit_remote_delete_file2(void **state) {
     assert_int_equal(summary->conflicts[1]->conflict_type, GK_MERGE_CONFLICT_LOCAL_EDIT_REMOTE_DELETE);
     
     int relativize_path = 1;
-    gk_blob_write_contents(session2, summary->conflicts[0]->theirs_oid_id, "new_file2", relativize_path);
+    gk_blob_write_contents(session2, summary->conflicts[1]->ours_oid_id, "new_file2", relativize_path);
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     // Verify that the file we "preserved" is the same as the incoming edit

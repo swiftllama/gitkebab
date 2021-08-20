@@ -49,6 +49,12 @@ void copyDirectory(String sourcePath, String destPath) {
   }
 }
 
+int diff(String sourcePath, String destPath) {
+  ProcessResult res = Process.runSync("diff", ["-u", sourcePath, destPath]);
+  //print("Files [$sourcePath] and [$destPath] differ: ${res.stdout} ${res.stderr}";
+  return res.exitCode;
+}
+
 void copySourceRepoSimpleRepo1DotGit() {
   deleteDirIfExists(simpleRepo1DotGitSourcePath());
   copyDirectory("${testFixturesPath()}/simple-repo1.git", simpleRepo1DotGitSourcePath());
