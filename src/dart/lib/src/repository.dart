@@ -21,17 +21,17 @@ class RepositorySpec {
 }
 
 enum MergeConflictType {
-  IncompatibleTwoSidedEdit,
-  IncompatibleTwoSidedCreate,
-  LocalEditRemoteDelete,
-  LocalDeleteRemoteEdit
+  incompatibleTwoSidedEdit,
+  incompatibleTwoSidedCreate,
+  localEditRemoteDelete,
+  localDeleteRemoteEdit
 }
 
 MergeConflictType MergeConflictTypeFromInt(int conflictType) {
-  if (conflictType == MergeConflictEntryType.INCOMPATIBLE_TWOSIDED_EDIT) { return MergeConflictType.IncompatibleTwoSidedEdit; }
-  if (conflictType == MergeConflictEntryType.INCOMPATIBLE_TWOSIDED_CREATE) { return MergeConflictType.IncompatibleTwoSidedEdit; }
-  if (conflictType == MergeConflictEntryType.LOCAL_EDIT_REMOTE_DELETE) { return MergeConflictType.LocalEditRemoteDelete; }
-  if (conflictType == MergeConflictEntryType.LOCAL_DELETE_REMOTE_EDIT) { return MergeConflictType.LocalDeleteRemoteEdit; }
+  if (conflictType == MergeConflictEntryType.INCOMPATIBLE_TWOSIDED_EDIT) { return MergeConflictType.incompatibleTwoSidedEdit; }
+  if (conflictType == MergeConflictEntryType.INCOMPATIBLE_TWOSIDED_CREATE) { return MergeConflictType.incompatibleTwoSidedCreate; }
+  if (conflictType == MergeConflictEntryType.LOCAL_EDIT_REMOTE_DELETE) { return MergeConflictType.localEditRemoteDelete; }
+  if (conflictType == MergeConflictEntryType.LOCAL_DELETE_REMOTE_EDIT) { return MergeConflictType.localDeleteRemoteEdit; }
   throw "Unknown merge conflict entry type [$conflictType], expected one " +
       " of [INCOMPATIBLE_TWO_SIDED_EDIT: ${MergeConflictEntryType.INCOMPATIBLE_TWOSIDED_EDIT}], " +
       " of [INCOMPATIBLE_TWO_SIDED_CREATE: ${MergeConflictEntryType.INCOMPATIBLE_TWOSIDED_CREATE}], " +

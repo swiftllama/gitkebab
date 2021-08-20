@@ -37,5 +37,19 @@ void main() {
     expect(stateHistory.changes[2], equals({"mergeFinalizationPending":"on", "mergeInProgress":"off"}));
 
     expect(session2.mergeConflictSummary.conflicts.length, equals(6));
+    expect(session2.mergeConflictSummary.conflicts[0].path, equals("file1"));
+    expect(session2.mergeConflictSummary.conflicts[0].conflictType, equals(MergeConflictType.localDeleteRemoteEdit));
+    expect(session2.mergeConflictSummary.conflicts[1].path, equals("file2"));
+    expect(session2.mergeConflictSummary.conflicts[1].conflictType, equals(MergeConflictType.localEditRemoteDelete));
+    expect(session2.mergeConflictSummary.conflicts[2].path, equals("file3"));
+    expect(session2.mergeConflictSummary.conflicts[2].conflictType, equals(MergeConflictType.incompatibleTwoSidedEdit));
+    expect(session2.mergeConflictSummary.conflicts[3].path, equals("file4"));
+    expect(session2.mergeConflictSummary.conflicts[3].conflictType, equals(MergeConflictType.incompatibleTwoSidedEdit));
+    expect(session2.mergeConflictSummary.conflicts[4].path, equals("file5"));
+    expect(session2.mergeConflictSummary.conflicts[4].conflictType, equals(MergeConflictType.localDeleteRemoteEdit));
+    expect(session2.mergeConflictSummary.conflicts[5].path, equals("file6"));
+    expect(session2.mergeConflictSummary.conflicts[5].conflictType, equals(MergeConflictType.incompatibleTwoSidedCreate));
+
+
   });
 }
