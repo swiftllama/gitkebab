@@ -393,7 +393,9 @@ int gk_merge_into_head_finalize(gk_session *session) {
         return gk_session_failure(session, purpose);
     }
 
+    gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
+    
     if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) {
         return GK_ERR;
     }

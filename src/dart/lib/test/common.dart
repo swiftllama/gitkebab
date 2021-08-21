@@ -74,7 +74,9 @@ SessionState lastSessionState = SessionState(0);
 
 void stateChangedCallbackWithHistory(Session session) {
   var diff = lastSessionState.diff(session.state);
-  stateHistory.changes.add(diff);
+  if (diff.keys.length > 0) {
+     stateHistory.changes.add(diff);
+  }
   lastSessionState = session.state;
 }
 

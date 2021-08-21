@@ -228,7 +228,7 @@ void main() {
     expect(session2.state.hasChangesToMerge, equals(true));
     expect(session2.state.mergeFinalizationPending, equals(true));
     expect(session2.state.mergeInProgress, equals(false));
-    expect(stateHistory.changes[stateHistory.changes.length - 3], equals({"mergeInProgress":"on"}));
+    expect(stateHistory.changes[stateHistory.changes.length - 2], equals({"mergeInProgress":"on"}));
     expect(stateHistory.changes[stateHistory.changes.length - 1], equals({"mergeInProgress":"off"}));
 
     // Abort, it should clean things up
@@ -237,7 +237,60 @@ void main() {
     expect(session2.state.hasChangesToMerge, equals(true));
     expect(session2.state.mergeFinalizationPending, equals(false));
     expect(session2.state.mergeInProgress, equals(false));
-
     expect(stateHistory.changes.last, equals({"hasConflicts":"off", "mergeFinalizationPending":"off"}));
+  });
+
+
+  test('Conflicts - resolution and merge', ()
+  {
+    stateHistory.reset();
+    List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
+    Session session2 = sessions.last;
+    session2.onStateChanged = stateChangedCallbackWithHistory;
+
+    // Should have changes to merge
+    expect(session2.state.hasChangesToMerge, equals(true));
+    expect(session2.state.hasConflicts, equals(false)); // no conflicts until we try to merge
+
+    // Try to merge - succeeds despite the merge not finishing
+    stateHistory.reset();
+    session2.mergeIntoHead();
+    expect(session2.state.hasConflicts, equals(true));
+    expect(session2.state.hasChangesToMerge, equals(true));
+    expect(session2.state.mergeFinalizationPending, equals(true));
+    expect(session2.state.mergeInProgress, equals(false));
+    expect(stateHistory.changes[0]["mergeInProgress"], equals("on"));
+    expect(stateHistory.changes[1], equals({"hasConflicts": "on"}));
+    expect(stateHistory.changes[2], equals({"mergeFinalizationPending": "on", "mergeInProgress": "off"}));
+
+    // We should now have 6 conflicts of various types
+    expect(session2.mergeConflictSummary.conflicts.length, equals(6));
+
+    // Resolve all six conflicts
+    session2.conflictResolveAcceptRemoteDelete("file1");
+    session2.conflictResolveAcceptLocalDelete("file2");
+    session2.conflictResolveFromBuffer("file3", "hello3");
+    session2.conflictResolveFromBuffer("file4", "hello4");
+    session2.conflictResolveAcceptLocalDelete("file5");
+    session2.conflictResolveAcceptExisting("file6", ConflictResolution.theirs);
+
+    // We should now have 0 conflicts
+    session2.mergeConflictsQuery();
+    expect(session2.mergeConflictSummary.conflicts.length, equals(0));
+    expect(stateHistory.changes.last, equals({"hasConflicts":"off"}));
+    expect(session2.state.hasConflicts, equals(false));
+
+    // Finalize the merge
+    session2.mergeIntoHeadFinalize();
+    expect(stateHistory.changes[stateHistory.changes.length - 2], equals({"mergeInProgress":"on"}));
+    expect(stateHistory.changes[stateHistory.changes.length - 1], equals({"mergeInProgress":"off", "mergeFinalizationPending":"off", "hasChangesToMerge":"off"}));
+    expect(session2.state.hasConflicts, equals(false));
+    expect(session2.state.hasChangesToMerge, equals(false));
+    expect(session2.state.mergeFinalizationPending, equals(false));
+    expect(session2.state.mergeInProgress, equals(false));
+
+    // Verify file3/file4 content after merge
+    expect(File("${session2.repositorySpec.localPath}/file3").readAsStringSync(), equals("hello3"));
+    expect(File("${session2.repositorySpec.localPath}/file4").readAsStringSync(), equals("hello4"));
   });
 }
