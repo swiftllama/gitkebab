@@ -62,6 +62,7 @@ void gk_conflicts_free(gk_repository *repository) {
     }
     free(repository->conflict_summary.conflicts);
     repository->conflict_summary.conflicts = NULL;
+    repository->conflict_summary.num_conflicts = 0;
 }
 
 gk_conflict_diff_summary *gk_conflict_diff_summary_new() {

@@ -142,7 +142,7 @@ void main() {
     // been modified in only a few places, albeit incompatibly)
     expect(
         session2.compareBlobs(session2.mergeConflictSummary.conflicts[2].oursBlobId,
-        session2.mergeConflictSummary.conflicts[2].theirsBlobId),
+            session2.mergeConflictSummary.conflicts[2].theirsBlobId),
         inInclusiveRange(80, 100)
     );
 
@@ -156,5 +156,88 @@ void main() {
     session2.mergeConflictsQuery();
     expect(session2.mergeConflictSummary.conflicts.length, equals(5));
     expect(session2.mergeConflictSummary.conflicts[2].path, equals("file4"));
+  });
+
+  test('Conflicts - incompatible two sided create', ()
+  {
+    stateHistory.reset();
+    List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
+    Session session1 = sessions.first;
+    Session session2 = sessions.last;
+    session2.onStateChanged = stateChangedCallbackWithHistory;
+
+    session2.mergeIntoHead(); // merge call succeeds despite the merge not finishing
+
+    // file6 should have a twosided-incompatible-edit type conflict
+    expect(session2.mergeConflictSummary.conflicts.length, equals(6));
+    expect(session2.mergeConflictSummary.conflicts[5].path, equals("file6"));
+    expect(session2.mergeConflictSummary.conflicts[5].conflictType, equals(MergeConflictType.incompatibleTwoSidedCreate));
+
+    // Similarity should be low, i.e. between 0 and 20 (these are
+    // two completely different files)
+    expect(
+        session2.compareBlobs(session2.mergeConflictSummary.conflicts[5].oursBlobId,
+            session2.mergeConflictSummary.conflicts[5].theirsBlobId),
+        inInclusiveRange(0, 20)
+    );
+
+    // Resolve by accepting theirs
+    session2.conflictResolveAcceptExisting("file6", ConflictResolution.theirs);
+
+    session2.mergeConflictsQuery();
+    expect(session2.mergeConflictSummary.conflicts.length, equals(5));
+    expect(session2.mergeConflictSummary.conflicts[4].path, equals("file5"));
+  });
+
+  test('Conflicts - partial resolution causes failed merge', ()
+  {
+    stateHistory.reset();
+    List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
+    Session session2 = sessions.last;
+    session2.onStateChanged = stateChangedCallbackWithHistory;
+
+    // Should have changes to merge
+    expect(session2.state.hasChangesToMerge, equals(true));
+    expect(session2.state.hasConflicts, equals(false)); // no conflicts until we try to merge
+
+    // Try to merge - succeeds despite the merge not finishing
+    stateHistory.reset();
+    session2.mergeIntoHead();
+    expect(session2.state.hasConflicts, equals(true));
+    expect(session2.state.hasChangesToMerge, equals(true));
+    expect(session2.state.mergeFinalizationPending, equals(true));
+    expect(session2.state.mergeInProgress, equals(false));
+    expect(stateHistory.changes[0]["mergeInProgress"], equals("on"));
+    expect(stateHistory.changes[1], equals({"hasConflicts": "on"}));
+    expect(stateHistory.changes[2], equals({"mergeFinalizationPending": "on", "mergeInProgress": "off"}));
+
+    // We should now have 6 conflicts of various types
+    expect(session2.mergeConflictSummary.conflicts.length, equals(6));
+
+    // Resolve two out of the six
+    session2.conflictResolveAcceptRemoteDelete("file1");
+    session2.conflictResolveAcceptLocalDelete("file2");
+
+    // Query again, we should have four left
+    session2.mergeConflictsQuery();
+    expect(session2.mergeConflictSummary.conflicts.length, equals(4));
+
+    // Try to finalize the merge, it should fail
+    expect(() { session2.mergeIntoHeadFinalize(); }, throwsA(isA<GitKebabException>().having((exc) => exc.code, 'code', equals(ResultCode.ERROR_MERGE_HAS_CONFLICTS))));
+    expect(session2.state.hasConflicts, equals(true)); // merge no longer in progress, no conflicts currently
+    expect(session2.state.hasChangesToMerge, equals(true));
+    expect(session2.state.mergeFinalizationPending, equals(true));
+    expect(session2.state.mergeInProgress, equals(false));
+    expect(stateHistory.changes[stateHistory.changes.length - 3], equals({"mergeInProgress":"on"}));
+    expect(stateHistory.changes[stateHistory.changes.length - 1], equals({"mergeInProgress":"off"}));
+
+    // Abort, it should clean things up
+    session2.mergeAbort();
+    expect(session2.state.hasConflicts, equals(false)); // merge no longer in progress, no conflicts currently
+    expect(session2.state.hasChangesToMerge, equals(true));
+    expect(session2.state.mergeFinalizationPending, equals(false));
+    expect(session2.state.mergeInProgress, equals(false));
+
+    expect(stateHistory.changes.last, equals({"hasConflicts":"off", "mergeFinalizationPending":"off"}));
   });
 }

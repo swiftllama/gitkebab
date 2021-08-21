@@ -10,6 +10,15 @@
 #include "gk_lg2_private.h"
 #include "gk_session.h"
 
+static int unset_merge_in_progress_and_trigger_state_callback(gk_session *session, const char *purpose) {
+    gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
+    return GK_SUCCESS;
+}
+
+
 int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, int *out_analysis) {
     const char *purpose = "analyze merge into HEAD";
     if (gk_session_context_push(session, purpose, &COMP_MERGE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
@@ -335,44 +344,58 @@ int gk_merge_into_head_finalize(gk_session *session) {
         return GK_FAILURE;
     }
 
+    gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
+    
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (git_index_has_conflicts(lg2_resources->merge_index) == 1) {
         if (gk_merge_conflicts_query(session) != GK_SUCCESS) {
+            if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
             return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query merge after conflicts detected");
         }
+        if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
         return gk_session_failure_ex(session, purpose, GK_ERR_MERGE_HAS_CONFLICTS, "repository still has [%d] conflicts", session->repository->conflict_summary.num_conflicts);
     }
 
     if (gk_lg2_load_references(session) != GK_SUCCESS) {
+        if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
         return gk_session_failure(session, purpose);
     }
 
     if (strcmp(session->repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id) != 0) {
         log_warn(COMP_MERGE, "Cannot %s, conflict summary was calculated at repository head [%s] but the repository head is now [%s]", purpose, session->repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id);
         if (gk_merge_abort(session) != GK_SUCCESS) {
+            if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
             return gk_session_failure_ex(session, purpose, GK_ERR, "repository head mismatch");
         }
+        if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
         return gk_session_failure_ex(session, purpose, GK_ERR, "conflict summary was calculated with repository head [%s] but the repository head is now [%s]", session->repository->conflict_summary.repository_head_oid_id, lg2_resources->repository_head_oid_id);
     }
 
     if (strcmp(session->repository->conflict_summary.fetch_head_oid_id, lg2_resources->fetch_head_oid_id) != 0) {
         if (gk_merge_abort(session) != GK_SUCCESS) {
+            if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
             return gk_session_failure_ex(session, purpose, GK_ERR, "fetch head mismatch");
         }
+        if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
         return gk_session_failure_ex(session, purpose, GK_ERR, "conflict summary was calculated with fetch head [%s] but the fetch head is now [%s]", session->repository->conflict_summary.fetch_head_oid_id, lg2_resources->fetch_head_oid_id);
     }
 
     if (gk_lg2_promote_merge_index(session) != GK_SUCCESS) {
+        if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
         return gk_session_failure(session, purpose);
     }
 
     if (create_merge_commit(session) != GK_SUCCESS) {
+        if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) { return GK_ERR; }
         return gk_session_failure(session, purpose);
     }
 
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
-    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
-        return gk_session_failure(session, purpose);
+    if (unset_merge_in_progress_and_trigger_state_callback(session, purpose) != 0) {
+        return GK_ERR;
     }
 
     log_info(COMP_MERGE, "Successfully finalized merge into head");
@@ -388,7 +411,14 @@ int gk_merge_abort(gk_session *session) {
     gk_conflicts_free(session->repository);
     gk_lg2_merge_index_free(session->repository);
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING);
-    log_info(COMP_MERGE, "Aborting merge into head");
+    gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
+    if (session->callbacks.merge_conflict_query_callback != NULL) {
+        session->callbacks.merge_conflict_query_callback(session->id_ptr, session->repository);
+    }
+    log_info(COMP_MERGE, "Aborted merge into head");
     return gk_session_success(session, purpose);
 }
 
@@ -431,3 +461,4 @@ const char *gk_merge_conflict_summary_repository_head_oid_id(gk_repository *repo
     }
     return repository->conflict_summary.repository_head_oid_id;
 }
+
