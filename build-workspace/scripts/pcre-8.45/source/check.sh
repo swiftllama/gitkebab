@@ -1,14 +1,15 @@
 echo "--- Checking Pcre 8.45 Source ---"
 
+SENTINEL="./source/pcre-8.45/pcre.h.in"
 echo "Working directory: ${PWD}"
-set -x
-if [ -f "./source/pcre-8.45/pcre.h.in" ] 
+echo "Sentinel: $SENTINEL"
+
+if [ -f $SENTINEL ] 
 then
     echo "Source code seems to exist"
     exit 0
 fi
 
-set +x
 echo "Source code does not exist"
 exit 1
 

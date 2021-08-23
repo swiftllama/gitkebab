@@ -1,7 +1,10 @@
 echo "--- Checking Libgit2 1.1.1 Source ---"
 
+SENTINEL="./source/libgit2-1.1.1/.git"
 echo "Working directory: ${PWD}"
-if [ -d "./source/libgit2-1.1.1/.git" ] 
+echo "Sentinel: $SENTINEL"
+
+if [ -d $SENTINEL ] 
 then
     echo "Repo seems to exist"
     exit 0

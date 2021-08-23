@@ -1,7 +1,10 @@
 echo "--- Checking Zlib 1.2.11 Source ---"
 
+SENTINEL="./source/zlib-1.2.11/.git"
 echo "Working directory: ${PWD}"
-if [ -d "./source/zlib-1.2.11/.git" ] 
+echo "Sentinel: $SENTINEL"
+
+if [ -d $SENTINEL ] 
 then
     echo "Repo seems to exist"
     exit 0
