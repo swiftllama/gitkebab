@@ -1,7 +1,8 @@
 *~
-build
+/build
 test-staging
 Testing
+build-workspace/build
 build-workspace/source
 build-workspace/execution
 src/dart/.packages
