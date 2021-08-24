@@ -2,8 +2,8 @@ set -e
 echo "--- Building Libssh2 1.9.0 for Android/arm64/Debug ---"
 
 ROOT=${PWD}
-BUILD_FOLDER=build/libssh2-1.9.0/android/debug
-TMP_BUILD_FOLDER=build/tmp/libssh2-1.9.0/android/debug
+BUILD_FOLDER=build/libssh2-1.9.0/android/arm64-debug
+TMP_BUILD_FOLDER=build/tmp/libssh2-1.9.0/android/arm64-debug
 
 set -x
 rm -rf ${BUILD_FOLDER}
