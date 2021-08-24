@@ -1,8 +1,8 @@
 set -e
-echo "--- Deleting Zlib 1.2.11 Build for Linux / Debug ---"
+echo "--- Deleting Zlib 1.2.11 Build for android/arm64/Debug ---"
 
-BUILD_FOLDER=build/zlib-1.2.11/linux/debug
-TMP_BUILD_FOLDER=build/tmp/zlib-1.2.11/linux/debug
+BUILD_FOLDER=build/zlib-1.2.11/android/arm64-debug
+TMP_BUILD_FOLDER=build/tmp/zlib-1.2.11/android/arm64-debug
 
 set -x
 rm -rf ${BUILD_FOLDER}

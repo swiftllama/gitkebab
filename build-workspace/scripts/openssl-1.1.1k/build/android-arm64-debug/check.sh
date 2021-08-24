@@ -1,6 +1,6 @@
-echo "--- Checking Zlib 1.2.11 build (android/arm64/Debug) ---"
+echo "--- Checking Openssl 1.1.1k build (android/arm64/Debug) ---"
 
-SENTINEL="./build/zlib-1.2.11/android/arm64-debug/lib/libz.a"
+SENTINEL="./build/openssl-1.1.1k/android/arm64-debug/lib/libssl.a"
 echo "Working directory: ${PWD}"
 echo "Sentinel: $SENTINEL"
 
