@@ -3,7 +3,8 @@ trap backtrace ERR  # show backtrace when an error occurs
 
 # Defines ROOT, LIBRARY_WITH_VERSION, TARGET_PLATFORM
 #         TARGET_ARCHITECTURE, TARGET_CONFIGURATION,
-#         RELATIVE_SOURCE, BUILD_SCRIPTS
+#         TARGET_FOLDER_TRIPLET, RELATIVE_SOURCE, 
+##        BUILD_SCRIPTS
 ##
 ## Arguments:
 ##   1 - library_with_version
@@ -17,6 +18,7 @@ function define_basic_variables() {
     TARGET_PLATFORM=$2
     TARGET_ARCHITECTURE=$3
     TARGET_CONFIGURATION=$4
+    TARGET_FOLDER_TRIPLET="${TARGET_PLATFORM}/${TARGET_ARCHITECTURE}-${TARGET_CONFIGURATION}"
     RELATIVE_SOURCE="../../../../../source/$LIBRARY_WITH_VERSION"
     BUILD_SCRIPTS="scripts/$LIBRARY_WITH_VERSION/build/${TARGET_PLATFORM}/${TARGET_ARCHITECTURE}-${TARGET_CONFIGURATION}"
 }
@@ -27,8 +29,8 @@ function define_basic_docker_variables() {
 }
 
 function define_build_folders() {
-    BUILD_FOLDER=build/${LIBRARY_WITH_VERSION}/${TARGET_PLATFORM}/${TARGET_ARCHITECTURE}-${TARGET_CONFIGURATION}
-    TMP_BUILD_FOLDER=build/tmp/${LIBRARY_WITH_VERSION}/${TARGET_PLATFORM}/${TARGET_ARCHITECTURE}-${TARGET_CONFIGURATION}
+    BUILD_FOLDER="build/${LIBRARY_WITH_VERSION}/${TARGET_FOLDER_TRIPLET}"
+    TMP_BUILD_FOLDER="build/tmp/${LIBRARY_WITH_VERSION}/${TARGET_FOLDER_TRIPLET}"
 }
 
 function delete_and_recreate_build_and_tmp_build_folders() {
