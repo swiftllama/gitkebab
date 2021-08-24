@@ -2,7 +2,8 @@ set -E              # propagate error backtrace to functions
 trap backtrace ERR  # show backtrace when an error occurs
 
 # Defines ROOT, LIBRARY_WITH_VERSION, TARGET_PLATFORM
-#         TARGET_ARCHITECTURE and TARGET_CONFIGURATION
+#         TARGET_ARCHITECTURE, TARGET_CONFIGURATION,
+#         RELATIVE_SOURCE, BUILD_SCRIPTS
 ##
 ## Arguments:
 ##   1 - library_with_version
@@ -16,7 +17,13 @@ function define_basic_variables() {
     TARGET_PLATFORM=$2
     TARGET_ARCHITECTURE=$3
     TARGET_CONFIGURATION=$4
-    RELATIVE_SOURCE=../../../../../source/$LIBRARY_WITH_VERSION
+    RELATIVE_SOURCE="../../../../../source/$LIBRARY_WITH_VERSION"
+    BUILD_SCRIPTS="scripts/$LIBRARY_WITH_VERSION/build/${TARGET_PLATFORM}/${TARGET_ARCHITECTURE}-${TARGET_CONFIGURATION}"
+}
+
+function define_basic_docker_variables() {
+    USER=$(whoami)
+    USER_ID=$(id -u ${USER})
 }
 
 function define_build_folders() {
@@ -48,15 +55,76 @@ function init_and_change_into_tmp_build_folder() {
 
 function define_android_variables() {
     export NDK=/opt/android-ndk/android-ndk-r23
-    export TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64
+    export NDK_TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64
     export TARGET=aarch64-linux-android
     export API=21 # minSdkVersion
     
-    export AR=$TOOLCHAIN/bin/llvm-ar
-    export CC=$TOOLCHAIN/bin/$TARGET$API-clang
+    export AR=$NDK_TOOLCHAIN/bin/llvm-ar
+    export CC=$NDK_TOOLCHAIN/bin/$TARGET$API-clang
     export AS=$CC
-    export CXX=$TOOLCHAIN/bin/$TARGET$API-clang++
-    export LD=$TOOLCHAIN/bin/ld
-    export RANLIB=$TOOLCHAIN/bin/llvm-ranlib
-    export STRIP=$TOOLCHAIN/bin/llvm-strip
+    export CXX=$NDK_TOOLCHAIN/bin/$TARGET$API-clang++
+    export LD=$NDK_TOOLCHAIN/bin/ld
+    export RANLIB=$NDK_TOOLCHAIN/bin/llvm-ranlib
+    export STRIP=$NDK_TOOLCHAIN/bin/llvm-strip
+
+    export ANDROID_API_LEVEL=21
+    export ANDROID_ABI=$1
+}
+
+# run the NDK's objdump on the given artifact and verify it has the
+# given architecture
+#
+## Arguments:
+##  1) LIBRARY - path to library
+##  2) ARCH    - architecture to check for
+##
+## Assumptions:
+##  - define_android_variables() has been called (or $NDK is defined)
+function android_objdump_verify_library_architecture() {
+    local LIBRARY=$1
+    local ARCH=$2
+
+    echo "Verifying architecture [${ARCH}] for build product [${LIBRARY}].."
+
+    if OBJDUMP=$($NDK_TOOLCHAIN/bin/llvm-objdump -f ${LIBRARY})
+then
+    if RESULTING_ARCH="$(echo "$OBJDUMP" | grep -m 1 'architecture:')"
+    then
+        if [[ "${RESULTING_ARCH}" == "architecture: ${ARCH}" ]]; then
+            echo "Found ${RESULTING_ARCH} in build product"
+        else
+            echo "Build succeeded but artifact has unexpected ${RESULTING_ARCH} (expected [${ARCH}])"
+            exit 2
+        fi
+    else
+        echo "Error greping [$LIBRARY}] for architecture [${ARCH}]"
+        exit 4
+    fi
+else
+    echo "Error executing objdump on [${LIBRARY}] to verify architecture [${ARCH}]"
+    exit 3
+fi
+}
+
+function check_sentinel_exists() {
+    local SENTINEL=$1
+    { echo""; echo "--- Checking $LIBRARY_WITH_VERSION build for $TARGET_PLATFORM-$TARGET_ARCHITECTURE-$TARGET_CONFIGURATION ---"; } 2> /dev/null
+
+    echo "Working directory: ${PWD}"
+    echo "Sentinel: $SENTINEL"
+
+    if [ -f $SENTINEL ]
+    then
+        echo "Build seems to exist"
+        return 0
+    fi
+
+    echo "Build does not exist"
+    return 1
+}
+
+function delete_build_and_tmp_build_folder() {
+    { echo""; echo "--- Deleting ${LIBRARY_WITH_VERSION} build for ${TARGET_PLATFORM}/${TARGET_ARCHITECTURE}/${TARGET_CONFIGURATION} ---"; } 2> /dev/null
+    rm -rf ${BUILD_FOLDER}
+    rm -rf ${TMP_BUILD_FOLDER}
 }

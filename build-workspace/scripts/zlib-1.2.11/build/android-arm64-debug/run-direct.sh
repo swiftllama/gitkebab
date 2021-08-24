@@ -13,6 +13,7 @@ init_and_change_into_tmp_build_folder
 define_android_variables
 CFLAGS="-fPIC" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} 
 make
+android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/libz.a" "aarch64"
 make install
 
 print_done
