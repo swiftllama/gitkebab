@@ -14,5 +14,4 @@ CFLAGS="-fPIC" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}
 make
 make install
 
-set +x
-echo "--- DONE ---"
+print_done
