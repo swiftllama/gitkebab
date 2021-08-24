@@ -38,9 +38,25 @@ function print_building_header() {
 function print_done() {
     { echo""; echo "--- DONE ---"; } 2> /dev/null
 }
+
 function init_and_change_into_tmp_build_folder() {
     print_building_header
     define_build_folders 
     delete_and_recreate_build_and_tmp_build_folders
     cd ${TMP_BUILD_FOLDER}
+}
+
+function define_android_variables() {
+    export NDK=/opt/android-ndk/android-ndk-r23
+    export TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64
+    export TARGET=aarch64-linux-android
+    export API=21 # minSdkVersion
+    
+    export AR=$TOOLCHAIN/bin/llvm-ar
+    export CC=$TOOLCHAIN/bin/$TARGET$API-clang
+    export AS=$CC
+    export CXX=$TOOLCHAIN/bin/$TARGET$API-clang++
+    export LD=$TOOLCHAIN/bin/ld
+    export RANLIB=$TOOLCHAIN/bin/llvm-ranlib
+    export STRIP=$TOOLCHAIN/bin/llvm-strip
 }
