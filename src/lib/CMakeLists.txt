@@ -49,10 +49,7 @@ add_library(gitkebab_static STATIC $<TARGET_OBJECTS:gitkebab_objects>)
 target_include_directories(gitkebab_static INTERFACE ./) # allow dependencies to find gitkebab's headers
 target_include_directories(gitkebab INTERFACE ./) # allow dependencies to find gitkebab's headers
   
-#target_link_libraries(testmain git2 ssl crypto ssh2 pthread z pcre)
-#target_link_libraries(gitkebab git2 ssl crypto /home/amos/Src/libssh2-1.9.0/build-linux/src/libssh2.a pthread z pcre)
-target_link_libraries(gitkebab_static pthread)
-target_link_libraries(gitkebab ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib} pthread)
+target_link_libraries(gitkebab ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib})
 
 #  LIBGIT2_lib OPENSSL_lib CRYPTO_lib LIBSSH2_lib Z_lib PCRE_lib <- need these??
 
