@@ -56,25 +56,28 @@ function init_and_change_into_tmp_build_folder() {
 }
 
 function define_android_variables() {
+    if [ "${TARGET_ARCHITECTURE}" = "arm64" ]; then
+        export ANDROID_ABI="arm64-v8a"
+        export ANDROID_OBJDUMP_ARCHITECTURE="aarch64"
+        export ANDROID_TARGET=aarch64-linux-android
+    elif [ "${TARGET_ARCHITECTURE}" = "x86_64" ]; then
+        export ANDROID_ABI="x86_64"
+        export ANDROID_OBJDUMP_ARCHITECTURE="x86_64"
+        export ANDROID_TARGET=x86_64-linux-android
+    fi
     export NDK=/opt/android-ndk/android-ndk-r23
     export NDK_TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64
-    export TARGET=aarch64-linux-android
     export API=21 # minSdkVersion
     
     export AR=$NDK_TOOLCHAIN/bin/llvm-ar
-    export CC=$NDK_TOOLCHAIN/bin/$TARGET$API-clang
+    export CC=$NDK_TOOLCHAIN/bin/$ANDROID_TARGET$API-clang
     export AS=$CC
-    export CXX=$NDK_TOOLCHAIN/bin/$TARGET$API-clang++
+    export CXX=$NDK_TOOLCHAIN/bin/$ANDROID_TARGET$API-clang++
     export LD=$NDK_TOOLCHAIN/bin/ld
     export RANLIB=$NDK_TOOLCHAIN/bin/llvm-ranlib
     export STRIP=$NDK_TOOLCHAIN/bin/llvm-strip
 
     export ANDROID_API_LEVEL=21
-
-    if [ "${TARGET_ARCHITECTURE}" = "arm64" ]; then
-        export ANDROID_ABI="arm64-v8a"
-        export ANDROID_OBJDUMP_ARCHITECTURE="aarch64"
-    fi
        
 }
 
@@ -97,7 +100,7 @@ function android_objdump_verify_library_architecture() {
 then
     if RESULTING_ARCH="$(echo "$OBJDUMP" | grep -m 1 'architecture:')"
     then
-        if [[ "${RESULTING_ARCH}" == "architecture: ${ARCH}" ]]; then
+        if [ "${RESULTING_ARCH}" = "architecture: ${ARCH}" ]; then
             echo "Found ${RESULTING_ARCH} in build product"
         else
             echo "Build succeeded but artifact has unexpected ${RESULTING_ARCH} (expected [${ARCH}])"
