@@ -3,12 +3,12 @@ source "scripts/common/bash/common.sh"
 set -x
 
 define_basic_variables "gitkebab-head" "linux" "x86_64" "debug"
-init_and_change_into_tmp_build_folder
+define_build_folders
 
 echo "\n\n=== Generating dart bindings ==="
 
-mkdir -p dart
-cd dart
+mkdir -p ${TMP_BUILD_FOLDER}/dart
+cd ${TMP_BUILD_FOLDER}/dart
 cp ../${RELATIVE_SOURCE}/src/dart/pubspec.yaml ./
 cp ../${RELATIVE_SOURCE}/src/dart/conf-build-workspace.yaml ./
 PATH=/usr/bin/ dart pub get --offline

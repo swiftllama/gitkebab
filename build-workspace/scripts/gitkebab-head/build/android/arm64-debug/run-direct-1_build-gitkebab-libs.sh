@@ -15,13 +15,13 @@ init_and_change_into_tmp_build_folder
 define_android_variables "arm64-v8a"
 
 
-ZLIB_DIR=build/zlib-1.2.11/android/arm64-debug
-PCRE_DIR=build/pcre-8.45/android/arm64-debug
-OPENSSL_DIR=build/openssl-1.1.1k/android/arm64-debug
-LIBSSH2_DIR=build/libssh2-1.9.0/android/arm64-debug
-#ICONV_DIR=build/libiconv-1.16/android/arm64-debug
-LIBGIT2_DIR=build/libgit2-1.1.1/android/arm64-debug
-CMOCKA_DIR=build/cmocka-1.1.5/android/arm64-debug
+ZLIB_DIR=build/zlib-1.2.11/${TARGET_FOLDER_TRIPLET}
+PCRE_DIR=build/pcre-8.45/${TARGET_FOLDER_TRIPLET}
+OPENSSL_DIR=build/openssl-1.1.1k/${TARGET_FOLDER_TRIPLET}
+LIBSSH2_DIR=build/libssh2-1.9.0/${TARGET_FOLDER_TRIPLET}
+#ICONV_DIR=build/libiconv-1.16/${TARGET_FOLDER_TRIPLET}
+LIBGIT2_DIR=build/libgit2-1.1.1/${TARGET_FOLDER_TRIPLET}
+CMOCKA_DIR=build/cmocka-1.1.5/${TARGET_FOLDER_TRIPLET}
 
 CUSTOM_SEARCH_PATH="${ROOT}/${ZLIB_DIR};${ROOT}/${PCRE_DIR};${ROOT}/${OPENSSL_DIR};${ROOT}/${LIBSSH2_DIR};${ROOT}/${LIBGIT2_DIR};${ROOT}/${CMOCKA_DIR}"
 

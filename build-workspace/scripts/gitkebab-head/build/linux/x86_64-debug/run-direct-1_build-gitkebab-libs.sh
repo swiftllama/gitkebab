@@ -2,7 +2,7 @@ set -e
 source "scripts/common/bash/common.sh"
 set -x
 
-define_basic_variables "pcre-8.45" "linux" "x86_64" "debug"
+define_basic_variables "gitkebab-head" "linux" "x86_64" "debug"
 init_and_change_into_tmp_build_folder
 
 # NOTES:

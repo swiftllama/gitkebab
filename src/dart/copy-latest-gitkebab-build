@@ -1,3 +1,3 @@
 set -x
-rm -rf gitkebab-linux-debug; cp -PR ../../build-workspace/build/gitkebab-head/linux/debug gitkebab-linux-debug
+rm -rf gitkebab-linux-debug; cp -PR ../../build-workspace/build/gitkebab-head/linux/x86_64-debug gitkebab-linux-debug
 cp gitkebab-linux-debug/lib/gitkebab_lib.dart ./lib/src/
