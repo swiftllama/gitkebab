@@ -23,7 +23,7 @@ ${RELATIVE_SOURCE}/Configure \
                   -fPIC 
 
 make
-android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/libssl.a" "aarch64"
+android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/libssl.a" "${ANDROID_OBJDUMP_ARCHITECTURE}"
 make install
 
 print_done

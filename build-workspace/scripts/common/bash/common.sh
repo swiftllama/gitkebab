@@ -70,7 +70,12 @@ function define_android_variables() {
     export STRIP=$NDK_TOOLCHAIN/bin/llvm-strip
 
     export ANDROID_API_LEVEL=21
-    export ANDROID_ABI=$1
+
+    if [ "${TARGET_ARCHITECTURE}" = "arm64" ]; then
+        export ANDROID_ABI="arm64-v8a"
+        export ANDROID_OBJDUMP_ARCHITECTURE="aarch64"
+    fi
+       
 }
 
 # run the NDK's objdump on the given artifact and verify it has the

@@ -5,7 +5,7 @@ set -x
 define_basic_variables "cmocka-1.1.5" "android" "arm64" "debug"
 init_and_change_into_tmp_build_folder
 
-define_android_variables "arm64-v8a"
+define_android_variables
 
 cmake -DWITH_STATIC_LIB=true \
       -DCMAKE_BUILD_TYPE=Debug \
@@ -17,7 +17,7 @@ cmake -DWITH_STATIC_LIB=true \
       ${RELATIVE_SOURCE}
 
 cmake --build .
-android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/src/libcmocka-static.a" "aarch64"
+android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/src/libcmocka-static.a" "${ANDROID_OBJDUMP_ARCHITECTURE}"
 cmake --build . --target install
 
 print_done

@@ -12,7 +12,7 @@ init_and_change_into_tmp_build_folder
 #     -DCMAKE_C_FLAGS_DEBUG=\"-ggdb -Og\"
 #
 
-define_android_variables "arm64-v8a"
+define_android_variables
 
 
 ZLIB_DIR=build/zlib-1.2.11/${TARGET_FOLDER_TRIPLET}
@@ -40,7 +40,7 @@ cmake ${RELATIVE_SOURCE} \
       -DCMAKE_ANDROID_ARCH_ABI=$ANDROID_ABI
 
 cmake --build . -- VERBOSE=1
-android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/src/lib/libgitkebab_static.a" "aarch64"
+android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/src/lib/libgitkebab_static.a" "${ANDROID_OBJDUMP_ARCHITECTURE}"
 cmake --build . --target install
 
 print_done

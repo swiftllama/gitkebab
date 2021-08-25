@@ -19,7 +19,7 @@ init_and_change_into_tmp_build_folder
 #     -DENABLE_TRACE=ON
 #  
 
-define_android_variables "arm64-v8a"
+define_android_variables
 
 OPENSSL_DIR=build/openssl-1.1.1k/${TARGET_FOLDER_TRIPLET}
 ZLIB_LIB=build/zlib-1.2.11/${TARGET_FOLDER_TRIPLET}/lib/libz.a
@@ -54,7 +54,7 @@ cmake ${RELATIVE_SOURCE} \
 
 cmake -LAH .
 cmake --build . -- VERBOSE=1
-android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/libgit2.a" "aarch64"
+android_objdump_verify_library_architecture "${ROOT}/${TMP_BUILD_FOLDER}/libgit2.a" "${ANDROID_OBJDUMP_ARCHITECTURE}"
 cmake --build . --target install
 
 print_done
