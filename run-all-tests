@@ -1,2 +1,0 @@
-set -x
-ctest --test-dir build/src/test/ -V
