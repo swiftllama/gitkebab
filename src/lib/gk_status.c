@@ -3,6 +3,7 @@
 #include "gk_status.h"
 #include "gk_logging.h"
 #include "gk_lg2_private.h"
+#include "gk_filesystem.h"
 #include "gk_session.h"
 
 const int GK_FILE_STATUS_CURRENT = GIT_STATUS_CURRENT;
@@ -49,9 +50,24 @@ int gk_status_summary_query(gk_session *session) {
     gk_repository *repository = session->repository;
 
     gk_lg2_status_list_free(repository);
+    
     if (gk_lg2_status_list_load(session) != GK_SUCCESS) {
         gk_lg2_status_list_free(repository);
-        return gk_session_failure(session, purpose);
+        if (gk_directory_exists(session->repository->spec.local_path) == 0) {
+            log_info(COMP_SESSION, "status query failed and local path does not exist, deducing that the repository has been deleted, marking LOCAL_CHECKOUT_EXISTS as false");
+            gk_lg2_free_all_but_repository(session->repository);
+            gk_repository_state_unset(repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);
+            gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_COMMIT);
+            gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
+            gk_repository_state_unset(repository, GK_REPOSITORY_STATE_MERGE_IN_PROGRESS);
+            gk_repository_state_unset(repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
+            gk_repository_state_unset(repository, GK_REPOSITORY_STATE_FETCH_IN_PROGRESS);
+            gk_session_trigger_repository_state_callback(session);
+            return gk_session_success(session, purpose);
+        }
+        else {
+            return gk_session_failure(session, purpose);
+        }
     }
 
     size_t count_total = git_status_list_entrycount(lg2_resources->status_list);

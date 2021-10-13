@@ -53,18 +53,21 @@ void gk_session_free(gk_session *session) {
 
 int gk_session_initialize(gk_session *session) {
     const char *purpose = "initialize session";
-    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_SESSION, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
+    log_info(COMP_SESSION, "Initializing session");
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_INITIALIZED)) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "Session already initialized");
     }
 
     if (gk_directory_exists(session->repository->spec.local_path) == 0) {
+        log_info(COMP_SESSION, "Local directory [%s] does not yet exist", session->repository->spec.local_path);
         gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_INITIALIZED);
     }
     else {
+        log_info(COMP_SESSION, "Local directory [%s] already exists", session->repository->spec.local_path); 
         if (gk_open_local_repository(session) != 0) {
             const git_error *last_error = git_error_last();
             if (last_error->klass == GIT_ERROR_REPOSITORY) {
@@ -86,6 +89,10 @@ int gk_session_initialize(gk_session *session) {
                 return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query status");
             }
         }
+    }
+
+    if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
     }
 
     return gk_session_success(session, purpose);
@@ -234,7 +241,7 @@ int gk_session_context_push(gk_session *session, const char *purpose, log_Compon
         return GK_FAILURE;
     }
     gk_session_clear_internal_last_result(session);
-    log_info(COMP_SESSION, "pushing purpose [%s]", purpose);
+    log_info(COMP_EXCTX, "pushing purpose [%s]", purpose);
     gk_execution_context_push(session->context, purpose, log_component);
     if ((conditions != 0) && (gk_session_verify(session, conditions, purpose) != GK_SUCCESS)) {
         return GK_FAILURE;
@@ -250,7 +257,7 @@ void gk_session_context_pop(gk_session *session, const char *purpose) {
 }
 
 int gk_session_success(gk_session *session, const char *purpose) {
-    log_info(COMP_SESSION, "popping purpose [%s]", purpose);
+    log_info(COMP_EXCTX, "popping purpose [%s]", purpose);
     gk_execution_context_pop(session->context, purpose);
     return GK_SUCCESS;
 }
