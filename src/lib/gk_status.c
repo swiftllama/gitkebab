@@ -125,7 +125,7 @@ int gk_status_summary_query(gk_session *session) {
 
 static const git_status_entry *gk_status_summary_entry(gk_session *session, size_t index) {
     const char *purpose = "get status summary entry";
-    if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_DEFAULT | GK_REPOSITORY_VERIFY_STATUS_LIST) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_STATUS_LIST) != GK_SUCCESS) {
         return NULL;
     }
 

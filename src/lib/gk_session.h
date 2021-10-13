@@ -5,6 +5,7 @@
 #include "gk_types.h"
 
 gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback, gk_repository_did_query_merge_conflict_summary *merge_conflict_query_callback);
+int gk_session_initialize(gk_session *session);
 void gk_session_free(gk_session *session);
 int gk_session_context_sanity_check(gk_session *session, log_Component *component, const char *purpose);
 int gk_session_verify(gk_session *session, int condition, const char *purpose);

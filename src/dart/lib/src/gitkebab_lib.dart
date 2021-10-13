@@ -4176,6 +4176,22 @@ class GitKebabLib {
   late final _dart_gk_directory_exists _gk_directory_exists =
       _gk_directory_exists_ptr.asFunction<_dart_gk_directory_exists>();
 
+  int gk_subdirectory_exists(
+    ffi.Pointer<ffi.Int8> path,
+    ffi.Pointer<ffi.Int8> subdirectory,
+  ) {
+    return _gk_subdirectory_exists(
+      path,
+      subdirectory,
+    );
+  }
+
+  late final _gk_subdirectory_exists_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_subdirectory_exists>>(
+          'gk_subdirectory_exists');
+  late final _dart_gk_subdirectory_exists _gk_subdirectory_exists =
+      _gk_subdirectory_exists_ptr.asFunction<_dart_gk_subdirectory_exists>();
+
   int gk_directory_is_empty(
     ffi.Pointer<ffi.Int8> path,
   ) {
@@ -4711,6 +4727,20 @@ class GitKebabLib {
       _lookup<ffi.NativeFunction<_c_gk_session_new>>('gk_session_new');
   late final _dart_gk_session_new _gk_session_new =
       _gk_session_new_ptr.asFunction<_dart_gk_session_new>();
+
+  int gk_session_initialize(
+    ffi.Pointer<gk_session> session,
+  ) {
+    return _gk_session_initialize(
+      session,
+    );
+  }
+
+  late final _gk_session_initialize_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_session_initialize>>(
+          'gk_session_initialize');
+  late final _dart_gk_session_initialize _gk_session_initialize =
+      _gk_session_initialize_ptr.asFunction<_dart_gk_session_initialize>();
 
   void gk_session_free(
     ffi.Pointer<gk_session> session,
@@ -5617,12 +5647,15 @@ abstract class ResultCode {
   static const int SUCCESS = 0;
   static const int FAILURE = 1;
   static const int ERROR = 2;
-  static const int ERROR_CLONE_INEXISTENT_SOURCE_PATH = 3;
-  static const int ERROR_CLONE_INVALID_DESTINATION_PATH = 4;
-  static const int ERROR_CLONE_DESTINATION_PATH_NONEMPTY = 5;
-  static const int ERROR_REPOSITORY_NO_LOCAL_CHECKOUT = 6;
-  static const int ERROR_NOT_FOUND = 7;
-  static const int ERROR_MERGE_HAS_CONFLICTS = 8;
+  static const int ERROR_LOCAL_REPOSITORY_INEXISTENT_SOURCE_PATH = 3;
+  static const int ERROR_CLONE_INEXISTENT_SOURCE_PATH = 4;
+  static const int ERROR_CLONE_INVALID_DESTINATION_PATH = 5;
+  static const int ERROR_CLONE_DESTINATION_PATH_NONEMPTY = 6;
+  static const int ERROR_REPOSITORY_NOT_INITIALIZED = 7;
+  static const int ERROR_REPOSITORY_LOCAL_PATH_CONFLICT = 8;
+  static const int ERROR_REPOSITORY_NO_LOCAL_CHECKOUT = 9;
+  static const int ERROR_NOT_FOUND = 10;
+  static const int ERROR_MERGE_HAS_CONFLICTS = 11;
 }
 
 abstract class MergeConflictEntryType {
@@ -5633,12 +5666,14 @@ abstract class MergeConflictEntryType {
 }
 
 abstract class RepositoryVerifyCondition {
-  static const int VERIFY_DEFAULT = 1;
-  static const int VERIFY_LOCAL_CHECKOUT = 2;
-  static const int VERIFY_STATUS_LIST = 4;
-  static const int VERIFY_MERGE_IN_PROGRESS = 8;
-  static const int VERIFY_INDEX_LOADED = 16;
-  static const int VERIFY_MERGE_INDEX_LOADED = 32;
+  static const int VERIFY_NONE = 1;
+  static const int VERIFY_INITIALIZED = 2;
+  static const int VERIFY_LOCAL_CHECKOUT = 4;
+  static const int VERIFY_STATUS_LIST = 8;
+  static const int VERIFY_MERGE_IN_PROGRESS = 16;
+  static const int VERIFY_INDEX_LOADED = 32;
+  static const int VERIFY_MERGE_INDEX_LOADED = 64;
+  static const int VERIFY_DEFAULT = 38;
 }
 
 abstract class SessionProgressEventType {
@@ -5742,16 +5777,17 @@ class gk_session_credential extends ffi.Struct {
 
 abstract class RepositoryState {
   static const int DEFAULT = 0;
-  static const int LOCAL_CHECKOUT_EXISTS = 1;
-  static const int HAS_CONFLICTS = 2;
-  static const int HAS_CHANGES_TO_COMMIT = 4;
-  static const int HAS_CHANGES_TO_MERGE = 8;
-  static const int CLONE_IN_PROGRESS = 16;
-  static const int MERGE_FINALIZATION_PENDING = 32;
-  static const int MERGE_PENDING_ON_DISK = 64;
-  static const int PUSH_IN_PROGRESS = 128;
-  static const int FETCH_IN_PROGRESS = 256;
-  static const int MERGE_IN_PROGRESS = 512;
+  static const int INITIALIZED = 1;
+  static const int LOCAL_CHECKOUT_EXISTS = 2;
+  static const int HAS_CONFLICTS = 4;
+  static const int HAS_CHANGES_TO_COMMIT = 8;
+  static const int HAS_CHANGES_TO_MERGE = 16;
+  static const int CLONE_IN_PROGRESS = 32;
+  static const int MERGE_FINALIZATION_PENDING = 64;
+  static const int MERGE_PENDING_ON_DISK = 128;
+  static const int PUSH_IN_PROGRESS = 256;
+  static const int FETCH_IN_PROGRESS = 512;
+  static const int MERGE_IN_PROGRESS = 1024;
 }
 
 abstract class RepositorySourceUrlType {
@@ -6260,7 +6296,7 @@ const int TIME_UTC = 1;
 
 const String LOG_VERSION = '0.1.0';
 
-const int GK_REPOSITORY_STATE_MAX_EXP = 10;
+const int GK_REPOSITORY_STATE_MAX_EXP = 11;
 
 const int GK_OBJECT_ID_STR_LENGTH = 40;
 
@@ -9025,6 +9061,16 @@ typedef _dart_gk_directory_exists = int Function(
   ffi.Pointer<ffi.Int8> path,
 );
 
+typedef _c_gk_subdirectory_exists = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int8> path,
+  ffi.Pointer<ffi.Int8> subdirectory,
+);
+
+typedef _dart_gk_subdirectory_exists = int Function(
+  ffi.Pointer<ffi.Int8> path,
+  ffi.Pointer<ffi.Int8> subdirectory,
+);
+
 typedef _c_gk_directory_is_empty = ffi.Int32 Function(
   ffi.Pointer<ffi.Int8> path,
 );
@@ -9303,6 +9349,14 @@ typedef _dart_gk_session_new = ffi.Pointer<gk_session> Function(
   ffi.Pointer<
           ffi.NativeFunction<gk_repository_did_query_merge_conflict_summary>>
       merge_conflict_query_callback,
+);
+
+typedef _c_gk_session_initialize = ffi.Int32 Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _dart_gk_session_initialize = int Function(
+  ffi.Pointer<gk_session> session,
 );
 
 typedef _c_gk_session_free = ffi.Void Function(

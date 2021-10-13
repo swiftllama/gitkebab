@@ -1,7 +1,8 @@
 
 #include <dirent.h>
 #include <errno.h>
-
+#include <string.h>
+#include <stdlib.h>
 #include "gk_filesystem.h"
 #include "gk_logging.h"
 
@@ -11,6 +12,20 @@ int gk_concatenate_paths(char *buffer, size_t buffer_length, const char *path1, 
     }
     snprintf(buffer, buffer_length, "%s/%s", path1, path2);
     return 0;
+}
+
+int gk_subdirectory_exists(const char *path, const char* subdirectory) {
+    if ((path == NULL) || (subdirectory == NULL)) return 0;
+    int length = strlen(path) + strlen(subdirectory) + 2;
+    char *subdirectory_path = (char *)malloc(length);
+    if (subdirectory_path == NULL) {
+        log_error(COMP_GENERAL, "Failure to allocate memory for gk_subdirectory_exists");
+        return 0;
+    }
+    gk_concatenate_paths(subdirectory_path, length, path, subdirectory);
+    int rc = gk_directory_exists(subdirectory_path);
+    free(subdirectory_path);
+    return rc;
 }
 
 int gk_directory_exists(const char *path) {

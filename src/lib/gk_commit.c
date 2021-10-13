@@ -34,7 +34,7 @@ size_t gk_count_reflog_entries(gk_session *session, const char* ref_name) {
 
 int gk_commit(gk_session *session, const char* commit_message, gk_object_id *out_commit_id) {
     const char *purpose = "commit changes";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 

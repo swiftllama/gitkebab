@@ -3,11 +3,13 @@
 
 #include "gk_session.h"
 #include "gk_repository.h"
+#include "gk_status.h"
 #include "gk_execution_context.h"
 #include "gk_logging.h"
 #include "gk_init.h"
 #include "gk_lg2_private.h"
 #include "gk_results.h"
+#include "gk_filesystem.h"
 #include <time.h>
 
 static int _session_id_counter = 0;
@@ -48,6 +50,47 @@ void gk_session_free(gk_session *session) {
     session->context = NULL;
     free(session);
 }
+
+int gk_session_initialize(gk_session *session) {
+    const char *purpose = "initialize session";
+    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_INITIALIZED)) {
+        return gk_session_failure_ex(session, purpose, GK_ERR, "Session already initialized");
+    }
+
+    if (gk_directory_exists(session->repository->spec.local_path) == 0) {
+        gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_INITIALIZED);
+    }
+    else {
+        if (gk_open_local_repository(session) != 0) {
+            const git_error *last_error = git_error_last();
+            if (last_error->klass == GIT_ERROR_REPOSITORY) {
+                int dot_git_exists = gk_subdirectory_exists(session->repository->spec.local_path, ".git");
+                int objects_exists = gk_subdirectory_exists(session->repository->spec.local_path, "objects");
+                int refs_exists = gk_subdirectory_exists(session->repository->spec.local_path, "refs");
+                if ((dot_git_exists == 0) || ((objects_exists == 0) && (refs_exists == 0))) {
+                    return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_LOCAL_PATH_CONFLICT, "local path [%s] exists but it does not seem to be a git repository", session->repository->spec.local_path);
+                }
+            }
+            return gk_session_failure_ex(session, purpose, GK_ERR, "Failed to open repo at local path [%s]", session->repository->spec.local_path);
+        }
+
+        gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_INITIALIZED);
+        if (git_repository_is_bare(session->repository->lg2_resources->repository) == 0) {
+            int rc = gk_status_summary_query(session);
+            gk_status_summary_close(session);
+            if (rc != GK_SUCCESS) {
+                return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query status");
+            }
+        }
+    }
+
+    return gk_session_success(session, purpose);
+}
+
 int gk_session_context_sanity_check(gk_session *session, log_Component *component, const char *purpose) {
     if (session == NULL) {
         log_log(LOG_ERROR, __FILE__, __LINE__, component, "Cannot %s, session is NULL", purpose);
@@ -70,6 +113,12 @@ int gk_session_verify(gk_session *session, int condition, const char *purpose) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "Gitkebab not initialized");
     }
 
+    if ((condition & GK_REPOSITORY_VERIFY_INITIALIZED) || (condition & GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT)) {
+        if (gk_repository_state_disabled(repository, GK_REPOSITORY_STATE_INITIALIZED)) {
+            return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_NOT_INITIALIZED, "repository not initialized");
+        }
+    }
+    
     if (condition & GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) {
         if (gk_repository_state_disabled(repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS)) {
             return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_NO_LOCAL_CHECKOUT, "local checkout does not exist");

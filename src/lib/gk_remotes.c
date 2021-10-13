@@ -76,7 +76,7 @@ static int gk_session_credential_callback(git_credential **out,
 
 int gk_clone(gk_session *session) {
     const char *purpose = "clone repository";
-    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 

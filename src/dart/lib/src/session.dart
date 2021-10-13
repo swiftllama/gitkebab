@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:io';
 import 'package:ffi/ffi.dart' as ffip;
 
 import 'gitkebab.dart';
@@ -89,6 +90,7 @@ class Session {
   SessionState state = SessionState(0);
   RepositoryStatusList status = RepositoryStatusList();
   MergeConflictSummary mergeConflictSummary = MergeConflictSummary();
+  bool openOrCloned = false;
 
   SessionProgressCallback onProgress = (session, progress) => {};
   SessionStateCallback onStateChanged = (session) => {};
@@ -126,9 +128,28 @@ class Session {
   }
 
   ////
+  // Initialisation
+  void openLocalRepository() {
+    if (openOrCloned) return;
+    if (GitKebab.lib.gk_open_local_repository(session_ptr) != 0) { throw lastResultException(); }
+    openOrCloned = true;
+  }
+
+  void openOrClone() {
+    if (openOrCloned) return;
+    if (Directory(repositorySpec.localPath).existsSync()) {
+      openLocalRepository();
+    }
+    else {
+      clone();
+    }
+  }
+  
+  ////
   //  Remotes
   void clone() {
     if (GitKebab.lib.gk_clone(session_ptr) != 0) { throw lastResultException(); }
+    openOrCloned = true;
   }
 
   void fetch(String remoteName) {

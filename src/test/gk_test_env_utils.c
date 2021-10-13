@@ -146,13 +146,13 @@ void gk_test_session_progress_null(const char *session_id, gk_session_progress *
 gk_session *gk_test_session_from_local_path(const char *repo_path) {
     gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, repo_path, "git", &gk_test_session_progress_verbose, &gk_test_state_change_callback, NULL);
     if (gk_session_last_result_code(session) != 0) {
-        log_error(COMP_TEST, "Error initializing session from path '%s': %s", repo_path, gk_session_last_result_message(session));
+        log_error(COMP_TEST, "Error creating session from path '%s': %s", repo_path, gk_session_last_result_message(session));
         gk_session_free(session);
         return NULL;
     }
-    gk_open_local_repository(session);
+    gk_session_initialize(session);
     if (gk_session_last_result_code(session) != 0) {
-        log_error(COMP_TEST, "Error opening local repository in path '%s': %s", repo_path, gk_session_last_result_message(session));
+        log_error(COMP_TEST, "Error initializing session from path '%s': %s", repo_path, gk_session_last_result_message(session));
         gk_session_free(session);
         return NULL;
     }
@@ -169,6 +169,13 @@ gk_session *gk_test_session_from_clone(const char *remote_repo, const char *loca
         return NULL;
     }
 
+    gk_session_initialize(session);
+    if (gk_session_last_result_code(session) != 0) {
+        log_error(COMP_TEST, "Error initializing repository at local path '%s': %s", local_path, gk_session_last_result_message(session));
+        gk_session_free(session);
+        return NULL;        
+    }
+    
     gk_clone(session);
     if (gk_session_last_result_code(session) != 0) {
         log_error(COMP_TEST, "Error cloning repository from '%s' to local path '%s': %s", remote_repo, local_path, gk_session_last_result_message(session));

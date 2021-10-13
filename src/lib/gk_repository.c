@@ -69,28 +69,18 @@ void gk_repository_init(gk_repository *repository, const char *source_url, gk_re
 
 int gk_open_local_repository(gk_session *session) {
     const char *purpose = "open local repository";
-    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
+    if (gk_directory_exists(session->repository->spec.local_path) == 0) {
+        return gk_session_failure_ex(session, purpose, GK_ERR_LOCAL_REPOSITORY_INEXISTENT_SOURCE_PATH, "local repository source path [%s] does not exist", session->repository->spec.local_path);
+    }
     if (gk_lg2_repository_open(session) != GK_SUCCESS) {
         return gk_session_failure(session, purpose);
     }
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);
-
-    if (git_repository_is_bare(session->repository->lg2_resources->repository) == 1) {
-        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
-        gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK);
-    }
-    else {
-        int rc = gk_status_summary_query(session);
-        gk_status_summary_close(session);
-        if (rc != GK_SUCCESS) {
-            return gk_session_failure_ex(session, purpose, GK_ERR, "failed to query status");
-        }
-    }
-
     return gk_session_success(session, purpose);
 }
 

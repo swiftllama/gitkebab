@@ -60,7 +60,7 @@ void gk_lg2_free_all_but_repository(gk_repository *repository) {
 
 int gk_lg2_load_references(gk_session *session) {
     const char *purpose = "load index and head references";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return 0;
     }
 
@@ -134,7 +134,7 @@ void gk_lg2_free_references(gk_repository *repository) {
 
 int gk_lg2_index_load(gk_session *session) {
     const char *purpose = "load repository index";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return 0;
     }
 
@@ -187,7 +187,7 @@ int gk_lg2_promote_merge_index(gk_session *session) {
 
 int gk_lg2_repository_open(gk_session *session) {
     const char *purpose = "open repository";
-    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -284,7 +284,7 @@ void gk_lg2_tree_free(gk_repository *repository) {
 
 int gk_lg2_signature_create(gk_session *session) {
     const char *purpose = "create signature";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
@@ -329,7 +329,7 @@ int gk_lg2_status_list_load(gk_session *session) {
 
 int gk_lg2_checkout_tree(gk_session *session, git_checkout_options *checkout_options) {
     const char *purpose = "checkout tree";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
@@ -490,7 +490,7 @@ void gk_lg2_conflict_entry_free_members(gk_lg2_conflict_entry *entry) {
 
 gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_merge_conflict_entry *entry) {
     const char *purpose = "summarize diff";
-    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, NULL, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return NULL;
     }
     if (entry == NULL) {
@@ -586,7 +586,7 @@ gk_conflict_diff_summary *gk_lg2_conflict_diff_summary(gk_session *session, gk_m
 
 int gk_lg2_index_conflict_get(gk_session *session, const git_index_entry **ancestor_entry, const git_index_entry **ours_entry, const git_index_entry **theirs_entry, git_index *index, const char *path) {
     const char *purpose = "get conflict entry";
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     if (git_index_conflict_get(ancestor_entry, ours_entry, theirs_entry, index, path) != 0) {
@@ -608,7 +608,7 @@ int gk_lg2_index_add(gk_session *session, const git_index_entry *entry, const ch
 
 int gk_lg2_oid_from_id(gk_session *session, git_oid *oid, const char *oid_id) {
     const char *purpose = "look up object id from id";
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     if (git_oid_fromstr(oid, oid_id) != 0) {
@@ -619,7 +619,7 @@ int gk_lg2_oid_from_id(gk_session *session, git_oid *oid, const char *oid_id) {
 
 int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid) {
     const char *purpose = "look up blob from object id";
-    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_DEFAULT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
     if (git_blob_lookup(blob, session->repository->lg2_resources->repository, oid) != 0) {
