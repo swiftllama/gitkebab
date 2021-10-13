@@ -85,7 +85,10 @@ List<Session> createConflictingReposAAndBWithExtendedConflicts() {
   var session1 =  Session(simpleRepo1DotGitSourcePath(), RepositorySourceUrlType.FILESYSTEM, simpleRepoAPath(), "");
   var session2 =  Session(simpleRepo1DotGitSourcePath(), RepositorySourceUrlType.FILESYSTEM, simpleRepoBPath(), "");
 
+  session1.initialize();
   session1.clone();
+
+  session2.initialize();
   session2.clone();
 
   ////

@@ -22,6 +22,7 @@ void main() {
     String localPath = cloneTest1;
     var session = gitkebab.Session(simpleRepo1DotGitSourcePath(), gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
+    session.initialize();
     session.clone();
 
     String originalHead = session.resolveReference("HEAD");
@@ -46,7 +47,11 @@ void main() {
     var session2 = gitkebab.Session(simpleRepo1DotGitSourcePath(), gitkebab.RepositorySourceUrlType.FILESYSTEM, simpleRepoBPath(), "");
     session2.onStateChanged = stateChangedCallbackWithHistory;
 
+    
+    session1.initialize();
     session1.clone();
+
+    session2.initialize();
     session2.clone();
 
     String repoAOriginalHead = session1.resolveReference("HEAD");

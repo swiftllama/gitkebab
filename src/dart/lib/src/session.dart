@@ -90,7 +90,6 @@ class Session {
   SessionState state = SessionState(0);
   RepositoryStatusList status = RepositoryStatusList();
   MergeConflictSummary mergeConflictSummary = MergeConflictSummary();
-  bool openOrCloned = false;
 
   SessionProgressCallback onProgress = (session, progress) => {};
   SessionStateCallback onStateChanged = (session) => {};
@@ -129,27 +128,14 @@ class Session {
 
   ////
   // Initialisation
-  void openLocalRepository() {
-    if (openOrCloned) return;
-    if (GitKebab.lib.gk_open_local_repository(session_ptr) != 0) { throw lastResultException(); }
-    openOrCloned = true;
-  }
-
-  void openOrClone() {
-    if (openOrCloned) return;
-    if (Directory(repositorySpec.localPath).existsSync()) {
-      openLocalRepository();
-    }
-    else {
-      clone();
-    }
+  void initialize() {
+    if (GitKebab.lib.gk_session_initialize(session_ptr) != 0) { throw lastResultException(); }
   }
   
   ////
   //  Remotes
   void clone() {
     if (GitKebab.lib.gk_clone(session_ptr) != 0) { throw lastResultException(); }
-    openOrCloned = true;
   }
 
   void fetch(String remoteName) {
@@ -325,6 +311,7 @@ extension ConflictResolutionIntValue on ConflictResolution {
 }
 
 class SessionState {
+  final bool initialized;
   final bool localCheckoutExists;
   final bool hasConflicts;
   final bool hasChangesToCommit;
@@ -337,6 +324,7 @@ class SessionState {
   final bool mergeInProgress;
 
   SessionState(int state):
+        initialized = stateIncludes(state, gitkebab_lib.RepositoryState.INITIALIZED),
         localCheckoutExists = stateIncludes(state, gitkebab_lib.RepositoryState.LOCAL_CHECKOUT_EXISTS),
         hasConflicts = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CONFLICTS),
         hasChangesToCommit = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CHANGES_TO_COMMIT),

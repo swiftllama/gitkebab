@@ -12,12 +12,30 @@ void main() {
   String cloneTest1 = "${testStagingPath()}/clone-test-1";
   setUp(() { deleteDirIfExists(cloneTest1); });
 
+  test('Initialize repository - success', () {
+      String localPath = cloneTest1;
+      final session1 = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
+      session1.initialize();
+      session1.clone();
+
+      final repoDirectory = Directory(cloneTest1);
+      expect(repoDirectory.existsSync(), true);
+
+      final session2 = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
+      expect(session2.state.localCheckoutExists, false);
+      expect(session2.state.initialized, false);
+      session2.initialize();
+      expect(session2.state.localCheckoutExists, true);
+  });
+  
   test('Clone Simple', () {
     stateHistory.reset();
     String localPath = cloneTest1;
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
+    session.initialize();
     session.clone();
+
 
     expect(stateHistory.changes.length, equals(2));
     expect(stateHistory.changes[0], equals({"cloneInProgress": "on"}));
@@ -35,6 +53,7 @@ void main() {
     String localPath = cloneTest1;
     var session = gitkebab.Session("${testFixturesPath()}/tmp/non-existent-source-path", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
+    session.initialize();
     expect( (){ session.clone();},
         throwsA(isA<gitkebab.GitKebabException>().having(
             (error) => error.code, 'code', gitkebab.ResultCode.ERROR_CLONE_INEXISTENT_SOURCE_PATH))
@@ -49,35 +68,12 @@ void main() {
     String localPath = "";
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
+    session.initialize();
     expect( (){ session.clone();},
         throwsA(isA<gitkebab.GitKebabException>().having(
                 (error) => error.code, 'code', gitkebab.ResultCode.ERROR_CLONE_INVALID_DESTINATION_PATH))
     );
     expect(session.state.localCheckoutExists, equals(false));
     expect(stateHistory.changes.length, equals(0));
-  });
-
-  test('Open local repository - success', () {
-    String localPath = cloneTest1;
-    final session1 = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
-    session1.clone();
-
-    final repoDirectory = Directory(cloneTest1);
-    expect(repoDirectory.existsSync(), true);
-
-    final session2 = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
-    expect(session2.state.localCheckoutExists, false);
-    session2.openLocalRepository();
-    expect(session2.state.localCheckoutExists, true);
-  });
-
-test('Open local repository - invalid local path', () {
-    final session2 = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, "/tmp/invalid-nonexistent-local-path-12345", "");
-    expect(session2.state.localCheckoutExists, false);
-    expect( (){     session2.openLocalRepository(); },
-        throwsA(isA<gitkebab.GitKebabException>().having(
-            (error) => error.code, 'code', gitkebab.ResultCode.ERROR_LOCAL_REPOSITORY_INEXISTENT_SOURCE_PATH))
-    );
-
   });
 }
