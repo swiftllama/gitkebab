@@ -293,4 +293,41 @@ void main() {
     expect(File("${session2.repositorySpec.localPath}/file3").readAsStringSync(), equals("hello3"));
     expect(File("${session2.repositorySpec.localPath}/file4").readAsStringSync(), equals("hello4"));
   });
+
+  test('Conflicts - status query during merge respects merge conflict data', () {
+    /// Context:
+    ///    Calling gk_status_summary_query while a merge is pending resets
+    ///    conflict summary data (see https://github.com/projectjudo/gitkebab/issues/2)
+    stateHistory.reset();
+    List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
+    Session session1 = sessions.first;
+    Session session2 = sessions.last;
+    session2.onStateChanged = stateChangedCallbackWithHistory;
+
+    expect(session2.state.hasChangesToMerge, equals(
+        true)); // Fetch in Repo B should have brought in changes to merge
+    expect(session2.state.hasConflicts,
+        equals(false)); //don't know about conflicts until we try to merge
+
+    session2.mergeIntoHead(); // merge call succeeds despite the merge not finishing
+
+    // file1 should have a local-delete-remote-edit type conflict
+    expect(session2.mergeConflictSummary.conflicts.length, equals(6));
+    expect(session2.mergeConflictSummary.conflicts[0].path, equals("file1"));
+    expect(session2.mergeConflictSummary.conflicts[0].conflictType, equals(MergeConflictType.localDeleteRemoteEdit));
+
+    session2.conflictResolveAcceptRemoteDelete("file1");
+    session2.mergeConflictsQuery();
+
+    expect(session2.mergeConflictSummary.conflicts.length, equals(5));
+    expect(session2.mergeConflictSummary.conflicts[0].path, equals("file2"));
+    expect(session2.state.hasConflicts, equals(true));
+
+    session2.queryStatus();
+
+    expect(session2.mergeConflictSummary.conflicts.length, equals(5));
+    expect(session2.mergeConflictSummary.conflicts[0].path, equals("file2"));
+    expect(session2.state.hasConflicts, equals(true));
+
+  });
 }
