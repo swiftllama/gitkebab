@@ -182,6 +182,35 @@ int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, g
     return gk_session_success(session, purpose);
 }
 
+const char *gk_blob_new_char_contents(gk_session *session, const char *oid_id) {
+    const char *purpose = "retrieve blob contents as char pointer";
+    if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
+        return NULL;
+    }
+
+    void *data = NULL;
+    u_int64_t length = 0;
+    if (gk_blob_contents(session, &data, &length, oid_id) != 0) {
+        return NULL;
+    }
+
+    if (data == NULL) {
+        gk_session_failure_ex(session, purpose, GK_ERR, "failed to obtain data for blob [%s]", oid_id);
+        return NULL;
+    }
+    
+    char *contents = (char *)malloc(length + 1);
+    memcpy(contents, data, length);
+    contents[length] = '\0';
+    gk_session_success(session, purpose);
+    return (const char *)contents;
+}
+
+void gk_blob_free_char_contents(const char *contents) {
+    if (contents == NULL) return;
+    free((char *)contents);
+}
+
 int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_length, const char *oid_id) {
     const char *purpose = "retrieve blob contents";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {

@@ -4006,6 +4006,38 @@ class GitKebabLib {
   late final _dart_gk_blob_contents _gk_blob_contents =
       _gk_blob_contents_ptr.asFunction<_dart_gk_blob_contents>();
 
+  ffi.Pointer<ffi.Int8> gk_blob_new_char_contents(
+    ffi.Pointer<gk_session> session,
+    ffi.Pointer<ffi.Int8> oid_id,
+  ) {
+    return _gk_blob_new_char_contents(
+      session,
+      oid_id,
+    );
+  }
+
+  late final _gk_blob_new_char_contents_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_blob_new_char_contents>>(
+          'gk_blob_new_char_contents');
+  late final _dart_gk_blob_new_char_contents _gk_blob_new_char_contents =
+      _gk_blob_new_char_contents_ptr
+          .asFunction<_dart_gk_blob_new_char_contents>();
+
+  void gk_blob_free_char_contents(
+    ffi.Pointer<ffi.Int8> contents,
+  ) {
+    return _gk_blob_free_char_contents(
+      contents,
+    );
+  }
+
+  late final _gk_blob_free_char_contents_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_blob_free_char_contents>>(
+          'gk_blob_free_char_contents');
+  late final _dart_gk_blob_free_char_contents _gk_blob_free_char_contents =
+      _gk_blob_free_char_contents_ptr
+          .asFunction<_dart_gk_blob_free_char_contents>();
+
   int gk_blob_write_contents(
     ffi.Pointer<gk_session> session,
     ffi.Pointer<ffi.Int8> oid_id,
@@ -8949,6 +8981,24 @@ typedef _dart_gk_blob_contents = int Function(
   ffi.Pointer<ffi.Pointer<ffi.Void>> blob_data,
   ffi.Pointer<ffi.Uint64> blob_data_length,
   ffi.Pointer<ffi.Int8> oid_id,
+);
+
+typedef _c_gk_blob_new_char_contents = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> oid_id,
+);
+
+typedef _dart_gk_blob_new_char_contents = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> oid_id,
+);
+
+typedef _c_gk_blob_free_char_contents = ffi.Void Function(
+  ffi.Pointer<ffi.Int8> contents,
+);
+
+typedef _dart_gk_blob_free_char_contents = void Function(
+  ffi.Pointer<ffi.Int8> contents,
 );
 
 typedef _c_gk_blob_write_contents = ffi.Int32 Function(

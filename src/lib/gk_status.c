@@ -103,13 +103,18 @@ int gk_status_summary_query(gk_session *session) {
         }
     }
 
-    if (repository->status_summary.count_conflicted > 0) {
-        gk_repository_state_set(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
-        log_info(COMP_STATUS, "Repository has conflicts");
-    }
-    else {
-        gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
-        log_info(COMP_STATUS, "Repository is conflict free");
+    if (gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING)) {
+        // NOTE: gitkebab currently handles its merges in memory, so
+        // the main index should not have conflicts unless an external
+        // tool does a merge. see https://github.com/projectjudo/gitkebab/issues/2
+        if (repository->status_summary.count_conflicted > 0) {
+            gk_repository_state_set(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
+            log_debug(COMP_STATUS, "Repository main index has conflicts (on disk)");
+        }
+        else {
+            gk_repository_state_unset(repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);
+            log_debug(COMP_STATUS, "Repository main index is conflict free (on disk)");
+        }
     }
 
     if ((repository->status_summary.count_new > 0) ||

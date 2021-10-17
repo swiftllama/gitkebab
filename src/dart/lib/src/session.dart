@@ -222,6 +222,22 @@ class Session {
 
   ////
   // Conflicts
+  String blobContents(String blobId) {
+    /*
+    Pointer<Int8> contents_ptr = ffip.calloc<Int8>();
+    Pointer<Uint64> length_ptr = ffip.calloc<Uint64>();
+    GitKebab.lib.gk_blob_contents(session_ptr, contents_ptr.cast(), length_ptr, blobId.toFfiPtr());
+    String contents = contents_ptr.toDartString();
+    ffip.calloc.free(contents_ptr);
+    ffip.calloc.free(length_ptr);*/
+
+    Pointer<Int8> contents_ptr = GitKebab.lib.gk_blob_new_char_contents(session_ptr, blobId.toFfiPtr());
+    if (contents_ptr.address == 0) throw lastResultException();
+    String contents = contents_ptr.toDartString();
+    GitKebab.lib.gk_blob_free_char_contents(contents_ptr);
+    return contents;
+  }
+  
   void writeBlobContents(String blobId, String path, {bool relativizePath = true}) {
     if (GitKebab.lib.gk_blob_write_contents(session_ptr, blobId.toFfiPtr(), path.toFfiPtr(), relativizePath ? 1 : 0) != 0) {
       throw lastResultException();
