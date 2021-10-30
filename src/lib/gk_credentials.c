@@ -54,7 +54,16 @@ int gk_session_credential_username_password_init(gk_session *session, const char
     session->credential.username = username == NULL ? NULL : strdup(username);
     session->credential.password = password == NULL ? NULL : strdup(password);
 
-    return GK_FAILURE;
+    return GK_SUCCESS;
+}
+
+int gk_session_free_credential(gk_session *session) {
+    if (session == NULL) {
+        log_error(COMP_AUTH, "Cannot free session credential, session is NULL");
+        return GK_FAILURE;
+    }
+    gk_session_credential_free_members(&session->credential);
+    return GK_SUCCESS;
 }
 
 void gk_session_credential_free_members(gk_session_credential *credential) {

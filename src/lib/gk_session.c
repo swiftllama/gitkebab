@@ -298,7 +298,11 @@ int gk_session_failure_ex(gk_session *session, const char *purpose, int code, co
 int gk_session_lg2_failure(gk_session *session, const char *purpose, int code) {
     (void) code;
     const git_error *err = git_error_last();
-    return gk_session_failure_ex(session, purpose, err->klass, "%s", err->message, err->klass);
+    if (err == NULL) {
+        log_error(COMP_EXCTX, "libgit had an error, but git_error_last() returned null. The code reported to lg2_failure is %d", code);
+        return gk_session_failure_ex(session, purpose, code, "unknown error #%d", code);
+    }
+    return gk_session_failure_ex(session, purpose, err->klass, "%s", err->message);
 }
 
 int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code, const char *message, ...) {
@@ -309,6 +313,10 @@ int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code
     vsnprintf(formatted_message, 256, message, args);
     va_end(args);
     const git_error *err = git_error_last();
+    if (err == NULL) {
+        log_error(COMP_EXCTX, "libgit had an error, but git_error_last() returned null. The code reported to lg2_failure_ex is %d", code);
+        return gk_session_failure_ex(session, purpose, code, "%s", formatted_message);
+    }    
     return gk_session_failure_ex(session, purpose, code, "%s: %s", formatted_message, err->message);
 }
 

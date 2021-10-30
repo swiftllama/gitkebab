@@ -128,9 +128,10 @@ int gk_clone(gk_session *session) {
         if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
             return gk_session_failure(session, purpose);
         }
+        int return_value = gk_session_lg2_failure(session, purpose, GK_ERR);
         git_repository_free(session->repository->lg2_resources->repository);
         session->repository->lg2_resources->repository = NULL;
-        return gk_session_lg2_failure(session, purpose, GK_ERR);
+        return return_value;
     }
 
     if (git_remote_add_push(session->repository->lg2_resources->repository, session->repository->spec.remote_name, session->repository->spec.push_refspec) != 0) {

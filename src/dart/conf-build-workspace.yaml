@@ -6,7 +6,7 @@ headers:
   entry-points:
     - '../../../../../../source/gitkebab-head/src/lib/gitkebab.h'
 llvm-path:
-  - '/usr/lib/llvm-6.0' # xubuntu thinkpad llvm path
+  - '/usr/lib/llvm-10' # xubuntu thinkpad llvm path
   - '/usr/lib/llvm-7'   # docker llvm path
 enums:
   rename:

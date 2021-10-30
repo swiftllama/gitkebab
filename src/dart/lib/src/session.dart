@@ -8,6 +8,7 @@ import 'pointer_casting.dart';
 import 'status.dart';
 import 'errors.dart';
 import 'repository.dart';
+import 'credentials.dart';
 
 Map<String, Session> g_sessions = {};
 
@@ -134,8 +135,10 @@ class Session {
   
   ////
   //  Remotes
-  void clone() {
+  void clone({Credential? credential}) {
+    if (credential != null) credential.prepareSession(session_ptr);
     if (GitKebab.lib.gk_clone(session_ptr) != 0) { throw lastResultException(); }
+    if (credential != null) credential.cleanupSession(session_ptr);
   }
 
   void fetch(String remoteName) {

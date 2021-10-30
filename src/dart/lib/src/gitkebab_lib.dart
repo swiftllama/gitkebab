@@ -253,47 +253,6 @@ class GitKebabLib {
   late final _pselect_ptr = _lookup<ffi.NativeFunction<_c_pselect>>('pselect');
   late final _dart_pselect _pselect = _pselect_ptr.asFunction<_dart_pselect>();
 
-  int gnu_dev_major(
-    int __dev,
-  ) {
-    return _gnu_dev_major(
-      __dev,
-    );
-  }
-
-  late final _gnu_dev_major_ptr =
-      _lookup<ffi.NativeFunction<_c_gnu_dev_major>>('gnu_dev_major');
-  late final _dart_gnu_dev_major _gnu_dev_major =
-      _gnu_dev_major_ptr.asFunction<_dart_gnu_dev_major>();
-
-  int gnu_dev_minor(
-    int __dev,
-  ) {
-    return _gnu_dev_minor(
-      __dev,
-    );
-  }
-
-  late final _gnu_dev_minor_ptr =
-      _lookup<ffi.NativeFunction<_c_gnu_dev_minor>>('gnu_dev_minor');
-  late final _dart_gnu_dev_minor _gnu_dev_minor =
-      _gnu_dev_minor_ptr.asFunction<_dart_gnu_dev_minor>();
-
-  int gnu_dev_makedev(
-    int __major,
-    int __minor,
-  ) {
-    return _gnu_dev_makedev(
-      __major,
-      __minor,
-    );
-  }
-
-  late final _gnu_dev_makedev_ptr =
-      _lookup<ffi.NativeFunction<_c_gnu_dev_makedev>>('gnu_dev_makedev');
-  late final _dart_gnu_dev_makedev _gnu_dev_makedev =
-      _gnu_dev_makedev_ptr.asFunction<_dart_gnu_dev_makedev>();
-
   int random() {
     return _random();
   }
@@ -700,6 +659,23 @@ class GitKebabLib {
   late final _realloc_ptr = _lookup<ffi.NativeFunction<_c_realloc>>('realloc');
   late final _dart_realloc _realloc = _realloc_ptr.asFunction<_dart_realloc>();
 
+  ffi.Pointer<ffi.Void> reallocarray(
+    ffi.Pointer<ffi.Void> __ptr,
+    int __nmemb,
+    int __size,
+  ) {
+    return _reallocarray(
+      __ptr,
+      __nmemb,
+      __size,
+    );
+  }
+
+  late final _reallocarray_ptr =
+      _lookup<ffi.NativeFunction<_c_reallocarray>>('reallocarray');
+  late final _dart_reallocarray _reallocarray =
+      _reallocarray_ptr.asFunction<_dart_reallocarray>();
+
   void free(
     ffi.Pointer<ffi.Void> __ptr,
   ) {
@@ -771,6 +747,43 @@ class GitKebabLib {
 
   late final _abort_ptr = _lookup<ffi.NativeFunction<_c_abort>>('abort');
   late final _dart_abort _abort = _abort_ptr.asFunction<_dart_abort>();
+
+  int atexit(
+    ffi.Pointer<ffi.NativeFunction<_typedefC_1>> __func,
+  ) {
+    return _atexit(
+      __func,
+    );
+  }
+
+  late final _atexit_ptr = _lookup<ffi.NativeFunction<_c_atexit>>('atexit');
+  late final _dart_atexit _atexit = _atexit_ptr.asFunction<_dart_atexit>();
+
+  int at_quick_exit(
+    ffi.Pointer<ffi.NativeFunction<_typedefC_2>> __func,
+  ) {
+    return _at_quick_exit(
+      __func,
+    );
+  }
+
+  late final _at_quick_exit_ptr =
+      _lookup<ffi.NativeFunction<_c_at_quick_exit>>('at_quick_exit');
+  late final _dart_at_quick_exit _at_quick_exit =
+      _at_quick_exit_ptr.asFunction<_dart_at_quick_exit>();
+
+  int on_exit(
+    ffi.Pointer<ffi.NativeFunction<_typedefC_3>> __func,
+    ffi.Pointer<ffi.Void> __arg,
+  ) {
+    return _on_exit(
+      __func,
+      __arg,
+    );
+  }
+
+  late final _on_exit_ptr = _lookup<ffi.NativeFunction<_c_on_exit>>('on_exit');
+  late final _dart_on_exit _on_exit = _on_exit_ptr.asFunction<_dart_on_exit>();
 
   void exit(
     int __status,
@@ -939,6 +952,42 @@ class GitKebabLib {
       _lookup<ffi.NativeFunction<_c_realpath>>('realpath');
   late final _dart_realpath _realpath =
       _realpath_ptr.asFunction<_dart_realpath>();
+
+  ffi.Pointer<ffi.Void> bsearch(
+    ffi.Pointer<ffi.Void> __key,
+    ffi.Pointer<ffi.Void> __base,
+    int __nmemb,
+    int __size,
+    ffi.Pointer<ffi.NativeFunction<__compar_fn_t>> __compar,
+  ) {
+    return _bsearch(
+      __key,
+      __base,
+      __nmemb,
+      __size,
+      __compar,
+    );
+  }
+
+  late final _bsearch_ptr = _lookup<ffi.NativeFunction<_c_bsearch>>('bsearch');
+  late final _dart_bsearch _bsearch = _bsearch_ptr.asFunction<_dart_bsearch>();
+
+  void qsort(
+    ffi.Pointer<ffi.Void> __base,
+    int __nmemb,
+    int __size,
+    ffi.Pointer<ffi.NativeFunction<__compar_fn_t>> __compar,
+  ) {
+    return _qsort(
+      __base,
+      __nmemb,
+      __size,
+      __compar,
+    );
+  }
+
+  late final _qsort_ptr = _lookup<ffi.NativeFunction<_c_qsort>>('qsort');
+  late final _dart_qsort _qsort = _qsort_ptr.asFunction<_dart_qsort>();
 
   int abs(
     int __x,
@@ -1220,286 +1269,6 @@ class GitKebabLib {
       _lookup<ffi.NativeFunction<_c_getloadavg>>('getloadavg');
   late final _dart_getloadavg _getloadavg =
       _getloadavg_ptr.asFunction<_dart_getloadavg>();
-
-  late final ffi.Pointer<_IO_FILE_plus> __IO_2_1_stdin_ =
-      _lookup<_IO_FILE_plus>('_IO_2_1_stdin_');
-
-  ffi.Pointer<_IO_FILE_plus> get _IO_2_1_stdin_ => __IO_2_1_stdin_;
-
-  late final ffi.Pointer<_IO_FILE_plus> __IO_2_1_stdout_ =
-      _lookup<_IO_FILE_plus>('_IO_2_1_stdout_');
-
-  ffi.Pointer<_IO_FILE_plus> get _IO_2_1_stdout_ => __IO_2_1_stdout_;
-
-  late final ffi.Pointer<_IO_FILE_plus> __IO_2_1_stderr_ =
-      _lookup<_IO_FILE_plus>('_IO_2_1_stderr_');
-
-  ffi.Pointer<_IO_FILE_plus> get _IO_2_1_stderr_ => __IO_2_1_stderr_;
-
-  int __underflow(
-    ffi.Pointer<_IO_FILE> arg0,
-  ) {
-    return ___underflow(
-      arg0,
-    );
-  }
-
-  late final ___underflow_ptr =
-      _lookup<ffi.NativeFunction<_c___underflow>>('__underflow');
-  late final _dart___underflow ___underflow =
-      ___underflow_ptr.asFunction<_dart___underflow>();
-
-  int __uflow(
-    ffi.Pointer<_IO_FILE> arg0,
-  ) {
-    return ___uflow(
-      arg0,
-    );
-  }
-
-  late final ___uflow_ptr = _lookup<ffi.NativeFunction<_c___uflow>>('__uflow');
-  late final _dart___uflow ___uflow = ___uflow_ptr.asFunction<_dart___uflow>();
-
-  int __overflow(
-    ffi.Pointer<_IO_FILE> arg0,
-    int arg1,
-  ) {
-    return ___overflow(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final ___overflow_ptr =
-      _lookup<ffi.NativeFunction<_c___overflow>>('__overflow');
-  late final _dart___overflow ___overflow =
-      ___overflow_ptr.asFunction<_dart___overflow>();
-
-  int _IO_getc(
-    ffi.Pointer<_IO_FILE> __fp,
-  ) {
-    return __IO_getc(
-      __fp,
-    );
-  }
-
-  late final __IO_getc_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_getc>>('_IO_getc');
-  late final _dart__IO_getc __IO_getc =
-      __IO_getc_ptr.asFunction<_dart__IO_getc>();
-
-  int _IO_putc(
-    int __c,
-    ffi.Pointer<_IO_FILE> __fp,
-  ) {
-    return __IO_putc(
-      __c,
-      __fp,
-    );
-  }
-
-  late final __IO_putc_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_putc>>('_IO_putc');
-  late final _dart__IO_putc __IO_putc =
-      __IO_putc_ptr.asFunction<_dart__IO_putc>();
-
-  int _IO_feof(
-    ffi.Pointer<_IO_FILE> __fp,
-  ) {
-    return __IO_feof(
-      __fp,
-    );
-  }
-
-  late final __IO_feof_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_feof>>('_IO_feof');
-  late final _dart__IO_feof __IO_feof =
-      __IO_feof_ptr.asFunction<_dart__IO_feof>();
-
-  int _IO_ferror(
-    ffi.Pointer<_IO_FILE> __fp,
-  ) {
-    return __IO_ferror(
-      __fp,
-    );
-  }
-
-  late final __IO_ferror_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_ferror>>('_IO_ferror');
-  late final _dart__IO_ferror __IO_ferror =
-      __IO_ferror_ptr.asFunction<_dart__IO_ferror>();
-
-  int _IO_peekc_locked(
-    ffi.Pointer<_IO_FILE> __fp,
-  ) {
-    return __IO_peekc_locked(
-      __fp,
-    );
-  }
-
-  late final __IO_peekc_locked_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_peekc_locked>>('_IO_peekc_locked');
-  late final _dart__IO_peekc_locked __IO_peekc_locked =
-      __IO_peekc_locked_ptr.asFunction<_dart__IO_peekc_locked>();
-
-  void _IO_flockfile(
-    ffi.Pointer<_IO_FILE> arg0,
-  ) {
-    return __IO_flockfile(
-      arg0,
-    );
-  }
-
-  late final __IO_flockfile_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_flockfile>>('_IO_flockfile');
-  late final _dart__IO_flockfile __IO_flockfile =
-      __IO_flockfile_ptr.asFunction<_dart__IO_flockfile>();
-
-  void _IO_funlockfile(
-    ffi.Pointer<_IO_FILE> arg0,
-  ) {
-    return __IO_funlockfile(
-      arg0,
-    );
-  }
-
-  late final __IO_funlockfile_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_funlockfile>>('_IO_funlockfile');
-  late final _dart__IO_funlockfile __IO_funlockfile =
-      __IO_funlockfile_ptr.asFunction<_dart__IO_funlockfile>();
-
-  int _IO_ftrylockfile(
-    ffi.Pointer<_IO_FILE> arg0,
-  ) {
-    return __IO_ftrylockfile(
-      arg0,
-    );
-  }
-
-  late final __IO_ftrylockfile_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_ftrylockfile>>('_IO_ftrylockfile');
-  late final _dart__IO_ftrylockfile __IO_ftrylockfile =
-      __IO_ftrylockfile_ptr.asFunction<_dart__IO_ftrylockfile>();
-
-  int _IO_vfscanf(
-    ffi.Pointer<_IO_FILE> arg0,
-    ffi.Pointer<ffi.Int8> arg1,
-    ffi.Pointer<__va_list_tag> arg2,
-    ffi.Pointer<ffi.Int32> arg3,
-  ) {
-    return __IO_vfscanf(
-      arg0,
-      arg1,
-      arg2,
-      arg3,
-    );
-  }
-
-  late final __IO_vfscanf_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_vfscanf>>('_IO_vfscanf');
-  late final _dart__IO_vfscanf __IO_vfscanf =
-      __IO_vfscanf_ptr.asFunction<_dart__IO_vfscanf>();
-
-  int _IO_vfprintf(
-    ffi.Pointer<_IO_FILE> arg0,
-    ffi.Pointer<ffi.Int8> arg1,
-    ffi.Pointer<__va_list_tag> arg2,
-  ) {
-    return __IO_vfprintf(
-      arg0,
-      arg1,
-      arg2,
-    );
-  }
-
-  late final __IO_vfprintf_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_vfprintf>>('_IO_vfprintf');
-  late final _dart__IO_vfprintf __IO_vfprintf =
-      __IO_vfprintf_ptr.asFunction<_dart__IO_vfprintf>();
-
-  int _IO_padn(
-    ffi.Pointer<_IO_FILE> arg0,
-    int arg1,
-    int arg2,
-  ) {
-    return __IO_padn(
-      arg0,
-      arg1,
-      arg2,
-    );
-  }
-
-  late final __IO_padn_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_padn>>('_IO_padn');
-  late final _dart__IO_padn __IO_padn =
-      __IO_padn_ptr.asFunction<_dart__IO_padn>();
-
-  int _IO_sgetn(
-    ffi.Pointer<_IO_FILE> arg0,
-    ffi.Pointer<ffi.Void> arg1,
-    int arg2,
-  ) {
-    return __IO_sgetn(
-      arg0,
-      arg1,
-      arg2,
-    );
-  }
-
-  late final __IO_sgetn_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_sgetn>>('_IO_sgetn');
-  late final _dart__IO_sgetn __IO_sgetn =
-      __IO_sgetn_ptr.asFunction<_dart__IO_sgetn>();
-
-  int _IO_seekoff(
-    ffi.Pointer<_IO_FILE> arg0,
-    int arg1,
-    int arg2,
-    int arg3,
-  ) {
-    return __IO_seekoff(
-      arg0,
-      arg1,
-      arg2,
-      arg3,
-    );
-  }
-
-  late final __IO_seekoff_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_seekoff>>('_IO_seekoff');
-  late final _dart__IO_seekoff __IO_seekoff =
-      __IO_seekoff_ptr.asFunction<_dart__IO_seekoff>();
-
-  int _IO_seekpos(
-    ffi.Pointer<_IO_FILE> arg0,
-    int arg1,
-    int arg2,
-  ) {
-    return __IO_seekpos(
-      arg0,
-      arg1,
-      arg2,
-    );
-  }
-
-  late final __IO_seekpos_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_seekpos>>('_IO_seekpos');
-  late final _dart__IO_seekpos __IO_seekpos =
-      __IO_seekpos_ptr.asFunction<_dart__IO_seekpos>();
-
-  void _IO_free_backup_area(
-    ffi.Pointer<_IO_FILE> arg0,
-  ) {
-    return __IO_free_backup_area(
-      arg0,
-    );
-  }
-
-  late final __IO_free_backup_area_ptr =
-      _lookup<ffi.NativeFunction<_c__IO_free_backup_area>>(
-          '_IO_free_backup_area');
-  late final _dart__IO_free_backup_area __IO_free_backup_area =
-      __IO_free_backup_area_ptr.asFunction<_dart__IO_free_backup_area>();
 
   late final ffi.Pointer<ffi.Pointer<_IO_FILE>> _stdin =
       _lookup<ffi.Pointer<_IO_FILE>>('stdin');
@@ -2417,7 +2186,7 @@ class GitKebabLib {
 
   int fgetpos(
     ffi.Pointer<_IO_FILE> __stream,
-    ffi.Pointer<_G_fpos_t> __pos,
+    ffi.Pointer<__fpos_t> __pos,
   ) {
     return _fgetpos(
       __stream,
@@ -2430,7 +2199,7 @@ class GitKebabLib {
 
   int fsetpos(
     ffi.Pointer<_IO_FILE> __stream,
-    ffi.Pointer<_G_fpos_t> __pos,
+    ffi.Pointer<__fpos_t> __pos,
   ) {
     return _fsetpos(
       __stream,
@@ -2637,6 +2406,32 @@ class GitKebabLib {
       _lookup<ffi.NativeFunction<_c_funlockfile>>('funlockfile');
   late final _dart_funlockfile _funlockfile =
       _funlockfile_ptr.asFunction<_dart_funlockfile>();
+
+  int __uflow(
+    ffi.Pointer<_IO_FILE> arg0,
+  ) {
+    return ___uflow(
+      arg0,
+    );
+  }
+
+  late final ___uflow_ptr = _lookup<ffi.NativeFunction<_c___uflow>>('__uflow');
+  late final _dart___uflow ___uflow = ___uflow_ptr.asFunction<_dart___uflow>();
+
+  int __overflow(
+    ffi.Pointer<_IO_FILE> arg0,
+    int arg1,
+  ) {
+    return ___overflow(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final ___overflow_ptr =
+      _lookup<ffi.NativeFunction<_c___overflow>>('__overflow');
+  late final _dart___overflow ___overflow =
+      ___overflow_ptr.asFunction<_dart___overflow>();
 
   int clock() {
     return _clock();
@@ -2874,17 +2669,6 @@ class GitKebabLib {
 
   set timezone(int value) => _timezone.value = value;
 
-  int stime(
-    ffi.Pointer<ffi.Int64> __when,
-  ) {
-    return _stime(
-      __when,
-    );
-  }
-
-  late final _stime_ptr = _lookup<ffi.NativeFunction<_c_stime>>('stime');
-  late final _dart_stime _stime = _stime_ptr.asFunction<_dart_stime>();
-
   int timegm(
     ffi.Pointer<tm> __tp,
   ) {
@@ -3120,6 +2904,21 @@ class GitKebabLib {
   late final _dart_log_level_string _log_level_string =
       _log_level_string_ptr.asFunction<_dart_log_level_string>();
 
+  void log_set_lock(
+    ffi.Pointer<ffi.NativeFunction<log_LockFn>> fn,
+    ffi.Pointer<ffi.Void> udata,
+  ) {
+    return _log_set_lock(
+      fn,
+      udata,
+    );
+  }
+
+  late final _log_set_lock_ptr =
+      _lookup<ffi.NativeFunction<_c_log_set_lock>>('log_set_lock');
+  late final _dart_log_set_lock _log_set_lock =
+      _log_set_lock_ptr.asFunction<_dart_log_set_lock>();
+
   void log_set_level(
     int level,
   ) {
@@ -3145,6 +2944,23 @@ class GitKebabLib {
       _lookup<ffi.NativeFunction<_c_log_set_quiet>>('log_set_quiet');
   late final _dart_log_set_quiet _log_set_quiet =
       _log_set_quiet_ptr.asFunction<_dart_log_set_quiet>();
+
+  int log_add_callback(
+    ffi.Pointer<ffi.NativeFunction<log_LogFn>> fn,
+    ffi.Pointer<ffi.Void> udata,
+    int level,
+  ) {
+    return _log_add_callback(
+      fn,
+      udata,
+      level,
+    );
+  }
+
+  late final _log_add_callback_ptr =
+      _lookup<ffi.NativeFunction<_c_log_add_callback>>('log_add_callback');
+  late final _dart_log_add_callback _log_add_callback =
+      _log_add_callback_ptr.asFunction<_dart_log_add_callback>();
 
   int log_add_fp(
     ffi.Pointer<_IO_FILE> fp,
@@ -3461,6 +3277,21 @@ class GitKebabLib {
       _gk_session_credential_free_members =
       _gk_session_credential_free_members_ptr
           .asFunction<_dart_gk_session_credential_free_members>();
+
+  int gk_session_free_credential(
+    ffi.Pointer<gk_session> session,
+  ) {
+    return _gk_session_free_credential(
+      session,
+    );
+  }
+
+  late final _gk_session_free_credential_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_session_free_credential>>(
+          'gk_session_free_credential');
+  late final _dart_gk_session_free_credential _gk_session_free_credential =
+      _gk_session_free_credential_ptr
+          .asFunction<_dart_gk_session_free_credential>();
 
   void gk_session_credential_init(
     ffi.Pointer<gk_session> session,
@@ -5258,6 +5089,41 @@ class fd_set extends ffi.Struct {
   external ffi.Array<ffi.Int64> __fds_bits;
 }
 
+class __pthread_list_t extends ffi.Struct {
+  external ffi.Pointer<__pthread_list_t> __prev;
+
+  external ffi.Pointer<__pthread_list_t> __next;
+}
+
+class __pthread_slist_t extends ffi.Struct {
+  external ffi.Pointer<__pthread_slist_t> __next;
+}
+
+class __pthread_mutex_s extends ffi.Struct {
+  @ffi.Int32()
+  external int __lock;
+
+  @ffi.Uint32()
+  external int __count;
+
+  @ffi.Int32()
+  external int __owner;
+
+  @ffi.Uint32()
+  external int __nusers;
+
+  @ffi.Int32()
+  external int __kind;
+
+  @ffi.Int16()
+  external int __spins;
+
+  @ffi.Int16()
+  external int __elision;
+
+  external __pthread_list_t __list;
+}
+
 class __pthread_rwlock_arch_t extends ffi.Struct {
   @ffi.Uint32()
   external int __readers;
@@ -5294,37 +5160,6 @@ class __pthread_rwlock_arch_t extends ffi.Struct {
 
   @ffi.Uint32()
   external int __flags;
-}
-
-class __pthread_list_t extends ffi.Struct {
-  external ffi.Pointer<__pthread_list_t> __prev;
-
-  external ffi.Pointer<__pthread_list_t> __next;
-}
-
-class __pthread_mutex_s extends ffi.Struct {
-  @ffi.Int32()
-  external int __lock;
-
-  @ffi.Uint32()
-  external int __count;
-
-  @ffi.Int32()
-  external int __owner;
-
-  @ffi.Uint32()
-  external int __nusers;
-
-  @ffi.Int32()
-  external int __kind;
-
-  @ffi.Int16()
-  external int __spins;
-
-  @ffi.Int16()
-  external int __elision;
-
-  external __pthread_list_t __list;
 }
 
 class __pthread_cond_s extends ffi.Struct {
@@ -5380,14 +5215,17 @@ class drand48_data extends ffi.Struct {
   external int __a;
 }
 
-class _IO_marker extends ffi.Struct {
-  external ffi.Pointer<_IO_marker> _next;
+class __mbstate_t extends ffi.Opaque {}
 
-  external ffi.Pointer<_IO_FILE> _sbuf;
+class __fpos_t extends ffi.Opaque {}
 
-  @ffi.Int32()
-  external int _pos;
-}
+class __fpos64_t extends ffi.Opaque {}
+
+class _IO_marker extends ffi.Opaque {}
+
+class _IO_codecvt extends ffi.Opaque {}
+
+class _IO_wide_data extends ffi.Opaque {}
 
 class _IO_FILE extends ffi.Struct {
   @ffi.Int32()
@@ -5442,13 +5280,13 @@ class _IO_FILE extends ffi.Struct {
   @ffi.Int64()
   external int _offset;
 
-  external ffi.Pointer<ffi.Void> __pad1;
+  external ffi.Pointer<_IO_codecvt> _codecvt;
 
-  external ffi.Pointer<ffi.Void> __pad2;
+  external ffi.Pointer<_IO_wide_data> _wide_data;
 
-  external ffi.Pointer<ffi.Void> __pad3;
+  external ffi.Pointer<_IO_FILE> _freeres_list;
 
-  external ffi.Pointer<ffi.Void> __pad4;
+  external ffi.Pointer<ffi.Void> _freeres_buf;
 
   @ffi.Uint64()
   external int __pad5;
@@ -5459,23 +5297,6 @@ class _IO_FILE extends ffi.Struct {
   @ffi.Array.multi([20])
   external ffi.Array<ffi.Int8> _unused2;
 }
-
-class __mbstate_t extends ffi.Opaque {}
-
-class _G_fpos_t extends ffi.Opaque {}
-
-class _G_fpos64_t extends ffi.Opaque {}
-
-class _IO_jump_t extends ffi.Opaque {}
-
-abstract class __codecvt_result {
-  static const int __codecvt_ok = 0;
-  static const int __codecvt_partial = 1;
-  static const int __codecvt_error = 2;
-  static const int __codecvt_noconv = 3;
-}
-
-class _IO_FILE_plus extends ffi.Opaque {}
 
 class __va_list_tag extends ffi.Struct {
   @ffi.Uint32()
@@ -5874,9 +5695,23 @@ class gk_object_id extends ffi.Struct {
   external ffi.Array<ffi.Int8> id;
 }
 
+const int LOG_TRACE = 0;
+
+const int LOG_DEBUG = 1;
+
+const int LOG_INFO = 2;
+
+const int LOG_WARN = 3;
+
+const int LOG_ERROR = 4;
+
+const int LOG_FATAL = 5;
+
 const int _FEATURES_H = 1;
 
 const int _DEFAULT_SOURCE = 1;
+
+const int __GLIBC_USE_ISOC2X = 1;
 
 const int __USE_ISOC11 = 1;
 
@@ -5910,6 +5745,8 @@ const int __USE_FORTIFY_LEVEL = 0;
 
 const int __GLIBC_USE_DEPRECATED_GETS = 0;
 
+const int __GLIBC_USE_DEPRECATED_SCANF = 0;
+
 const int _STDC_PREDEF_H = 1;
 
 const int __STDC_IEC_559__ = 1;
@@ -5918,13 +5755,11 @@ const int __STDC_IEC_559_COMPLEX__ = 1;
 
 const int __STDC_ISO_10646__ = 201706;
 
-const int __STDC_NO_THREADS__ = 1;
-
 const int __GNU_LIBRARY__ = 6;
 
 const int __GLIBC__ = 2;
 
-const int __GLIBC_MINOR__ = 27;
+const int __GLIBC_MINOR__ = 31;
 
 const int _SYS_CDEFS_H = 1;
 
@@ -5936,13 +5771,19 @@ const int __WORDSIZE_TIME64_COMPAT32 = 1;
 
 const int __SYSCALL_WORDSIZE = 64;
 
+const int __LONG_DOUBLE_USES_FLOAT128 = 0;
+
 const int __HAVE_GENERIC_SELECTION = 0;
 
 const int __GLIBC_USE_LIB_EXT2 = 1;
 
 const int __GLIBC_USE_IEC_60559_BFP_EXT = 1;
 
+const int __GLIBC_USE_IEC_60559_BFP_EXT_C2X = 1;
+
 const int __GLIBC_USE_IEC_60559_FUNCS_EXT = 1;
+
+const int __GLIBC_USE_IEC_60559_FUNCS_EXT_C2X = 1;
 
 const int __GLIBC_USE_IEC_60559_TYPES_EXT = 1;
 
@@ -6004,6 +5845,8 @@ const int __HAVE_DISTINCT_FLOAT64X = 0;
 
 const int __HAVE_DISTINCT_FLOAT128X = 0;
 
+const int __HAVE_FLOAT128_UNLIKE_LDBL = 0;
+
 const int __HAVE_FLOATN_NOT_TYPEDEF = 0;
 
 const int __ldiv_t_defined = 1;
@@ -6020,6 +5863,8 @@ const int _SYS_TYPES_H = 1;
 
 const int _BITS_TYPES_H = 1;
 
+const int __TIMESIZE = 64;
+
 const int _BITS_TYPESIZES_H = 1;
 
 const int __OFF_T_MATCHES_OFF64_T = 1;
@@ -6028,7 +5873,11 @@ const int __INO_T_MATCHES_INO64_T = 1;
 
 const int __RLIM_T_MATCHES_RLIM64_T = 1;
 
+const int __STATFS_MATCHES_STATFS64 = 1;
+
 const int __FD_SETSIZE = 1024;
+
+const int _BITS_TIME64_H = 1;
 
 const int __clock_t_defined = 1;
 
@@ -6044,11 +5893,15 @@ const int __BIT_TYPES_DEFINED__ = 1;
 
 const int _ENDIAN_H = 1;
 
+const int _BITS_ENDIAN_H = 1;
+
 const int __LITTLE_ENDIAN = 1234;
 
 const int __BIG_ENDIAN = 4321;
 
 const int __PDP_ENDIAN = 3412;
+
+const int _BITS_ENDIANNESS_H = 1;
 
 const int __BYTE_ORDER = 1234;
 
@@ -6084,10 +5937,6 @@ const int FD_SETSIZE = 1024;
 
 const int NFDBITS = 64;
 
-const int _SYS_SYSMACROS_H = 1;
-
-const int _BITS_SYSMACROS_H = 1;
-
 const int _BITS_PTHREADTYPES_COMMON_H = 1;
 
 const int _THREAD_SHARED_TYPES_H = 1;
@@ -6112,19 +5961,11 @@ const int __SIZEOF_PTHREAD_RWLOCKATTR_T = 8;
 
 const int __SIZEOF_PTHREAD_BARRIERATTR_T = 4;
 
-const int __PTHREAD_MUTEX_LOCK_ELISION = 1;
-
-const int __PTHREAD_MUTEX_NUSERS_AFTER_KIND = 0;
-
-const int __PTHREAD_MUTEX_USE_UNION = 0;
-
-const int __PTHREAD_RWLOCK_ELISION_EXTRA = 0;
-
-const int __PTHREAD_RWLOCK_INT_FLAGS_SHARED = 1;
-
-const int __PTHREAD_SPINS = 0;
+const int _THREAD_MUTEX_INTERNAL_H = 1;
 
 const int __PTHREAD_MUTEX_HAVE_PREV = 1;
+
+const int __PTHREAD_RWLOCK_ELISION_EXTRA = 0;
 
 const int __have_pthread_attr_t = 1;
 
@@ -6132,125 +5973,25 @@ const int _ALLOCA_H = 1;
 
 const int _STDIO_H = 1;
 
+const int __GNUC_VA_LIST = 1;
+
+const int _____fpos_t_defined = 1;
+
+const int ____mbstate_t_defined = 1;
+
+const int _____fpos64_t_defined = 1;
+
 const int ____FILE_defined = 1;
 
 const int __FILE_defined = 1;
 
-const int _BITS_LIBIO_H = 1;
-
-const int _BITS_G_CONFIG_H = 1;
-
-const int ____mbstate_t_defined = 1;
-
-const int _G_HAVE_MMAP = 1;
-
-const int _G_HAVE_MREMAP = 1;
-
-const int _G_IO_IO_FILE_VERSION = 131073;
-
-const int _G_BUFSIZ = 8192;
-
-const int _IO_BUFSIZ = 8192;
-
-const int __GNUC_VA_LIST = 1;
-
-const int _IO_UNIFIED_JUMPTABLES = 1;
-
-const int EOF = -1;
-
-const int _IOS_INPUT = 1;
-
-const int _IOS_OUTPUT = 2;
-
-const int _IOS_ATEND = 4;
-
-const int _IOS_APPEND = 8;
-
-const int _IOS_TRUNC = 16;
-
-const int _IOS_NOCREATE = 32;
-
-const int _IOS_NOREPLACE = 64;
-
-const int _IOS_BIN = 128;
-
-const int _IO_MAGIC = 4222418944;
-
-const int _OLD_STDIO_MAGIC = 4206624768;
-
-const int _IO_MAGIC_MASK = 4294901760;
-
-const int _IO_USER_BUF = 1;
-
-const int _IO_UNBUFFERED = 2;
-
-const int _IO_NO_READS = 4;
-
-const int _IO_NO_WRITES = 8;
+const int __struct_FILE_defined = 1;
 
 const int _IO_EOF_SEEN = 16;
 
 const int _IO_ERR_SEEN = 32;
 
-const int _IO_DELETE_DONT_CLOSE = 64;
-
-const int _IO_LINKED = 128;
-
-const int _IO_IN_BACKUP = 256;
-
-const int _IO_LINE_BUF = 512;
-
-const int _IO_TIED_PUT_GET = 1024;
-
-const int _IO_CURRENTLY_PUTTING = 2048;
-
-const int _IO_IS_APPENDING = 4096;
-
-const int _IO_IS_FILEBUF = 8192;
-
-const int _IO_BAD_SEEN = 16384;
-
 const int _IO_USER_LOCK = 32768;
-
-const int _IO_FLAGS2_MMAP = 1;
-
-const int _IO_FLAGS2_NOTCANCEL = 2;
-
-const int _IO_FLAGS2_USER_WBUF = 8;
-
-const int _IO_SKIPWS = 1;
-
-const int _IO_LEFT = 2;
-
-const int _IO_RIGHT = 4;
-
-const int _IO_INTERNAL = 8;
-
-const int _IO_DEC = 16;
-
-const int _IO_OCT = 32;
-
-const int _IO_HEX = 64;
-
-const int _IO_SHOWBASE = 128;
-
-const int _IO_SHOWPOINT = 256;
-
-const int _IO_UPPERCASE = 512;
-
-const int _IO_SHOWPOS = 1024;
-
-const int _IO_SCIENTIFIC = 2048;
-
-const int _IO_FIXED = 4096;
-
-const int _IO_UNITBUF = 8192;
-
-const int _IO_STDIO = 16384;
-
-const int _IO_DONT_CLOSE = 32768;
-
-const int _IO_BOOLALPHA = 65536;
 
 const int _IOFBF = 0;
 
@@ -6259,6 +6000,8 @@ const int _IOLBF = 1;
 const int _IONBF = 2;
 
 const int BUFSIZ = 8192;
+
+const int EOF = -1;
 
 const int SEEK_SET = 0;
 
@@ -6510,32 +6253,6 @@ typedef _dart_pselect = int Function(
   ffi.Pointer<fd_set> __exceptfds,
   ffi.Pointer<timespec> __timeout,
   ffi.Pointer<__sigset_t> __sigmask,
-);
-
-typedef _c_gnu_dev_major = ffi.Uint32 Function(
-  ffi.Uint64 __dev,
-);
-
-typedef _dart_gnu_dev_major = int Function(
-  int __dev,
-);
-
-typedef _c_gnu_dev_minor = ffi.Uint32 Function(
-  ffi.Uint64 __dev,
-);
-
-typedef _dart_gnu_dev_minor = int Function(
-  int __dev,
-);
-
-typedef _c_gnu_dev_makedev = ffi.Uint64 Function(
-  ffi.Uint32 __major,
-  ffi.Uint32 __minor,
-);
-
-typedef _dart_gnu_dev_makedev = int Function(
-  int __major,
-  int __minor,
 );
 
 typedef _c_random = ffi.Int64 Function();
@@ -6818,6 +6535,18 @@ typedef _dart_realloc = ffi.Pointer<ffi.Void> Function(
   int __size,
 );
 
+typedef _c_reallocarray = ffi.Pointer<ffi.Void> Function(
+  ffi.Pointer<ffi.Void> __ptr,
+  ffi.Uint64 __nmemb,
+  ffi.Uint64 __size,
+);
+
+typedef _dart_reallocarray = ffi.Pointer<ffi.Void> Function(
+  ffi.Pointer<ffi.Void> __ptr,
+  int __nmemb,
+  int __size,
+);
+
 typedef _c_free = ffi.Void Function(
   ffi.Pointer<ffi.Void> __ptr,
 );
@@ -6867,6 +6596,41 @@ typedef _dart_aligned_alloc = ffi.Pointer<ffi.Void> Function(
 typedef _c_abort = ffi.Void Function();
 
 typedef _dart_abort = void Function();
+
+typedef _typedefC_1 = ffi.Void Function();
+
+typedef _c_atexit = ffi.Int32 Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_1>> __func,
+);
+
+typedef _dart_atexit = int Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_1>> __func,
+);
+
+typedef _typedefC_2 = ffi.Void Function();
+
+typedef _c_at_quick_exit = ffi.Int32 Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_2>> __func,
+);
+
+typedef _dart_at_quick_exit = int Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_2>> __func,
+);
+
+typedef _typedefC_3 = ffi.Void Function(
+  ffi.Int32,
+  ffi.Pointer<ffi.Void>,
+);
+
+typedef _c_on_exit = ffi.Int32 Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_3>> __func,
+  ffi.Pointer<ffi.Void> __arg,
+);
+
+typedef _dart_on_exit = int Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_3>> __func,
+  ffi.Pointer<ffi.Void> __arg,
+);
 
 typedef _c_exit = ffi.Void Function(
   ffi.Int32 __status,
@@ -6982,6 +6746,41 @@ typedef _c_realpath = ffi.Pointer<ffi.Int8> Function(
 typedef _dart_realpath = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<ffi.Int8> __name,
   ffi.Pointer<ffi.Int8> __resolved,
+);
+
+typedef __compar_fn_t = ffi.Int32 Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<ffi.Void>,
+);
+
+typedef _c_bsearch = ffi.Pointer<ffi.Void> Function(
+  ffi.Pointer<ffi.Void> __key,
+  ffi.Pointer<ffi.Void> __base,
+  ffi.Uint64 __nmemb,
+  ffi.Uint64 __size,
+  ffi.Pointer<ffi.NativeFunction<__compar_fn_t>> __compar,
+);
+
+typedef _dart_bsearch = ffi.Pointer<ffi.Void> Function(
+  ffi.Pointer<ffi.Void> __key,
+  ffi.Pointer<ffi.Void> __base,
+  int __nmemb,
+  int __size,
+  ffi.Pointer<ffi.NativeFunction<__compar_fn_t>> __compar,
+);
+
+typedef _c_qsort = ffi.Void Function(
+  ffi.Pointer<ffi.Void> __base,
+  ffi.Uint64 __nmemb,
+  ffi.Uint64 __size,
+  ffi.Pointer<ffi.NativeFunction<__compar_fn_t>> __compar,
+);
+
+typedef _dart_qsort = void Function(
+  ffi.Pointer<ffi.Void> __base,
+  int __nmemb,
+  int __size,
+  ffi.Pointer<ffi.NativeFunction<__compar_fn_t>> __compar,
 );
 
 typedef _c_abs = ffi.Int32 Function(
@@ -7198,182 +6997,6 @@ typedef _c_getloadavg = ffi.Int32 Function(
 typedef _dart_getloadavg = int Function(
   ffi.Pointer<ffi.Double> __loadavg,
   int __nelem,
-);
-
-typedef _c___underflow = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _dart___underflow = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _c___uflow = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _dart___uflow = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _c___overflow = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Int32 arg1,
-);
-
-typedef _dart___overflow = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  int arg1,
-);
-
-typedef _c__IO_getc = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _dart__IO_getc = int Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _c__IO_putc = ffi.Int32 Function(
-  ffi.Int32 __c,
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _dart__IO_putc = int Function(
-  int __c,
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _c__IO_feof = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _dart__IO_feof = int Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _c__IO_ferror = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _dart__IO_ferror = int Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _c__IO_peekc_locked = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _dart__IO_peekc_locked = int Function(
-  ffi.Pointer<_IO_FILE> __fp,
-);
-
-typedef _c__IO_flockfile = ffi.Void Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _dart__IO_flockfile = void Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _c__IO_funlockfile = ffi.Void Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _dart__IO_funlockfile = void Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _c__IO_ftrylockfile = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _dart__IO_ftrylockfile = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _c__IO_vfscanf = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Pointer<ffi.Int8> arg1,
-  ffi.Pointer<__va_list_tag> arg2,
-  ffi.Pointer<ffi.Int32> arg3,
-);
-
-typedef _dart__IO_vfscanf = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Pointer<ffi.Int8> arg1,
-  ffi.Pointer<__va_list_tag> arg2,
-  ffi.Pointer<ffi.Int32> arg3,
-);
-
-typedef _c__IO_vfprintf = ffi.Int32 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Pointer<ffi.Int8> arg1,
-  ffi.Pointer<__va_list_tag> arg2,
-);
-
-typedef _dart__IO_vfprintf = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Pointer<ffi.Int8> arg1,
-  ffi.Pointer<__va_list_tag> arg2,
-);
-
-typedef _c__IO_padn = ffi.Int64 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Int32 arg1,
-  ffi.Int64 arg2,
-);
-
-typedef _dart__IO_padn = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  int arg1,
-  int arg2,
-);
-
-typedef _c__IO_sgetn = ffi.Uint64 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Pointer<ffi.Void> arg1,
-  ffi.Uint64 arg2,
-);
-
-typedef _dart__IO_sgetn = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Pointer<ffi.Void> arg1,
-  int arg2,
-);
-
-typedef _c__IO_seekoff = ffi.Int64 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Int64 arg1,
-  ffi.Int32 arg2,
-  ffi.Int32 arg3,
-);
-
-typedef _dart__IO_seekoff = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  int arg1,
-  int arg2,
-  int arg3,
-);
-
-typedef _c__IO_seekpos = ffi.Int64 Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  ffi.Int64 arg1,
-  ffi.Int32 arg2,
-);
-
-typedef _dart__IO_seekpos = int Function(
-  ffi.Pointer<_IO_FILE> arg0,
-  int arg1,
-  int arg2,
-);
-
-typedef _c__IO_free_backup_area = ffi.Void Function(
-  ffi.Pointer<_IO_FILE> arg0,
-);
-
-typedef _dart__IO_free_backup_area = void Function(
-  ffi.Pointer<_IO_FILE> arg0,
 );
 
 typedef _c_remove = ffi.Int32 Function(
@@ -8032,22 +7655,22 @@ typedef _dart_ftello = int Function(
 
 typedef _c_fgetpos = ffi.Int32 Function(
   ffi.Pointer<_IO_FILE> __stream,
-  ffi.Pointer<_G_fpos_t> __pos,
+  ffi.Pointer<__fpos_t> __pos,
 );
 
 typedef _dart_fgetpos = int Function(
   ffi.Pointer<_IO_FILE> __stream,
-  ffi.Pointer<_G_fpos_t> __pos,
+  ffi.Pointer<__fpos_t> __pos,
 );
 
 typedef _c_fsetpos = ffi.Int32 Function(
   ffi.Pointer<_IO_FILE> __stream,
-  ffi.Pointer<_G_fpos_t> __pos,
+  ffi.Pointer<__fpos_t> __pos,
 );
 
 typedef _dart_fsetpos = int Function(
   ffi.Pointer<_IO_FILE> __stream,
-  ffi.Pointer<_G_fpos_t> __pos,
+  ffi.Pointer<__fpos_t> __pos,
 );
 
 typedef _c_clearerr = ffi.Void Function(
@@ -8170,6 +7793,24 @@ typedef _c_funlockfile = ffi.Void Function(
 
 typedef _dart_funlockfile = void Function(
   ffi.Pointer<_IO_FILE> __stream,
+);
+
+typedef _c___uflow = ffi.Int32 Function(
+  ffi.Pointer<_IO_FILE> arg0,
+);
+
+typedef _dart___uflow = int Function(
+  ffi.Pointer<_IO_FILE> arg0,
+);
+
+typedef _c___overflow = ffi.Int32 Function(
+  ffi.Pointer<_IO_FILE> arg0,
+  ffi.Int32 arg1,
+);
+
+typedef _dart___overflow = int Function(
+  ffi.Pointer<_IO_FILE> arg0,
+  int arg1,
 );
 
 typedef _c_clock = ffi.Int64 Function();
@@ -8307,14 +7948,6 @@ typedef _dart_ctime_r = ffi.Pointer<ffi.Int8> Function(
 typedef _c_tzset = ffi.Void Function();
 
 typedef _dart_tzset = void Function();
-
-typedef _c_stime = ffi.Int32 Function(
-  ffi.Pointer<ffi.Int64> __when,
-);
-
-typedef _dart_stime = int Function(
-  ffi.Pointer<ffi.Int64> __when,
-);
 
 typedef _c_timegm = ffi.Int64 Function(
   ffi.Pointer<tm> __tp,
@@ -8474,6 +8107,21 @@ typedef _dart_log_level_string = ffi.Pointer<ffi.Int8> Function(
   int level,
 );
 
+typedef log_LockFn = ffi.Void Function(
+  ffi.Uint8,
+  ffi.Pointer<ffi.Void>,
+);
+
+typedef _c_log_set_lock = ffi.Void Function(
+  ffi.Pointer<ffi.NativeFunction<log_LockFn>> fn,
+  ffi.Pointer<ffi.Void> udata,
+);
+
+typedef _dart_log_set_lock = void Function(
+  ffi.Pointer<ffi.NativeFunction<log_LockFn>> fn,
+  ffi.Pointer<ffi.Void> udata,
+);
+
 typedef _c_log_set_level = ffi.Void Function(
   ffi.Int32 level,
 );
@@ -8488,6 +8136,22 @@ typedef _c_log_set_quiet = ffi.Void Function(
 
 typedef _dart_log_set_quiet = void Function(
   int enable,
+);
+
+typedef log_LogFn = ffi.Void Function(
+  ffi.Pointer<log_Event>,
+);
+
+typedef _c_log_add_callback = ffi.Int32 Function(
+  ffi.Pointer<ffi.NativeFunction<log_LogFn>> fn,
+  ffi.Pointer<ffi.Void> udata,
+  ffi.Int32 level,
+);
+
+typedef _dart_log_add_callback = int Function(
+  ffi.Pointer<ffi.NativeFunction<log_LogFn>> fn,
+  ffi.Pointer<ffi.Void> udata,
+  int level,
 );
 
 typedef _c_log_add_fp = ffi.Int32 Function(
@@ -8642,6 +8306,14 @@ typedef _c_gk_session_credential_free_members = ffi.Void Function(
 
 typedef _dart_gk_session_credential_free_members = void Function(
   ffi.Pointer<gk_session_credential> credential,
+);
+
+typedef _c_gk_session_free_credential = ffi.Int32 Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _dart_gk_session_free_credential = int Function(
+  ffi.Pointer<gk_session> session,
 );
 
 typedef _c_gk_session_credential_init = ffi.Void Function(
