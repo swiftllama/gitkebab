@@ -25,7 +25,11 @@ int main(int argc, char **argv) {
 
     gk_session *session = gk_session_new("git@gitea.ptskl.com:volund/experimental-notebook.git", GK_REPOSITORY_SOURCE_URL_SSH, "/tmp/clone1", "git", &session_progress, NULL, NULL);
 
-    gk_session_credential_ssh_key_memory_init(session, judo_key, judo_key_pub, NULL);
+    gk_session_initialize(session);
+    if (gk_session_last_result_code(session) != GK_SUCCESS) {
+        printf("Error #%d occurred while initializing session: %s\n", gk_session_last_result_code(session), gk_session_last_result_message(session));
+    }
+    gk_session_credential_ssh_key_memory_init(session, "git", judo_key, judo_key_pub, NULL);
     gk_clone(session);
     
     if (gk_session_last_result_code(session) == GK_SUCCESS) {
