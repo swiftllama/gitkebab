@@ -3200,12 +3200,14 @@ class GitKebabLib {
 
   int gk_session_credential_ssh_key_memory_init(
     ffi.Pointer<gk_session> session,
+    ffi.Pointer<ffi.Int8> username,
     ffi.Pointer<ffi.Int8> private_key_bytes,
     ffi.Pointer<ffi.Int8> public_key_bytes,
     ffi.Pointer<ffi.Int8> private_key_passphrase,
   ) {
     return _gk_session_credential_ssh_key_memory_init(
       session,
+      username,
       private_key_bytes,
       public_key_bytes,
       private_key_passphrase,
@@ -3222,12 +3224,14 @@ class GitKebabLib {
 
   int gk_session_credential_ssh_key_file_init(
     ffi.Pointer<gk_session> session,
+    ffi.Pointer<ffi.Int8> username,
     ffi.Pointer<ffi.Int8> private_key_path,
     ffi.Pointer<ffi.Int8> public_key_path,
     ffi.Pointer<ffi.Int8> private_key_passphrase,
   ) {
     return _gk_session_credential_ssh_key_file_init(
       session,
+      username,
       private_key_path,
       public_key_path,
       private_key_passphrase,
@@ -8262,6 +8266,7 @@ typedef _dart_gk_result_code_as_string = ffi.Pointer<ffi.Int8> Function(
 
 typedef _c_gk_session_credential_ssh_key_memory_init = ffi.Int32 Function(
   ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> username,
   ffi.Pointer<ffi.Int8> private_key_bytes,
   ffi.Pointer<ffi.Int8> public_key_bytes,
   ffi.Pointer<ffi.Int8> private_key_passphrase,
@@ -8269,6 +8274,7 @@ typedef _c_gk_session_credential_ssh_key_memory_init = ffi.Int32 Function(
 
 typedef _dart_gk_session_credential_ssh_key_memory_init = int Function(
   ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> username,
   ffi.Pointer<ffi.Int8> private_key_bytes,
   ffi.Pointer<ffi.Int8> public_key_bytes,
   ffi.Pointer<ffi.Int8> private_key_passphrase,
@@ -8276,6 +8282,7 @@ typedef _dart_gk_session_credential_ssh_key_memory_init = int Function(
 
 typedef _c_gk_session_credential_ssh_key_file_init = ffi.Int32 Function(
   ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> username,
   ffi.Pointer<ffi.Int8> private_key_path,
   ffi.Pointer<ffi.Int8> public_key_path,
   ffi.Pointer<ffi.Int8> private_key_passphrase,
@@ -8283,6 +8290,7 @@ typedef _c_gk_session_credential_ssh_key_file_init = ffi.Int32 Function(
 
 typedef _dart_gk_session_credential_ssh_key_file_init = int Function(
   ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> username,
   ffi.Pointer<ffi.Int8> private_key_path,
   ffi.Pointer<ffi.Int8> public_key_path,
   ffi.Pointer<ffi.Int8> private_key_passphrase,
