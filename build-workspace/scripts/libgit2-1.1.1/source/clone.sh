@@ -6,5 +6,10 @@ rm -rf source/libgit2-1.1.1
 mkdir -p source
 git clone --branch v1.1.1 --depth 1 git@github.com:libgit2/libgit2.git source/libgit2-1.1.1
 
+echo "Applying patch"
+cd source/libgit2-1.1.1
+patch -p0 < ../../patches/libgit2-1.1.1/fix-userauth-publikey-frommemory-detection.diff
+
 set +x
 echo "--- DONE ---"
+
