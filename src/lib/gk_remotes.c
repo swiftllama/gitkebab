@@ -44,25 +44,18 @@ static int gk_session_credential_callback(git_credential **out,
 
 
     const char *purpose = "authenticate session";
-    printf("DBG A1\n");
     if (gk_session_context_push(session, purpose, &COMP_AUTH, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
-        printf("DBG A2\n");
         return -1;
     }
-    printf("DBG A3\n");
     if (session->repository == NULL) {
-        printf("DBG A4\n");
         gk_session_failure_ex(session, purpose, GK_ERR, "repository is NULL when trying to authenticate");
         return -1;
     }
 
-    printf("DBG A5\n");
     int cred_type = session->credential.credential_type;
     const char *username = username_from_url != NULL ? username_from_url : session->credential.username;
     if (cred_type == CREDENTIAL_SSH_KEY_MEMORY) {
-        printf("DBG A6\n");
         if ((allowed_ssh_memory == 0) && (allowed_username >= 1)) {
-            printf("DBG A7\n");
             log_info(COMP_AUTH, "preauthenticating repository with username for SSH_KEY_MEMORY credential");
             int rc = git_credential_username_new((git_credential **) out, username);
             if (rc != 0) {
@@ -71,19 +64,13 @@ static int gk_session_credential_callback(git_credential **out,
             }
         }
         else {
-            printf("DBG A8\n");
             log_info(COMP_AUTH, "authenticating repository with an SSH_KEY_MEMORY credential with username [%s]", username);
             int rc = git_credential_ssh_key_memory_new((git_credential **)out, username, session->credential.ssh_public_key_bytes, session->credential.ssh_private_key_bytes, session->credential.ssh_private_key_passphrase);
             if (rc != 0) {
                 gk_session_lg2_failure_ex(session, purpose, rc, "error creating ssh key memory credential for user [%s]", username);
                 return -1;
             }
-            log_info(COMP_AUTH, "A8.1 defined credential ptr [%p]", out);
-            if (out != NULL) {
-                log_info(COMP_AUTH, "A8.2 defined credential [%p]", *out);
-            }
         }
-        printf("DBG A9\n");
     }
     else if (cred_type == CREDENTIAL_SSH_KEY_FILE) {
         if ((allowed_ssh_key == 0) && (allowed_username >= 1)) {
@@ -111,7 +98,6 @@ static int gk_session_credential_callback(git_credential **out,
         gk_session_failure_ex(session, purpose, GK_ERR, "session repository has gk_credential of unknown type %d. Expected one of CREDENTIAL_SSH_KEY_MEMORY (%d), CREDENTIAL_SSH_KEY_FILE (%d) or CREDENTIAL_USERNAME_PASSWORD (%d). Cannot auth", cred_type, CREDENTIAL_SSH_KEY_MEMORY, CREDENTIAL_SSH_KEY_FILE, CREDENTIAL_USERNAME_PASSWORD);
         return -1;
     }
-    printf("DBG A10\n");
     log_info(COMP_AUTH, "Successfully set credential");
     gk_session_success(session, purpose);
     return 0;
