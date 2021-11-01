@@ -5,6 +5,7 @@
 #include "gk_logging.h"
 #include <string.h>
 
+static char credential_description[256];
 
 void gk_session_credential_init(gk_session *session) {
     memset((void *)&session->credential, 0, sizeof(gk_session_credential));
@@ -87,4 +88,38 @@ void gk_session_credential_free_members(gk_session_credential *credential) {
     credential->ssh_private_key_passphrase = NULL;
     credential->username = NULL;
     credential->password = NULL;
+}
+
+
+const char *gk_credential_description(gk_session_credential *credential) {
+    if (credential == NULL) return "(null)";
+    const char *str_type = "(unknown type)";
+    if (credential->credential_type == CREDENTIAL_SSH_KEY_FILE) {
+        str_type = "SSH key file";
+    }
+    else if (credential->credential_type == CREDENTIAL_SSH_KEY_MEMORY) {
+        str_type = "SSH KEY data (in memory)";
+    }
+    else if (credential->credential_type == CREDENTIAL_USERNAME_PASSWORD) {
+        str_type = "Username password";
+    }
+
+    int have_ssh_private_key_bytes = credential->ssh_private_key_bytes != NULL;
+    int have_ssh_public_key_bytes = credential->ssh_public_key_bytes != NULL;
+    int have_ssh_private_key_path = credential->ssh_private_key_path != NULL;
+    int have_ssh_public_key_path = credential->ssh_public_key_path != NULL;
+    int have_ssh_private_key_passphrase = credential->ssh_private_key_passphrase != NULL;
+    int have_username = credential->username != NULL;
+    int have_password = credential->password != NULL;
+
+    snprintf(credential_description, 255, "%s [with private_key_bytes:%d, public_key_bytes:%d, private_key_path:%d, public_key_path:%d, private_key_passphrase:%d, username:%d, password:%d",
+             str_type,
+             have_ssh_private_key_bytes,
+             have_ssh_public_key_bytes,
+             have_ssh_private_key_path,
+             have_ssh_public_key_path,
+             have_ssh_private_key_passphrase,
+             have_username,
+             have_password);
+    return credential_description;
 }

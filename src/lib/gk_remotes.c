@@ -146,7 +146,9 @@ int gk_clone(gk_session *session) {
     /* Do the clone */
     log_info(COMP_CLONE, "Cloning repo");
     log_info(COMP_CLONE, "  - URL:        [%s]", source_url);
+    log_info(COMP_CLONE, "  - URL type: [%d]", session->repository->spec.source_url_type);
     log_info(COMP_CLONE, "  - Local path: [%s]", local_path);
+    log_info(COMP_CLONE, "  - Credential: %s", gk_credential_description(&session->credential));
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_CLONE_IN_PROGRESS);
     if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
         return gk_session_failure(session, purpose);

@@ -11,6 +11,7 @@ int gk_session_credential_username_password_init(gk_session *session, const char
 void gk_session_credential_free_members(gk_session_credential *credential);
 int gk_session_free_credential(gk_session *session);
 void gk_session_credential_init(gk_session *session);
+const char *gk_credential_description(gk_session_credential *credential);
 
 #endif // __GITKEBAB_CREDENTIALS_H__
 

@@ -3312,6 +3312,21 @@ class GitKebabLib {
       _gk_session_credential_init_ptr
           .asFunction<_dart_gk_session_credential_init>();
 
+  ffi.Pointer<ffi.Int8> gk_credential_description(
+    ffi.Pointer<gk_session_credential> credential,
+  ) {
+    return _gk_credential_description(
+      credential,
+    );
+  }
+
+  late final _gk_credential_description_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_credential_description>>(
+          'gk_credential_description');
+  late final _dart_gk_credential_description _gk_credential_description =
+      _gk_credential_description_ptr
+          .asFunction<_dart_gk_credential_description>();
+
   int gk_session_fetch_progress_callback(
     ffi.Pointer<ffi.Void> stats_vptr,
     ffi.Pointer<ffi.Void> payload,
@@ -8330,6 +8345,14 @@ typedef _c_gk_session_credential_init = ffi.Void Function(
 
 typedef _dart_gk_session_credential_init = void Function(
   ffi.Pointer<gk_session> session,
+);
+
+typedef _c_gk_credential_description = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_session_credential> credential,
+);
+
+typedef _dart_gk_credential_description = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<gk_session_credential> credential,
 );
 
 typedef _c_gk_session_fetch_progress_callback = ffi.Int32 Function(
