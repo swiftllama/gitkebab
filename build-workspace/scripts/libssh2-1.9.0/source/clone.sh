@@ -6,5 +6,9 @@ rm -rf source/libssh2-1.9.0
 mkdir -p source
 git clone --branch libssh2-1.9.0 --depth 1 git@github.com:libssh2/libssh2.git source/libssh2-1.9.0
 
+echo "Applying patch"
+cd source/libssh2-1.9.0
+git apply ../../patches/libssh2-1.9.0/retry-on-eintr.diff
+
 set +x
 echo "--- DONE ---"

@@ -15,7 +15,7 @@ class InMemoryKeyCredential extends Credential {
   final String user;
   final String key;
   final String passphrase;
-  InMemoryKeyCredential({required this.user, required this.key, required this.passphrase});
+  InMemoryKeyCredential({required this.user, required this.key, this.passphrase = ''});
 
   @override
   void prepareSession(Pointer<gitkebab_lib.gk_session> session_ptr) {
