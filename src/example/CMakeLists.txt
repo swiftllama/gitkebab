@@ -6,4 +6,8 @@ if (NOT ANDROID)
 endif()
 target_link_libraries(example1 gitkebab_static ${LINK_LIBS})
 
+if (APPLE)
+   target_link_libraries(example1 "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+endif()
+
 install(TARGETS example1 DESTINATION bin)

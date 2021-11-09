@@ -18,7 +18,7 @@ gk_void_linked_node *gk_void_linked_node_new();
 void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data);
 
 int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, gk_conflict_resolution accept);
-int gk_blob_contents(gk_session *session, void **blob_data, u_int64_t *blob_data_length, const char *oid_id);
+int gk_blob_contents(gk_session *session, void **blob_data, size_t *blob_data_length, const char *oid_id);
 const char *gk_blob_new_char_contents(gk_session *session, const char *oid_id);
 void gk_blob_free_char_contents(const char *contents);
 

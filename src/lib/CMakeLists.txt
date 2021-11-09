@@ -4,6 +4,11 @@ include_directories(${LIBGIT2_include_folder})
 
 add_custom_target(libraries)
 
+set(ICONV_COMPAT_SOURCE "")
+if (APPLE)
+   set(ICONV_COMPAT_SOURCE "iconv_compat.c")
+endif()
+
 add_library(gitkebab_objects OBJECT
   gitkebab.h
   gk_commit.c
@@ -39,7 +44,8 @@ add_library(gitkebab_objects OBJECT
   gk_status.c
   gk_status.h
   rxi_log.c
-  rxi_log.h)
+  rxi_log.h
+  ${ICONV_COMPAT_SOURCE})
 
 set_property(TARGET gitkebab_objects PROPERTY POSITION_INDEPENDENT_CODE 1)
 
@@ -50,6 +56,10 @@ target_include_directories(gitkebab_static INTERFACE ./) # allow dependencies to
 target_include_directories(gitkebab INTERFACE ./) # allow dependencies to find gitkebab's headers
   
 target_link_libraries(gitkebab ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib})
+
+if (APPLE)
+   target_link_libraries(gitkebab "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+endif()
 
 #  LIBGIT2_lib OPENSSL_lib CRYPTO_lib LIBSSH2_lib Z_lib PCRE_lib <- need these??
 

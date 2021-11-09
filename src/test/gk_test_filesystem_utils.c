@@ -1,10 +1,11 @@
 
+// NOTE: macos wants stdio.h before _XOPEN_SOURCE
+#include <stdio.h>
 #define _XOPEN_SOURCE 500
 #include <stdlib.h>
 #include <dirent.h>
 #include <errno.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <ftw.h>
 #include <string.h>
 #include "gk_logging.h"
@@ -28,8 +29,8 @@ int file_exists(const char *path) {
 
 
 int parent_directory_exists(const char* path) {
-    char command[512];
-    snprintf(command, 512, "stat `dirname %s`", path);
+    char command[1024];
+    snprintf(command, 1023, "stat `dirname %s`", path);
     return system(command);
 }
 
