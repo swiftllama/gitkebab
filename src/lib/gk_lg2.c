@@ -288,7 +288,7 @@ int gk_lg2_signature_create(gk_session *session) {
         return GK_FAILURE;
     }
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
-    if (git_signature_default(&lg2_resources->signature, lg2_resources->repository) != 0) {
+    if (git_signature_now(&lg2_resources->signature, "gitkebab", "info@example.com") != 0) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
 

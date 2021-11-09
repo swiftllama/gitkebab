@@ -135,18 +135,28 @@ class Session {
   
   ////
   //  Remotes
-  void clone({Credential? credential}) {
+  void _withCredential(Credential? credential, void Function() closure) {
     if (credential != null) credential.prepareSession(session_ptr);
-    if (GitKebab.lib.gk_clone(session_ptr) != 0) { throw lastResultException(); }
+    closure();
     if (credential != null) credential.cleanupSession(session_ptr);
   }
 
-  void fetch(String remoteName) {
-    if (GitKebab.lib.gk_fetch(session_ptr, remoteName.toFfiPtr()) != 0) { throw lastResultException(); }
+  void clone({Credential? credential}) {
+    _withCredential(credential, (){
+      if (GitKebab.lib.gk_clone(session_ptr) != 0) throw lastResultException();
+    });
   }
 
-  void push(String remoteName) {
-    if (GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr()) != 0) { throw lastResultException(); }
+  void fetch(String remoteName, {Credential? credential}) {
+    _withCredential(credential, (){
+      if (GitKebab.lib.gk_fetch(session_ptr, remoteName.toFfiPtr()) != 0) throw lastResultException();
+    });
+  }
+
+  void push(String remoteName, {Credential? credential}) {
+    _withCredential(credential, (){
+      if (GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr()) != 0) throw lastResultException();
+    });
   }
 
   ////
