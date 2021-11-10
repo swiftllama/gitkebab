@@ -10,7 +10,7 @@ init_and_change_into_tmp_build_folder
 ##    - CFLAGS=-fPIC
 ##
 
-${RELATIVE_SOURCE}/Configure darwin64-x86_64-cc no-shared --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER} -fPIC
+${RELATIVE_SOURCE}/Configure darwin64-x86_64-cc no-shared --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER} -fPIC -mmacosx-version-min=10.11
 make
 make install
 

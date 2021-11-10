@@ -39,7 +39,8 @@ cmake ${RELATIVE_SOURCE} \
       -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og --save-temps" \
       -DENABLE_TRACE=ON \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-      -DCMAKE_EXE_LINKER_FLAGS="${ROOT}/${OPENSSL_DIR}/lib/libssl.a ${ROOT}/${OPENSSL_DIR}/lib/libcrypto.a"
+      -DCMAKE_EXE_LINKER_FLAGS="${ROOT}/${OPENSSL_DIR}/lib/libssl.a ${ROOT}/${OPENSSL_DIR}/lib/libcrypto.a"  \
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11
 
 cmake -LAH .
 cmake --build . -- VERBOSE=1

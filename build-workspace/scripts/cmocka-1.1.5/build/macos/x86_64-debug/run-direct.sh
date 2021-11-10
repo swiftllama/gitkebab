@@ -8,7 +8,8 @@ init_and_change_into_tmp_build_folder
 cmake -DWITH_STATIC_LIB=true \
       -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}  \
-      ${RELATIVE_SOURCE}
+      ${RELATIVE_SOURCE} \
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11
 
 cmake --build .
 cmake --build . --target install

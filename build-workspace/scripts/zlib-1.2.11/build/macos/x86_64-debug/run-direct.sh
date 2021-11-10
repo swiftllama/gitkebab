@@ -10,7 +10,7 @@ init_and_change_into_tmp_build_folder
 ##    - CFLAGS=-fPIC
 ##
 
-CFLAGS="-fPIC" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}
+CFLAGS="-fPIC -mmacosx-version-min=10.11" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}
 make
 make install
 
