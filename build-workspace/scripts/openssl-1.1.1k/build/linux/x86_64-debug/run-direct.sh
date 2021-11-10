@@ -10,7 +10,7 @@ init_and_change_into_tmp_build_folder
 ##    - CFLAGS=-fPIC
 ##
 
-${RELATIVE_SOURCE}/Configure linux-x86_64 --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER} -fPIC
+${RELATIVE_SOURCE}/Configure linux-x86_64 no-shared --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER} -fPIC
 make
 make install
 
