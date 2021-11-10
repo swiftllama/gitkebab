@@ -189,7 +189,7 @@ const char *gk_blob_new_char_contents(gk_session *session, const char *oid_id) {
     }
 
     void *data = NULL;
-    u_int64_t length = 0;
+    size_t length = 0;
     if (gk_blob_contents(session, &data, &length, oid_id) != 0) {
         return NULL;
     }
@@ -211,7 +211,7 @@ void gk_blob_free_char_contents(const char *contents) {
     free((char *)contents);
 }
 
-int gk_blob_contents(gk_session *session, void **blob_data, uint64_t *blob_data_length, const char *oid_id) {
+int gk_blob_contents(gk_session *session, void **blob_data, size_t *blob_data_length, const char *oid_id) {
     const char *purpose = "retrieve blob contents";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
@@ -266,7 +266,7 @@ int gk_blob_write_contents(gk_session *session, const char *oid_id, const char *
         safe_path = relative_path;
     }
     
-    uint64_t blob_size = 0;
+    size_t blob_size = 0;
     void *blob_data = NULL;
     if (gk_blob_contents(session, &blob_data, &blob_size, oid_id) != GK_SUCCESS) {
         free(blob_data);
@@ -453,14 +453,14 @@ int gk_compare_blobs(gk_session *session, int *similarity, const char *blob1_oid
 
     log_info(COMP_CONFLICTS, "Calculating similarity between blob1 [%s] and blob2 [%s]", blob1_oid_id, blob2_oid_id);
     
-    uint64_t blob_size1 = 0;
+    size_t blob_size1 = 0;
     void *blob_data1 = NULL;
     if (gk_blob_contents(session, &blob_data1, &blob_size1, blob1_oid_id) != GK_SUCCESS) {
         free(blob_data1);
         return gk_session_failure_ex(session, purpose, GK_ERR, "failed to obtain blob1 contents");
     }
 
-    uint64_t blob_size2 = 0;
+    size_t blob_size2 = 0;
     void *blob_data2 = NULL;
     if (gk_blob_contents(session, &blob_data2, &blob_size2, blob2_oid_id) != GK_SUCCESS) {
         free(blob_data1);
