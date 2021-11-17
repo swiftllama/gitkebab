@@ -136,22 +136,23 @@ typedef struct {
 } gk_session_credential;
 
 typedef enum gk_repository_state {
-    GK_REPOSITORY_STATE_DEFAULT = 0,
-    GK_REPOSITORY_STATE_INITIALIZED                = (1 << 0),  // 1
-    GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS      = (1 << 1),  // 2
-    GK_REPOSITORY_STATE_HAS_CONFLICTS              = (1 << 2),  // 4
-    GK_REPOSITORY_STATE_HAS_CHANGES_TO_COMMIT      = (1 << 3),  // 8
-    GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE       = (1 << 4),  // 16
-    GK_REPOSITORY_STATE_CLONE_IN_PROGRESS          = (1 << 5),  // 32
-    GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING = (1 << 6),  // 64
-    GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK      = (1 << 7),  // 128
-    GK_REPOSITORY_STATE_PUSH_IN_PROGRESS           = (1 << 8),  // 256
-    GK_REPOSITORY_STATE_FETCH_IN_PROGRESS          = (1 << 9),  // 512
-    GK_REPOSITORY_STATE_MERGE_IN_PROGRESS          = (1 << 10), // 1024
-    GK_REPOSITORY_STATE_SYNC_IN_PROGRESS           = (1 << 11), // 2048
+    GK_REPOSITORY_STATE_DEFAULT                     = 0,
+    GK_REPOSITORY_STATE_INITIALIZED                 = (1 << 0),  // 1
+    GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS       = (1 << 1),  // 2
+    GK_REPOSITORY_STATE_HAS_CONFLICTS               = (1 << 2),  // 4
+    GK_REPOSITORY_STATE_HAS_CHANGES_TO_COMMIT       = (1 << 3),  // 8
+    GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE        = (1 << 4),  // 16
+    GK_REPOSITORY_STATE_CLONE_IN_PROGRESS           = (1 << 5),  // 32
+    GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING  = (1 << 6),  // 64
+    GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK       = (1 << 7),  // 128
+    GK_REPOSITORY_STATE_PUSH_IN_PROGRESS            = (1 << 8),  // 256
+    GK_REPOSITORY_STATE_FETCH_IN_PROGRESS           = (1 << 9),  // 512
+    GK_REPOSITORY_STATE_MERGE_IN_PROGRESS           = (1 << 10), // 1024
+    GK_REPOSITORY_STATE_SYNC_IN_PROGRESS            = (1 << 11), // 2048
+    GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS = (1 << 12), // 4096
 } gk_repository_state;
 
-#define GK_REPOSITORY_STATE_MAX_EXP 12
+#define GK_REPOSITORY_STATE_MAX_EXP 13
 
 typedef enum gk_repository_source_url_type {
     GK_REPOSITORY_SOURCE_URL_SSH,

@@ -12,23 +12,30 @@
 static void *gk_background_sync_worker(void* session_ptr) {
     gk_session *session = (gk_session *)session_ptr;
     gk_sync(session);
+    // NOTE: don't trigger a callback for background sync (background syncs rely on polling not callbacks)
+    gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS);
     pthread_exit(NULL);
 }
 
 int gk_background_sync(gk_session* session) {
+    const char *purpose = "session background sync";
+    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    // NOTE: don't trigger a callback for background sync (background syncs rely on polling not callbacks)
+    gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS);
+    
     pthread_t thread_id;
     int rc = pthread_create(&thread_id, NULL, gk_background_sync_worker, (void *)session);
+    
     if (rc != 0) {
-        const char *purpose = "session background sync";
-        if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
-            return GK_FAILURE;
-        }
         if (rc == EAGAIN) {
             return gk_session_failure_ex(session, purpose, rc, "Encountered EAGAIN while starting sync background thread");
         }
         return gk_session_failure_ex(session, purpose, rc, "Error starting background sync thread");
     }
-    return GK_SUCCESS;
+    return gk_session_success(session, purpose);
 }
 
 int gk_sync(gk_session *session) {
