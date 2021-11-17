@@ -446,6 +446,82 @@ extension ConflictResolutionIntValue on ConflictResolution {
   }
 }
 
+class SessionStateBooleanChange {
+  static const TurnedOn = const SessionStateBooleanChange._(1);
+  static const TurnedOff = const SessionStateBooleanChange._(-1);
+  static const Unchanged = const SessionStateBooleanChange._(0);
+
+  final int change;
+  const SessionStateBooleanChange._(this.change);
+
+  bool get turnedOn => change == 1;
+  bool get turnedOff => change == -1;
+  bool get unchanged => change == 0;
+
+  static SessionStateBooleanChange from({required bool oldValue, required bool newValue}) {
+    if (oldValue == newValue) return Unchanged;
+    if (newValue) return TurnedOn;
+    return TurnedOff;
+  }
+}
+
+class SessionStateUpdateEvent {
+  final SessionState newState;
+  final SessionStateDiff diff;
+  SessionStateUpdateEvent({required this.newState, required this.diff});
+  SessionStateUpdateEvent.from({required SessionState oldState, required this.newState}): diff = SessionStateDiff.from(oldState: oldState, newState: newState);
+}
+
+class SessionStateDiff {
+  final SessionStateBooleanChange initialized;
+  final SessionStateBooleanChange localCheckoutExists;
+  final SessionStateBooleanChange hasConflicts;
+  final SessionStateBooleanChange hasChangesToCommit;
+  final SessionStateBooleanChange hasChangesToMerge;
+  final SessionStateBooleanChange cloneInProgress;
+  final SessionStateBooleanChange mergeFinalizationPending;
+  final SessionStateBooleanChange mergePendingOnDisk;
+  final SessionStateBooleanChange pushInProgress;
+  final SessionStateBooleanChange fetchInProgress;
+  final SessionStateBooleanChange mergeInProgress;
+  final SessionStateBooleanChange syncInProgress;
+  final SessionStateBooleanChange backgroundSyncInProgress;
+
+  SessionStateDiff({
+    required this.initialized,
+    required this.localCheckoutExists,
+    required this.hasConflicts,
+    required this.hasChangesToCommit,
+    required this.hasChangesToMerge,
+    required this.cloneInProgress,
+    required this.mergeFinalizationPending,
+    required this.mergePendingOnDisk,
+    required this.pushInProgress,
+    required this.fetchInProgress,
+    required this.mergeInProgress,
+    required this.syncInProgress,
+    required this.backgroundSyncInProgress
+  });
+
+  static SessionStateDiff from({required SessionState oldState, required SessionState newState}) {
+      return SessionStateDiff(
+          initialized: SessionStateBooleanChange.from(oldValue: oldState.initialized, newValue: newState.initialized),
+          localCheckoutExists: SessionStateBooleanChange.from(oldValue:oldState.localCheckoutExists, newValue: newState.localCheckoutExists),
+          hasConflicts: SessionStateBooleanChange.from(oldValue:oldState.hasConflicts, newValue: newState.hasConflicts),
+          hasChangesToCommit: SessionStateBooleanChange.from(oldValue:oldState.hasChangesToCommit, newValue: newState.hasChangesToCommit),
+          hasChangesToMerge: SessionStateBooleanChange.from(oldValue:oldState.hasChangesToMerge, newValue: newState.hasChangesToMerge),
+          cloneInProgress: SessionStateBooleanChange.from(oldValue:oldState.cloneInProgress, newValue: newState.cloneInProgress),
+          mergeFinalizationPending: SessionStateBooleanChange.from(oldValue:oldState.mergeFinalizationPending, newValue: newState.mergeFinalizationPending),
+          mergePendingOnDisk: SessionStateBooleanChange.from(oldValue:oldState.mergePendingOnDisk, newValue: newState.mergePendingOnDisk),
+          pushInProgress: SessionStateBooleanChange.from(oldValue:oldState.pushInProgress, newValue: newState.pushInProgress),
+          fetchInProgress: SessionStateBooleanChange.from(oldValue:oldState.fetchInProgress, newValue: newState.fetchInProgress),
+          mergeInProgress: SessionStateBooleanChange.from(oldValue:oldState.mergeInProgress, newValue: newState.mergeInProgress),
+          syncInProgress: SessionStateBooleanChange.from(oldValue:oldState.syncInProgress, newValue: newState.syncInProgress),
+          backgroundSyncInProgress: SessionStateBooleanChange.from(oldValue:oldState.backgroundSyncInProgress, newValue: newState.backgroundSyncInProgress)
+      );
+  }
+}
+
 class SessionState {
   final bool initialized;
   final bool localCheckoutExists;

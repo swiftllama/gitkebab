@@ -10,6 +10,11 @@
 #include "gk_status.h"
 #include "gk_sync.h"
 
+#define DEBUG_FORCE_LONG_SYNC 0
+#if DEBUG_FORCE_LONG_SYNC
+#include <unistd.h>
+#endif
+
 static void *gk_background_sync_worker(void* session_ptr) {
     gk_session *session = (gk_session *)session_ptr;
     gk_sync(session);
@@ -114,7 +119,16 @@ int gk_sync(gk_session *session) {
             return gk_session_failure(session, purpose);
         }
     }
-        
+
+#if DEBUG_FORCE_LONG_SYNC
+    log_warn(COMP_SESSION, "DBG sleeping sync");
+    for (int i = 0; i < 10; i += 1) {
+        sleep(1);
+        log_warn(COMP_SESSION, ".");
+    }
+    log_warn(COMP_SESSION, "DBG done sleeping sync");
+#endif
+    
     if (gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS) != GK_SUCCESS) {
         return gk_session_failure(session, purpose);
     }
