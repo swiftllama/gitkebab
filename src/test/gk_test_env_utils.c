@@ -22,7 +22,7 @@ void gk_test_reset_state_change_record() {
     g_current_state = GK_REPOSITORY_STATE_DEFAULT;
 }
 
-void gk_test_state_change_callback(const char *session_id, gk_repository *repository) {
+void gk_test_state_change_callback(const char *session_id, gk_repository *repository, gk_session_progress *progress) {
     (void)session_id;
     g_old_state = g_current_state;
     g_current_state = repository->state;
@@ -38,7 +38,14 @@ void gk_test_state_change_callback(const char *session_id, gk_repository *reposi
         if ((was_on == 0) && (is_on != 0)) {
             g_repository_state_record_enabled[i] += 1;
         }
-    }    
+    }
+
+    if (progress != NULL) {
+        log_info(COMP_TEST, "PROGRESS session [%s] [%s] (%zu%%)", session_id, progress->description, progress->percent);
+    }
+    else {
+        log_error(COMP_TEST, "Error in session state (progress) callback, callback invoked with NULL progress struct");
+    }
 }
 
 int gk_test_state_count_enabled(gk_repository_state state) {
@@ -127,24 +134,8 @@ int gk_test_environment_teardown(void **state) {
 }
 
 
-void gk_test_session_progress_verbose(const char *session_id, gk_session_progress *progress) {
-    if (progress != NULL) {
-        log_info(COMP_TEST, "PROGRESS session [%s] [%s] (%zu%%)", session_id, progress->description, progress->percent);
-    }
-    else {
-        log_error(COMP_TEST, "Error in progress callback, callback invoked with NULL progress struct");
-    }
-}
-
-void gk_test_session_progress_null(const char *session_id, gk_session_progress *progress) {
-    (void) session_id;
-    (void) progress;
-}
-
-
-
 gk_session *gk_test_session_from_local_path(const char *repo_path) {
-    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, repo_path, "git", &gk_test_session_progress_verbose, &gk_test_state_change_callback, NULL);
+    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, repo_path, "git", &gk_test_state_change_callback, NULL);
     if (gk_session_last_result_code(session) != 0) {
         log_error(COMP_TEST, "Error creating session from path '%s': %s", repo_path, gk_session_last_result_message(session));
         gk_session_free(session);
@@ -162,7 +153,7 @@ gk_session *gk_test_session_from_local_path(const char *repo_path) {
 
 
 gk_session *gk_test_session_from_clone(const char *remote_repo, const char *local_path) {
-    gk_session *session = gk_session_new(remote_repo, GK_REPOSITORY_SOURCE_URL_FILESYSTEM, local_path, "git", &gk_test_session_progress_verbose,  &gk_test_state_change_callback, NULL);
+    gk_session *session = gk_session_new(remote_repo, GK_REPOSITORY_SOURCE_URL_FILESYSTEM, local_path, "git", &gk_test_state_change_callback, NULL);
     if (gk_session_last_result_code(session) != 0) {
         log_error(COMP_TEST, "Error initializing session for clone from '%s' to path '%s': %s", remote_repo, local_path, gk_session_last_result_message(session));
         gk_session_free(session);

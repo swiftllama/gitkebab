@@ -32,7 +32,7 @@ static int test_staging_clean_repo_setup(void **state) {
 static void test_status_without_open_repo(void **state) {
     (void) state;
     
-    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/simple-repo1", "git", &gk_test_session_progress_null, NULL, NULL);
+    gk_session *session = gk_session_new("", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/simple-repo1", "git", NULL, NULL);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_status_summary_query(session);

@@ -52,7 +52,7 @@ static void gk_session_destroy_state_lock(gk_session *session) {
 }
 
 
-gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback, gk_repository_did_query_merge_conflict_summary *merge_conflict_query_callback) {
+gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_repository_state_changed_callback *state_changed_callback, gk_repository_did_query_merge_conflict_summary *merge_conflict_query_callback) {
     gk_session *session = (gk_session *)malloc(sizeof(gk_session));
     memset(session, 0, sizeof(gk_session));
     gk_session_generate_uid(session);
@@ -64,7 +64,6 @@ gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type
     session->context = gk_execution_context_new("root context", &COMP_GENERAL);
     gk_session_init_state_lock(session); // must come after session->context is created
     session->internal_last_result = gk_result_success();
-    session->callbacks.progress_callback = progress_callback;
     session->callbacks.state_changed_callback = state_changed_callback;
     session->callbacks.merge_conflict_query_callback = merge_conflict_query_callback;
     return session;
@@ -220,7 +219,7 @@ int gk_session_trigger_repository_state_callback(gk_session *session) {
     if (session->callbacks.state_changed_callback != NULL) {
         log_info(COMP_SESSION, "invoking state change callback with new repository state [%d]", session->repository->state);
         log_warn(COMP_SESSION, "DBG CBK0 callback is [%p]", session->callbacks.state_changed_callback);
-        session->callbacks.state_changed_callback(session->id_ptr, session->repository);
+        session->callbacks.state_changed_callback(session->id_ptr, session->repository, session->progress);
         log_warn(COMP_SESSION, "DBG CBK1 callback returned");
     }
     else {

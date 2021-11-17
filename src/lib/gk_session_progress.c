@@ -17,11 +17,6 @@ static int gk_session_check_progress_pointer(void *payload, const char *progress
         log_error(COMP_PROGRESS, "Session contains NULL repository in %s progress callback", progress_type);
         return -1;
     }
-    /*
-    if (session->callbacks.progress_callback == NULL) {
-        log_info(COMP_PROGRESS, "Session contains NULL progress callback, no callback will be invoked");
-        return -1;
-    }*/
     return 0;
 }
 
@@ -144,8 +139,8 @@ int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
     
     gk_session *session = (gk_session *)payload;
     gk_session_progress *progress =  gk_session_progress_init_fetch(stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
-    if (session->callbacks.progress_callback != NULL) {
-        session->callbacks.progress_callback(session->id_ptr, progress);
+    if (session->callbacks.state_changed_callback != NULL) {
+        session->callbacks.state_changed_callback(session->id_ptr, session->repository, progress);
     }
     gk_session_progress_update(session, progress);    
     return 0;
@@ -159,8 +154,8 @@ void gk_session_checkout_progress_callback(const char *path, size_t current_step
 
     gk_session *session = (gk_session *)payload;
     gk_session_progress *progress = gk_session_progress_init_checkout(path, current_steps, total_steps);
-    if (session->callbacks.progress_callback != NULL) {
-        session->callbacks.progress_callback(session->id_ptr, progress);
+    if (session->callbacks.state_changed_callback != NULL) {
+        session->callbacks.state_changed_callback(session->id_ptr, session->repository, progress);
     }
     gk_session_progress_update(session, progress);
     gk_session_progress_free(progress);
@@ -173,8 +168,8 @@ int gk_session_progress_push_transfer_callback(unsigned int current, unsigned in
 
     gk_session *session = (gk_session *)payload;
     gk_session_progress *progress = gk_session_progress_init_push_transfer(current, total, bytes);
-    if (session->callbacks.progress_callback != NULL) {
-        session->callbacks.progress_callback(session->id_ptr, progress);
+    if (session->callbacks.state_changed_callback != NULL) {
+        session->callbacks.state_changed_callback(session->id_ptr, session->repository, progress);
     }
     gk_session_progress_update(session, progress);
     gk_session_progress_free(progress);

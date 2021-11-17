@@ -12,7 +12,8 @@ char *judo_key = ""
 char *judo_key_pub = NULL;
 
 
-void session_progress(const char *session_id, gk_session_progress *progress) {
+void session_state_changed(const char *session_id, gk_repository *repository, gk_session_progress *progress) {
+    (void) repository;
     printf("[SESSION PROGRESS] (session %s) %s (TOTAL: %d%%)\n", session_id, progress->description, progress->percent);
 }
 
@@ -25,7 +26,7 @@ int main(int argc, char **argv) {
     gk_init();
     //gk_libgit2_set_log_level(LOG_DEBUG);
 
-    gk_session *session = gk_session_new("git@gitea.ptskl.com:volund/experimental-notebook.git", GK_REPOSITORY_SOURCE_URL_SSH, "/tmp/clone1", "git", &session_progress, NULL, NULL);
+    gk_session *session = gk_session_new("git@gitea.ptskl.com:volund/experimental-notebook.git", GK_REPOSITORY_SOURCE_URL_SSH, "/tmp/clone1", "git", &session_state_changed, NULL);
 
     gk_session_initialize(session);
     if (gk_session_last_result_code(session) != GK_SUCCESS) {
