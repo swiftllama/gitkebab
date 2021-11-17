@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include "gk_execution_context.h"
 #include "gk_logging.h"
 #include "gk_remotes.h"
 #include "gk_merge.h"
@@ -18,8 +19,10 @@
 static void *gk_background_sync_worker(void* session_ptr) {
     gk_session *session = (gk_session *)session_ptr;
     gk_sync(session);
+    log_warn(COMP_SYNC, "after gk_sync last code is: %d [%s]", gk_session_last_result_code(session), gk_session_last_result_message(session));
     // NOTE: don't trigger a callback for background sync (background syncs rely on polling not callbacks)
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS);
+    log_warn(COMP_SYNC, "after unsetting code is: %d [%s]", gk_session_last_result_code(session), gk_session_last_result_message(session));
     pthread_exit(NULL);
 }
 
@@ -52,10 +55,14 @@ int gk_background_sync(gk_session* session) {
 
 int gk_sync(gk_session *session) {
     const char *purpose = "sync repository";
-    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+    gk_execution_context_print_execution_chain(session->context);
+    
+    if (gk_session_context_push(session, purpose, &COMP_SYNC, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
+    gk_execution_context_print_execution_chain(session->context);
+    
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS)) {
         log_warn(COMP_SESSION, "Session sync already in progress");
         return gk_session_success(session, purpose);
@@ -137,6 +144,6 @@ int gk_sync(gk_session *session) {
     if (gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS) != GK_SUCCESS) {
         return gk_session_failure(session, purpose);
     }
-    
+
     return gk_session_success(session, purpose);
 }

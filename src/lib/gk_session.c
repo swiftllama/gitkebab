@@ -237,36 +237,43 @@ static gk_result *gk_session_internal_last_result(gk_session *session) {
     }
     size_t message_length = 0;
     gk_execution_context *context = session->context->child_context;
-    int result_code = GK_ERR;
+    int result_code = GK_SUCCESS; // Assume success 
     while (context != NULL) {
         message_length += strlen(context->purpose) + 16; // room for prefix
         if (context->result != NULL) {
             message_length += strlen(gk_result_message(context->result)) + 16; // room for '(error: nnnn)' suffix
         }
         if (context->result != NULL) {
-            result_code = result_code == GK_ERR ? context->result->code : result_code;
+            // if a sub context has a result, let it override the current result code if its either a GK_SUCCESS or a GK_ERR (this last one is generic, if we can find a specific error code that's better)
+            result_code = result_code == GK_SUCCESS ? context->result->code : (result_code == GK_ERR ? context->result->code : result_code);
         }
         context = context->child_context;
     }
-    char *message = (char *)malloc(message_length);
-    u_int64_t offset = 0;
 
-    const char *prefix = "Cannot";
-    context = session->context->child_context;
-    while (context != NULL) {
-        if (context->result != NULL) {
-            offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n -> %s (error %d)\n", prefix, context->purpose, gk_result_message(context->result), gk_result_code(context->result));
-        }
-        else {
-            offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n", prefix, context->purpose);
-        }
-        offset -= 1; // don't null-terminate for now
-        context = context->child_context;
-        prefix = " -> failed to";
-    }
-    message[offset] = '\0'; // null terminate
     
+    char *message = NULL;
+    if (result_code != GK_SUCCESS) {
+      message = (char *)malloc(message_length);
+      u_int64_t offset = 0;
+  
+      const char *prefix = "Cannot";
+      context = session->context->child_context;
+      while (context != NULL) {
+          if (context->result != NULL) {
+              offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n -> %s (error %d)\n", prefix, context->purpose, gk_result_message(context->result), gk_result_code(context->result));
+          }
+          else {
+              offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n", prefix, context->purpose);
+          }
+          offset -= 1; // don't null-terminate for now
+          context = context->child_context;
+          prefix = " -> failed to";
+      }
+      message[offset] = '\0'; // null terminate
+    }
+
     session->internal_last_result = gk_result_new(result_code, message);
+    free(message);
     return session->internal_last_result;
 }
 

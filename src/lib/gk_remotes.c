@@ -249,17 +249,17 @@ int gk_push(gk_session *session, const char *remote_name) {
     if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
-
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (remote_name == NULL) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "remote is NULL");
     }
+    
     git_remote *remote = NULL;
     if (git_remote_lookup(&remote, lg2_resources->repository, remote_name) != 0) {
         git_remote_free(remote);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error looking up remote [%s]", remote_name);
     }
-    
+
     git_push_options push_options = GIT_PUSH_OPTIONS_INIT;
     push_options.callbacks.push_transfer_progress = (git_push_transfer_progress_cb)&gk_session_progress_push_transfer_callback;
     push_options.callbacks.credentials = gk_session_credential_callback;
@@ -274,6 +274,7 @@ int gk_push(gk_session *session, const char *remote_name) {
     if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
         return gk_session_failure(session, purpose);
     }
+
     git_remote_free(remote);
     if (rc != 0) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);
