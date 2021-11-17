@@ -1,5 +1,4 @@
 import 'dart:ffi';
-import 'package:ffigen_test/gitkebab.dart';
 
 import 'gitkebab_lib.dart' as gitkebab_lib;
 
