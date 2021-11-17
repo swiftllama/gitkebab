@@ -65,6 +65,14 @@ static int gk_session_credential_callback(git_credential **out,
         }
         else {
             log_info(COMP_AUTH, "authenticating repository with an SSH_KEY_MEMORY credential with username [%s]", username);
+            if (session->credential.ssh_private_key_bytes == NULL) {
+                gk_session_lg2_failure_ex(session, purpose, GK_ERR, "session has an in-memory SSH credential for authentication but the private key bytes are NULL");
+                return -1;
+            }
+            if (username == NULL) {
+                gk_session_lg2_failure_ex(session, purpose, GK_ERR, "session has an in-memory SSH credential for authentication but the username is NULL");
+                return -1;
+            }
             int rc = git_credential_ssh_key_memory_new((git_credential **)out, username, session->credential.ssh_public_key_bytes, session->credential.ssh_private_key_bytes, session->credential.ssh_private_key_passphrase);
             if (rc != 0) {
                 gk_session_lg2_failure_ex(session, purpose, rc, "error creating ssh key memory credential for user [%s]", username);

@@ -3,7 +3,6 @@
 #define __GK_TYPES_H__
 
 #include <stdio.h>
-#include <pthread.h>
 #include "rxi_log.h"
 
 
@@ -192,6 +191,7 @@ typedef struct {
 struct gk_repository {
     gk_repository_spec spec;
     gk_repository_state state;
+    int state_counter;
     gk_status_summary status_summary;
     gk_merge_conflict_summary conflict_summary;
     
@@ -205,7 +205,7 @@ typedef struct {
     gk_repository *repository;
     gk_session_credential credential;
     gk_session_progress *progress;
-    pthread_mutex_t *state_lock;
+    void *state_lock; // this is pthread_mutex_t, stored as void for dart compatibility
     gk_session_callbacks callbacks;
     gk_result *internal_last_result;
 } gk_session;

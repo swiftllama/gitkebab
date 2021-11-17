@@ -12,6 +12,6 @@ gk_session_progress *gk_session_progress_init_fetch(size_t received_bytes, unsig
 gk_session_progress *gk_session_progress_init_checkout(const char *path, size_t cur, size_t tot);
 gk_session_progress *gk_session_progress_init_push_transfer(unsigned int current, unsigned int total, size_t bytes);
 void gk_session_progress_free(gk_session_progress *progress);
-
+void gk_session_progress_update(gk_session *session, gk_session_progress *progress);
 
 #endif // __GITKEBAB_SESSION_PROGRESS_H__

@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart' as ffip;
+import 'package:ffigen_test/gitkebab.dart';
 
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart' as gitkebab_lib;
@@ -11,6 +12,15 @@ import 'repository.dart';
 import 'credentials.dart';
 
 Map<String, Session> g_sessions = {};
+
+enum SessionCallbackMode {
+  synchronous, polling
+}
+
+extension SessionCallbackModeAttributes on SessionCallbackMode {
+  bool get isSynchronous => this == SessionCallbackMode.synchronous;
+  bool get isPolling => this == SessionCallbackMode.polling;
+}
 
 Session sessionFromSessionIdPtr(Pointer<Int8> session_id_ptr, String callbackName) {
   if (session_id_ptr.address == 0) {
@@ -52,8 +62,8 @@ void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.g
           "WARNING: received session state changed callback for session [${session.id}] with NULL repository structure");
       return;
     }
-    var repository = repositoryPtr.ref;
-    session.state = SessionState(repository.state);
+    final repository = repositoryPtr.ref;
+    session.state = SessionState(repository.state, repository.state_counter);
     session.onStateChanged(session);
   }
   catch (exc) {
@@ -85,10 +95,11 @@ typedef void SessionStateCallback(Session session);
 typedef void MergeStateQueryCallback(Session session);
 
 class Session {
+  final callbackMode;
   Pointer<gitkebab_lib.gk_session> session_ptr = Pointer.fromAddress(0);
   String id = "<unknown>";
   late RepositorySpec repositorySpec;
-  SessionState state = SessionState(0);
+  SessionState state = SessionState(0, 0);
   RepositoryStatusList status = RepositoryStatusList();
   MergeConflictSummary mergeConflictSummary = MergeConflictSummary();
 
@@ -96,19 +107,15 @@ class Session {
   SessionStateCallback onStateChanged = (session) => {};
   MergeStateQueryCallback onDidQueryMergeConflicts = (session) => {};
 
-  Session(String url, int urlType, String localPath, String user) {
-    /*final sessionPointer = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(),
-        Pointer.fromFunction(session_progress_callback),
-        Pointer.fromFunction(session_state_callback),
-        Pointer.fromFunction(session_merge_conflicts_query_callback));*/
+  Session(String url, int urlType, String localPath, String user, {this.callbackMode = SessionCallbackMode.synchronous}) {
     final sessionPointer = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(),
-        Pointer.fromAddress(0),
-        Pointer.fromAddress(0),
-        Pointer.fromAddress(0));
+        callbackMode.isSynchronous ? Pointer.fromFunction(session_progress_callback) : Pointer.fromAddress(0),
+        callbackMode.isSynchronous ? Pointer.fromFunction(session_state_callback) : Pointer.fromAddress(0),
+        callbackMode.isSynchronous ? Pointer.fromFunction(session_merge_conflicts_query_callback) : Pointer.fromAddress(0));
     initWithSessionPointer(sessionPointer);
   }
 
-  Session.fromPointer(Pointer<gitkebab_lib.gk_session> sessionPointer) {
+  Session.fromPointer(Pointer<gitkebab_lib.gk_session> sessionPointer, {this.callbackMode = SessionCallbackMode.synchronous}) {
     initWithSessionPointer(sessionPointer);
   }
 
@@ -178,41 +185,38 @@ class Session {
     });
   }
 
-  void startBackgroundSync({Credential? credential}) {
+  Future<void> backgroundSync({Credential? credential, void Function(int)? stateChangedCallback}) {
     credential?.prepareSession(session_ptr);
-    GitKebab.lib.gk_background_sync(session_ptr);
-  }
 
-  Future<void> waitForBackgroundSync({Credential? credential, void Function()? stateChangedCallback}) {
-    SessionState oldState = state;
-    bool didSeeSyncStart = false;
-    int ticksWithoutSyncStart = 0;
-    return Future.doWhile(() {
-      SessionState newState = state;
-      if (didSeeSyncStart == false) {
-        if (newState.syncInProgress) {
-          didSeeSyncStart = true;
-        }
-        else {
-          ticksWithoutSyncStart += 1;
-          if (ticksWithoutSyncStart >= 100) {
-            credential?.cleanupSession(session_ptr);
-            return Future.error('Background sync failed to start after 1s');
-          }
-        }
+    void updateStateWithLock() {
+      if (GitKebab.lib.gk_session_state_lock(session_ptr) != 0) {
+        credential?.cleanupSession(session_ptr);
+        throw lastResultException();
       }
-      else {
-        if (!identical(newState, oldState) && (stateChangedCallback != null)) {
-          stateChangedCallback();
-        }
-        if (!newState.syncInProgress) {
-          credential?.cleanupSession(session_ptr);
-          return false;
-        }
+      state = SessionState(session_ptr.ref.repository.ref.state, session_ptr.ref.repository.ref.state_counter);
+      int progress = session_ptr.ref.progress.address == 0 ? 0 : session_ptr.ref.progress.ref.percent;
+      if (stateChangedCallback != null) stateChangedCallback(progress);
+      if (GitKebab.lib.gk_session_state_unlock(session_ptr) != 0) {
+        credential?.cleanupSession(session_ptr);
+        throw lastResultException();
+      }
+    }
+
+    GitKebab.lib.gk_background_sync(session_ptr);
+    updateStateWithLock();
+    return Future.doWhile(() {
+      final repository = session_ptr.ref.repository.ref;
+      if (state.stateCounter != repository.state_counter) {
+        updateStateWithLock();
+      }
+      if (!state.backgroundSyncInProgress) {
+        credential?.cleanupSession(session_ptr);
+        return false;
       }
       return Future.delayed(const Duration(milliseconds: 10), () => true);
     });
   }
+
 
   ////
   // Index
@@ -240,7 +244,12 @@ class Session {
       throw lastResultException();
     }
     status = RepositoryStatusList.forQueriedSession(session_ptr);
+    if (callbackMode.isPolling) {
+
+      onStateChanged(this);
+    }
     GitKebab.lib.gk_status_summary_close(session_ptr);
+
   }
 
   ////
@@ -407,8 +416,10 @@ class SessionState {
   final bool fetchInProgress;
   final bool mergeInProgress;
   final bool syncInProgress;
+  final bool backgroundSyncInProgress;
+  final int stateCounter;
 
-  SessionState(int state):
+  SessionState(int state, this.stateCounter):
         initialized = stateIncludes(state, gitkebab_lib.RepositoryState.INITIALIZED),
         localCheckoutExists = stateIncludes(state, gitkebab_lib.RepositoryState.LOCAL_CHECKOUT_EXISTS),
         hasConflicts = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CONFLICTS),
@@ -420,7 +431,8 @@ class SessionState {
         pushInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.PUSH_IN_PROGRESS),
         fetchInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.FETCH_IN_PROGRESS),
         mergeInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS),
-        syncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.SYNC_IN_PROGRESS) {
+        syncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.SYNC_IN_PROGRESS),
+        backgroundSyncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.BACKGROUND_SYNC_IN_PROGRESS) {
   }
 
   static bool stateIncludes(int totalState, int flag) {
@@ -462,11 +474,14 @@ class SessionState {
     if (syncInProgress != other.syncInProgress) {
       diffs["syncInProgress"] = syncInProgress ? "off" : "on";
     }
+    if (backgroundSyncInProgress != other.backgroundSyncInProgress) {
+      diffs["backgroundSyncInProgress"] = backgroundSyncInProgress ? "off" : "on";
+    }
     return diffs;
   }
 
   String toString() {
-    String str = "<SessionState ";
+    String str = "<SessionState counter:$stateCounter ";
     str += localCheckoutExists ? "localCheckoutExists " : "";
     str += hasConflicts ? "hasConflicts " : "";
     str += hasChangesToMerge ? "hasChangesToMerge " : "";

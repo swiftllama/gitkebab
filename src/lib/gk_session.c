@@ -31,11 +31,11 @@ static int gk_session_init_state_lock(gk_session *session) {
         return GK_FAILURE;
     }
 
-    session->state_lock = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+    session->state_lock = malloc(sizeof(pthread_mutex_t));
     if (session->state_lock == NULL) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "failed to allocate memory for state lock");
     }
-    int rc = pthread_mutex_init(session->state_lock, NULL);
+    int rc = pthread_mutex_init((pthread_mutex_t *)session->state_lock, NULL);
     if (rc != 0){
         free(session->state_lock);
         session->state_lock = NULL;
@@ -46,7 +46,7 @@ static int gk_session_init_state_lock(gk_session *session) {
 
 static void gk_session_destroy_state_lock(gk_session *session) {
     if (session->state_lock == NULL) return;
-    pthread_mutex_destroy(session->state_lock);
+    pthread_mutex_destroy((pthread_mutex_t *)session->state_lock);
     free(session->state_lock);
     session->state_lock = NULL;
 }
@@ -376,7 +376,7 @@ int gk_session_state_lock(gk_session *session) {
         return GK_FAILURE;
     }
 
-    int rc = pthread_mutex_lock(session->state_lock);
+    int rc = pthread_mutex_lock((pthread_mutex_t *)session->state_lock);
     if (rc != 0) {
         return gk_session_failure_ex(session, purpose, rc, "failed to lock state lock (error %d)", rc);
     }
@@ -391,7 +391,7 @@ int gk_session_state_trylock(gk_session *session) {
         return -1;
     }
 
-    int rc = pthread_mutex_trylock(session->state_lock);
+    int rc = pthread_mutex_trylock((pthread_mutex_t *)session->state_lock);
     if ((rc == 0) || (rc == EAGAIN)) {
         gk_session_success(session, purpose);
         return rc == 0 ? 0 : 1;
@@ -406,7 +406,7 @@ int gk_session_state_unlock(gk_session *session) {
         return GK_FAILURE;
     }
 
-    int rc = pthread_mutex_unlock(session->state_lock);
+    int rc = pthread_mutex_unlock((pthread_mutex_t *)session->state_lock);
     if (rc == EPERM) {
         return gk_session_failure_ex(session, purpose, rc, "failed to unlock state lock, unlock must be called from the same thread that locked the state");
     }

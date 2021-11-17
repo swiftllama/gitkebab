@@ -47,6 +47,7 @@ static void gk_repository_spec_free_members(gk_repository_spec *repository_spec)
 
 gk_repository *gk_repository_new() {
     gk_repository *repository = (gk_repository *)malloc(sizeof(gk_repository));
+    repository->state_counter = 0;
     repository->lg2_resources = (gk_lg2_resources *)malloc(sizeof(gk_lg2_resources));
     return repository;
 }
@@ -119,6 +120,7 @@ void gk_repository_state_set(gk_repository *repository, int states_enable) {
     }
     log_info(COMP_REPOSITORY, "enable state(s) [%d]", states_enable);
     repository->state |= states_enable;
+    repository->state_counter += 1; //note: overflow ok
 }
 
 void gk_repository_state_unset(gk_repository *repository, int states_disable) {
@@ -128,6 +130,7 @@ void gk_repository_state_unset(gk_repository *repository, int states_disable) {
     }
     log_info(COMP_REPOSITORY, "disable state(s) [%d]", states_disable);
     repository->state &= ~states_disable;
+    repository->state_counter += 1; //note: overflow ok
 }
 
 void gk_repository_print_state(gk_repository *repository) {
