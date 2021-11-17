@@ -219,7 +219,9 @@ int gk_session_trigger_repository_state_callback(gk_session *session) {
     }
     if (session->callbacks.state_changed_callback != NULL) {
         log_info(COMP_SESSION, "invoking state change callback with new repository state [%d]", session->repository->state);
+        log_warn(COMP_SESSION, "DBG CBK0 callback is [%p]", session->callbacks.state_changed_callback);
         session->callbacks.state_changed_callback(session->id_ptr, session->repository);
+        log_warn(COMP_SESSION, "DBG CBK1 callback returned");
     }
     else {
         log_info(COMP_SESSION, "Session's repository state change callback is NULL, no state change callback will be invoked");

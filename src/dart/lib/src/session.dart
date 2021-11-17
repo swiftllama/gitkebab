@@ -1,7 +1,6 @@
+import 'dart:async';
 import 'dart:ffi';
-import 'dart:io';
 import 'package:ffi/ffi.dart' as ffip;
-import 'package:ffigen_test/gitkebab.dart';
 
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart' as gitkebab_lib;
@@ -17,11 +16,6 @@ enum SessionCallbackMode {
   synchronous, polling
 }
 
-extension SessionCallbackModeAttributes on SessionCallbackMode {
-  bool get isSynchronous => this == SessionCallbackMode.synchronous;
-  bool get isPolling => this == SessionCallbackMode.polling;
-}
-
 Session sessionFromSessionIdPtr(Pointer<Int8> session_id_ptr, String callbackName) {
   if (session_id_ptr.address == 0) {
     throw "received $callbackName callback with NULL session_id";
@@ -34,7 +28,10 @@ Session sessionFromSessionIdPtr(Pointer<Int8> session_id_ptr, String callbackNam
   return session;
 }
 
+
 void session_progress_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_session_progress> sessionProgress) {
+  print("DBG session progress callback in dart");
+  /*
   String sessionId = "(unknown-id)";
   try {
     Session session = sessionFromSessionIdPtr(session_id_ptr, "session progress");
@@ -44,26 +41,28 @@ void session_progress_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_li
       return;
     }
     var progress = sessionProgress.ref;
+
     session.onProgress(session, progress);
   }
   catch (exc ){
     print("Error during session progress callback for session [$sessionId]: $exc");
-  }
+  }*/
 }
 
 
 void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
   String sessionId = "(unknown-id)";
   try {
-    Session session = sessionFromSessionIdPtr(session_id_ptr, "state changed");
+    final session = sessionFromSessionIdPtr(session_id_ptr, "state changed");
     String sessionId = session.id;
     if (repositoryPtr.address == 0) {
       print(
           "WARNING: received session state changed callback for session [${session.id}] with NULL repository structure");
       return;
     }
-    final repository = repositoryPtr.ref;
-    session.state = SessionState(repository.state, repository.state_counter);
+
+    session.state = SessionState.fromSessionPointer(session.session_ptr);
+    session.stateStreamController.add(session.state);
     session.onStateChanged(session);
   }
   catch (exc) {
@@ -99,33 +98,47 @@ class Session {
   Pointer<gitkebab_lib.gk_session> session_ptr = Pointer.fromAddress(0);
   String id = "<unknown>";
   late RepositorySpec repositorySpec;
-  SessionState state = SessionState(0, 0);
+  SessionState state = SessionState(0, counter: 0, progressPercent: 0);
   RepositoryStatusList status = RepositoryStatusList();
   MergeConflictSummary mergeConflictSummary = MergeConflictSummary();
+
+  final stateStreamController = StreamController<SessionState>.broadcast();
+  get stateStream => stateStreamController.stream;
 
   SessionProgressCallback onProgress = (session, progress) => {};
   SessionStateCallback onStateChanged = (session) => {};
   MergeStateQueryCallback onDidQueryMergeConflicts = (session) => {};
 
-  Session(String url, int urlType, String localPath, String user, {this.callbackMode = SessionCallbackMode.synchronous}) {
-    final sessionPointer = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(),
-        callbackMode.isSynchronous ? Pointer.fromFunction(session_progress_callback) : Pointer.fromAddress(0),
-        callbackMode.isSynchronous ? Pointer.fromFunction(session_state_callback) : Pointer.fromAddress(0),
-        callbackMode.isSynchronous ? Pointer.fromFunction(session_merge_conflicts_query_callback) : Pointer.fromAddress(0));
+  bool get isSynchronous => callbackMode == SessionCallbackMode.synchronous;
+  bool get isPolling => callbackMode == SessionCallbackMode.polling;
+
+  Session(String url, int urlType, String localPath, String user,
+      {this.callbackMode = SessionCallbackMode.synchronous}) {
+    final sessionPointer = GitKebab.lib.gk_session_new(
+        url.toFfiPtr(),
+        urlType,
+        localPath.toFfiPtr(),
+        user.toFfiPtr(),
+        isSynchronous ? Pointer.fromFunction(session_progress_callback) : Pointer.fromAddress(0),
+        isSynchronous ? Pointer.fromFunction(session_state_callback) : Pointer.fromAddress(0),
+        isSynchronous ? Pointer.fromFunction(session_merge_conflicts_query_callback) : Pointer.fromAddress(0));
     initWithSessionPointer(sessionPointer);
   }
 
-  Session.fromPointer(Pointer<gitkebab_lib.gk_session> sessionPointer, {this.callbackMode = SessionCallbackMode.synchronous}) {
+  Session.fromPointer(Pointer<gitkebab_lib.gk_session> sessionPointer,
+      {this.callbackMode = SessionCallbackMode.synchronous}) {
     initWithSessionPointer(sessionPointer);
   }
 
   void initWithSessionPointer(Pointer<gitkebab_lib.gk_session> sessionPointer) {
     this.session_ptr = sessionPointer;
     if (session_ptr.address == 0) {
-      throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "GitKebab session unexpectedly null");
+      throw GitKebabException(
+          gitkebab_lib.ResultCode.ERROR, "GitKebab session unexpectedly null");
     }
     if (session_ptr.ref.repository.address == 0) {
-      throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "GitKebab session repository unexpectedly null");
+      throw GitKebabException(gitkebab_lib.ResultCode.ERROR,
+          "GitKebab session repository unexpectedly null");
     }
     id = session_ptr.ref.id_ptr.toDartString();
     repositorySpec = RepositorySpec(session_ptr.ref.repository.ref.spec);
@@ -140,7 +153,8 @@ class Session {
   }
 
   String lastResultMessage() {
-    return GitKebab.lib.gk_session_last_result_message(session_ptr).cast<ffip.Utf8>().toDartString();
+    return GitKebab.lib.gk_session_last_result_message(session_ptr).cast<
+        ffip.Utf8>().toDartString();
   }
 
   GitKebabException lastResultException() {
@@ -150,9 +164,12 @@ class Session {
   ////
   // Initialisation
   void initialize() {
-    if (GitKebab.lib.gk_session_initialize(session_ptr) != 0) { throw lastResultException(); }
+    if (GitKebab.lib.gk_session_initialize(session_ptr) != 0) {
+      throw lastResultException();
+    }
+    if (isPolling) updateStateWithLock();
   }
-  
+
   ////
   //  Remotes
   void _withCredential(Credential? credential, void Function() closure) {
@@ -162,53 +179,38 @@ class Session {
   }
 
   void clone({Credential? credential}) {
-    _withCredential(credential, (){
+    _withCredential(credential, () {
       if (GitKebab.lib.gk_clone(session_ptr) != 0) throw lastResultException();
     });
   }
 
   void fetch(String remoteName, {Credential? credential}) {
-    _withCredential(credential, (){
-      if (GitKebab.lib.gk_fetch(session_ptr, remoteName.toFfiPtr()) != 0) throw lastResultException();
+    _withCredential(credential, () {
+      if (GitKebab.lib.gk_fetch(session_ptr, remoteName.toFfiPtr()) !=
+          0) throw lastResultException();
     });
   }
 
   void push(String remoteName, {Credential? credential}) {
-    _withCredential(credential, (){
-      if (GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr()) != 0) throw lastResultException();
+    _withCredential(credential, () {
+      if (GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr()) !=
+          0) throw lastResultException();
     });
   }
 
   void sync({Credential? credential}) {
-    _withCredential(credential, (){
+    _withCredential(credential, () {
       if (GitKebab.lib.gk_sync(session_ptr) != 0) throw lastResultException();
     });
   }
 
-  Future<void> backgroundSync({Credential? credential, void Function(int)? stateChangedCallback}) {
+  Future<void> backgroundSync(
+      {Credential? credential, void Function(int)? stateChangedCallback}) {
     credential?.prepareSession(session_ptr);
-
-    void updateStateWithLock() {
-      if (GitKebab.lib.gk_session_state_lock(session_ptr) != 0) {
-        credential?.cleanupSession(session_ptr);
-        throw lastResultException();
-      }
-      state = SessionState(session_ptr.ref.repository.ref.state, session_ptr.ref.repository.ref.state_counter);
-      int progress = session_ptr.ref.progress.address == 0 ? 0 : session_ptr.ref.progress.ref.percent;
-      if (stateChangedCallback != null) stateChangedCallback(progress);
-      if (GitKebab.lib.gk_session_state_unlock(session_ptr) != 0) {
-        credential?.cleanupSession(session_ptr);
-        throw lastResultException();
-      }
-    }
-
     GitKebab.lib.gk_background_sync(session_ptr);
     updateStateWithLock();
     return Future.doWhile(() {
-      final repository = session_ptr.ref.repository.ref;
-      if (state.stateCounter != repository.state_counter) {
-        updateStateWithLock();
-      }
+      updateStateWithLock();
       if (!state.backgroundSyncInProgress) {
         credential?.cleanupSession(session_ptr);
         return false;
@@ -217,55 +219,81 @@ class Session {
     });
   }
 
+  void updateStateWithLock() {
+    int currentStateCounter = state.counter;
+    if (currentStateCounter == session_ptr.ref.repository.ref.state_counter) return;
+    if (GitKebab.lib.gk_session_state_lock(session_ptr) != 0) {
+      throw lastResultException();
+    }
+    int progress = session_ptr.ref.progress.address == 0 ? 0 : session_ptr.ref
+        .progress.ref.percent;
+    state = SessionState(session_ptr.ref.repository.ref.state,
+        counter: session_ptr.ref.repository.ref.state_counter,
+        progressPercent: progress);
+    stateStreamController.add(state);
+    onStateChanged(this);
+    if (GitKebab.lib.gk_session_state_unlock(session_ptr) != 0) {
+      throw lastResultException();
+    }
+  }
 
   ////
   // Index
-  void addPath(String path)  {
-    if (GitKebab.lib.gk_index_add_path(session_ptr, path.toFfiPtr()) != 0) { throw lastResultException(); }
+  void addPath(String path) {
+    if (GitKebab.lib.gk_index_add_path(session_ptr, path.toFfiPtr()) != 0) {
+      throw lastResultException();
+    }
   }
 
   void removePath(String path) {
-    if (GitKebab.lib.gk_index_remove_path(session_ptr, path.toFfiPtr()) != 0) { throw lastResultException(); }
+    if (GitKebab.lib.gk_index_remove_path(session_ptr, path.toFfiPtr()) !=
+        0) {
+      throw lastResultException();
+    }
   }
 
   void addAll(String pattern) {
-    if (GitKebab.lib.gk_index_add_all(session_ptr, pattern.toFfiPtr()) != 0) { throw lastResultException(); }
+    if (GitKebab.lib.gk_index_add_all(session_ptr, pattern.toFfiPtr()) != 0) {
+      throw lastResultException();
+    }
   }
 
   void updateAll(String pattern) {
-    if (GitKebab.lib.gk_index_update_all(session_ptr, pattern.toFfiPtr()) != 0) { throw lastResultException(); }
+    if (GitKebab.lib.gk_index_update_all(session_ptr, pattern.toFfiPtr()) !=
+        0) {
+      throw lastResultException();
+    }
   }
 
   ////
   // Status
-
   void queryStatus() {
     if (GitKebab.lib.gk_status_summary_query(session_ptr) != 0) {
       throw lastResultException();
     }
     status = RepositoryStatusList.forQueriedSession(session_ptr);
-    if (callbackMode.isPolling) {
-
-      onStateChanged(this);
-    }
+    if (isPolling) updateStateWithLock();
     GitKebab.lib.gk_status_summary_close(session_ptr);
-
   }
 
   ////
   // Commit
   String commit(String commitMessage) {
-    Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<gitkebab_lib.gk_object_id>();
+    Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<
+        gitkebab_lib.gk_object_id>();
 
-    int rc = GitKebab.lib.gk_commit(session_ptr, commitMessage.toFfiPtr(), object_id_ptr);
-    String commitId = object_id_ptr.address == 0 ? "" : GitKebab.lib.gk_object_id_ptr(object_id_ptr).toDartString();
+    int rc = GitKebab.lib.gk_commit(
+        session_ptr, commitMessage.toFfiPtr(), object_id_ptr);
+    String commitId = object_id_ptr.address == 0 ? "" : GitKebab.lib
+        .gk_object_id_ptr(object_id_ptr).toDartString();
     ffip.calloc.free(object_id_ptr);
 
     if (rc != 0) {
       throw lastResultException();
     }
     if (object_id_ptr.address == 0) {
-      throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "commit ID after commit is unexpectedly null");
+      throw GitKebabException(gitkebab_lib.ResultCode.ERROR,
+          "commit ID after commit is unexpectedly null");
     }
 
     return commitId;
@@ -301,47 +329,56 @@ class Session {
   // Conflicts
   String blobContents(String blobId) {
     /*
-    Pointer<Int8> contents_ptr = ffip.calloc<Int8>();
-    Pointer<Uint64> length_ptr = ffip.calloc<Uint64>();
-    GitKebab.lib.gk_blob_contents(session_ptr, contents_ptr.cast(), length_ptr, blobId.toFfiPtr());
-    String contents = contents_ptr.toDartString();
-    ffip.calloc.free(contents_ptr);
-    ffip.calloc.free(length_ptr);*/
+  Pointer<Int8> contents_ptr = ffip.calloc<Int8>();
+  Pointer<Uint64> length_ptr = ffip.calloc<Uint64>();
+  GitKebab.lib.gk_blob_contents(session_ptr, contents_ptr.cast(), length_ptr, blobId.toFfiPtr());
+  String contents = contents_ptr.toDartString();
+  ffip.calloc.free(contents_ptr);
+  ffip.calloc.free(length_ptr);*/
 
-    Pointer<Int8> contents_ptr = GitKebab.lib.gk_blob_new_char_contents(session_ptr, blobId.toFfiPtr());
+    Pointer<Int8> contents_ptr = GitKebab.lib.gk_blob_new_char_contents(
+        session_ptr, blobId.toFfiPtr());
     if (contents_ptr.address == 0) throw lastResultException();
     String contents = contents_ptr.toDartString();
     GitKebab.lib.gk_blob_free_char_contents(contents_ptr);
     return contents;
   }
-  
-  void writeBlobContents(String blobId, String path, {bool relativizePath = true}) {
-    if (GitKebab.lib.gk_blob_write_contents(session_ptr, blobId.toFfiPtr(), path.toFfiPtr(), relativizePath ? 1 : 0) != 0) {
+
+  void writeBlobContents(String blobId, String path,
+      {bool relativizePath = true}) {
+    if (GitKebab.lib.gk_blob_write_contents(
+        session_ptr, blobId.toFfiPtr(), path.toFfiPtr(),
+        relativizePath ? 1 : 0) != 0) {
       throw lastResultException();
     }
   }
 
   void conflictResolveAcceptRemoteDelete(String path) {
-    if (GitKebab.lib.gk_conflict_resolve_accept_remote_delete(session_ptr, path.toFfiPtr()) != 0) {
+    if (GitKebab.lib.gk_conflict_resolve_accept_remote_delete(
+        session_ptr, path.toFfiPtr()) != 0) {
       throw lastResultException();
     }
   }
 
   void conflictResolveAcceptLocalDelete(String path) {
-    if (GitKebab.lib.gk_conflict_resolve_accept_local_delete(session_ptr, path.toFfiPtr()) != 0) {
+    if (GitKebab.lib.gk_conflict_resolve_accept_local_delete(
+        session_ptr, path.toFfiPtr()) != 0) {
       throw lastResultException();
     }
   }
 
-  void conflictResolveAcceptExisting(String path, ConflictResolution resolution) {
-    if (GitKebab.lib.gk_conflict_resolve_accept_existing(session_ptr, path.toFfiPtr(), resolution.intValue()) != 0) {
+  void conflictResolveAcceptExisting(String path,
+      ConflictResolution resolution) {
+    if (GitKebab.lib.gk_conflict_resolve_accept_existing(
+        session_ptr, path.toFfiPtr(), resolution.intValue()) != 0) {
       throw lastResultException();
     }
   }
 
   int compareBlobs(String blob1Id, String blob2Id) {
     Pointer<Int32> similarityPtr = ffip.calloc<Int32>();
-    int rc = GitKebab.lib.gk_compare_blobs(session_ptr, similarityPtr, blob1Id.toFfiPtr(), blob2Id.toFfiPtr());
+    int rc = GitKebab.lib.gk_compare_blobs(
+        session_ptr, similarityPtr, blob1Id.toFfiPtr(), blob2Id.toFfiPtr());
     int similarity = similarityPtr.address == 0 ? 0 : similarityPtr.value;
     ffip.calloc.free(similarityPtr);
     if (rc != 0) {
@@ -351,14 +388,20 @@ class Session {
   }
 
   String mergedBufferWithConflictMarkers(MergeConflict conflict) {
-    Pointer<Int8> bufferPtr = GitKebab.lib.gk_conflict_merged_buffer_with_conflict_markers(session_ptr, conflict.ancestorBlobId.toFfiPtr(), conflict.oursBlobId.toFfiPtr(), conflict.theirsBlobId.toFfiPtr(), conflict.path.toFfiPtr());
+    Pointer<Int8> bufferPtr = GitKebab.lib
+        .gk_conflict_merged_buffer_with_conflict_markers(
+        session_ptr, conflict.ancestorBlobId.toFfiPtr(),
+        conflict.oursBlobId.toFfiPtr(), conflict.theirsBlobId.toFfiPtr(),
+        conflict.path.toFfiPtr());
     String buffer = bufferPtr.toDartString();
     GitKebab.lib.gk_conflict_merged_buffer_free(bufferPtr);
     return buffer;
   }
 
   void conflictResolveFromBuffer(String path, String buffer) {
-    if (GitKebab.lib.gk_conflict_resolve_from_buffer(session_ptr, path.toFfiPtr(), buffer.toVoidFfiPtr(), buffer.codeUnits.length) != 0) {
+    if (GitKebab.lib.gk_conflict_resolve_from_buffer(
+        session_ptr, path.toFfiPtr(), buffer.toVoidFfiPtr(),
+        buffer.codeUnits.length) != 0) {
       throw lastResultException();
     }
   }
@@ -366,25 +409,25 @@ class Session {
   ////
   // Misc
   String resolveReference(String reference) {
-    Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<gitkebab_lib.gk_object_id>();
+    Pointer<gitkebab_lib.gk_object_id> object_id_ptr = ffip.calloc<
+        gitkebab_lib.gk_object_id>();
 
-    int rc = GitKebab.lib.gk_resolve_reference(session_ptr, reference.toFfiPtr(), object_id_ptr);
-    String commitId = object_id_ptr.address == 0 ? "" : GitKebab.lib.gk_object_id_ptr(object_id_ptr).toDartString();
+    int rc = GitKebab.lib.gk_resolve_reference(
+        session_ptr, reference.toFfiPtr(), object_id_ptr);
+    String commitId = object_id_ptr.address == 0 ? "" : GitKebab.lib
+        .gk_object_id_ptr(object_id_ptr).toDartString();
     ffip.calloc.free(object_id_ptr);
 
     if (rc != 0) {
       throw lastResultException();
     }
     if (object_id_ptr.address == 0) {
-        throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "commit ID of reference is unexpectedly null");
+      throw GitKebabException(gitkebab_lib.ResultCode.ERROR,
+          "commit ID of reference is unexpectedly null");
     }
 
     return commitId;
   }
-
-
-
-
 }
 
 enum ConflictResolution {
@@ -417,9 +460,10 @@ class SessionState {
   final bool mergeInProgress;
   final bool syncInProgress;
   final bool backgroundSyncInProgress;
-  final int stateCounter;
+  final int progressPercent;
+  final int counter;
 
-  SessionState(int state, this.stateCounter):
+  SessionState(int state, {this.counter = 0, this.progressPercent = 0}):
         initialized = stateIncludes(state, gitkebab_lib.RepositoryState.INITIALIZED),
         localCheckoutExists = stateIncludes(state, gitkebab_lib.RepositoryState.LOCAL_CHECKOUT_EXISTS),
         hasConflicts = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CONFLICTS),
@@ -433,6 +477,12 @@ class SessionState {
         mergeInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS),
         syncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.SYNC_IN_PROGRESS),
         backgroundSyncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.BACKGROUND_SYNC_IN_PROGRESS) {
+  }
+
+  static SessionState fromSessionPointer(Pointer<gitkebab_lib.gk_session> sessionPtr) {
+    final repository = sessionPtr.address == 0 ? null : sessionPtr.ref.repository.address == 0 ? null : sessionPtr.ref.repository.ref;
+    final progress = sessionPtr.address == 0 ? null : sessionPtr.ref.progress.address == 0 ? null : sessionPtr.ref.progress.ref;
+    return SessionState(repository?.state ?? 0, counter:repository?.state_counter ?? 0, progressPercent:progress?.percent ?? 0);
   }
 
   static bool stateIncludes(int totalState, int flag) {
@@ -481,7 +531,7 @@ class SessionState {
   }
 
   String toString() {
-    String str = "<SessionState counter:$stateCounter ";
+    String str = "<SessionState counter:$counter progres:$progressPercent% ";
     str += localCheckoutExists ? "localCheckoutExists " : "";
     str += hasConflicts ? "hasConflicts " : "";
     str += hasChangesToMerge ? "hasChangesToMerge " : "";

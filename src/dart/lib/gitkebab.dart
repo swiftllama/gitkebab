@@ -1,8 +1,5 @@
 export 'src/gitkebab.dart';
-export 'src/gitkebab_lib.dart' show
-  RepositorySourceUrlType, RepositoryState, RepositoryVerifyCondition,
-  SessionCredentialType, SessionProgressEventType,
-  gk_repository, ResultCode, gk_session;
+export 'src/gitkebab_lib.dart' hide ConflictResolution;
 export 'src/session.dart';
 export 'src/status.dart';
 export 'src/errors.dart';

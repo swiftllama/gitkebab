@@ -5,6 +5,7 @@
 #include "gk_remotes.h"
 #include "gk_merge.h"
 #include "gk_session.h"
+#include "gk_index.h"
 #include "gk_commit.h"
 #include "gk_status.h"
 #include "gk_sync.h"
@@ -71,6 +72,11 @@ int gk_sync(gk_session *session) {
     }
 
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_COMMIT)) {
+        if (gk_index_add_all(session, ".") != GK_SUCCESS) {
+            gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);
+            return gk_session_failure(session, purpose);
+        }
+        
         time_t ltime;
         struct tm result;
         char stime[64];
@@ -79,6 +85,11 @@ int gk_sync(gk_session *session) {
         localtime_r(&ltime, &result);
         asctime_r(&result, stime);
         if (gk_commit(session, stime, NULL) != GK_SUCCESS) {
+            gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);
+            return gk_session_failure(session, purpose);
+        }
+
+        if (gk_status_summary_query(session) != GK_SUCCESS) {
             gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);
             return gk_session_failure(session, purpose);
         }
