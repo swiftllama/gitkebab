@@ -23,4 +23,7 @@ int gk_session_trigger_repository_state_callback(gk_session *session);
 int gk_session_set_repository_state_with_callback(gk_session *session, int states);
 int gk_session_unset_repository_state_with_callback(gk_session *session, int states);
 
+int gk_session_state_trylock(gk_session *session);
+int gk_session_state_lock(gk_session *session);
+int gk_session_state_unlock(gk_session *session);
 #endif //__GK_SESSION_H__

@@ -43,6 +43,8 @@ add_library(gitkebab_objects OBJECT
   gk_session_progress.h
   gk_status.c
   gk_status.h
+  gk_sync.c
+  gk_sync.h
   rxi_log.c
   rxi_log.h
   ${ICONV_COMPAT_SOURCE})

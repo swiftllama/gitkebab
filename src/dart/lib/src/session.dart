@@ -97,10 +97,23 @@ class Session {
   MergeStateQueryCallback onDidQueryMergeConflicts = (session) => {};
 
   Session(String url, int urlType, String localPath, String user) {
-    session_ptr = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(),
+    /*final sessionPointer = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(),
         Pointer.fromFunction(session_progress_callback),
         Pointer.fromFunction(session_state_callback),
-        Pointer.fromFunction(session_merge_conflicts_query_callback));
+        Pointer.fromFunction(session_merge_conflicts_query_callback));*/
+    final sessionPointer = GitKebab.lib.gk_session_new(url.toFfiPtr(), urlType, localPath.toFfiPtr(), user.toFfiPtr(),
+        Pointer.fromAddress(0),
+        Pointer.fromAddress(0),
+        Pointer.fromAddress(0));
+    initWithSessionPointer(sessionPointer);
+  }
+
+  Session.fromPointer(Pointer<gitkebab_lib.gk_session> sessionPointer) {
+    initWithSessionPointer(sessionPointer);
+  }
+
+  void initWithSessionPointer(Pointer<gitkebab_lib.gk_session> sessionPointer) {
+    this.session_ptr = sessionPointer;
     if (session_ptr.address == 0) {
       throw GitKebabException(gitkebab_lib.ResultCode.ERROR, "GitKebab session unexpectedly null");
     }
@@ -156,6 +169,48 @@ class Session {
   void push(String remoteName, {Credential? credential}) {
     _withCredential(credential, (){
       if (GitKebab.lib.gk_push(session_ptr, remoteName.toFfiPtr()) != 0) throw lastResultException();
+    });
+  }
+
+  void sync({Credential? credential}) {
+    _withCredential(credential, (){
+      if (GitKebab.lib.gk_sync(session_ptr) != 0) throw lastResultException();
+    });
+  }
+
+  void startBackgroundSync({Credential? credential}) {
+    credential?.prepareSession(session_ptr);
+    GitKebab.lib.gk_background_sync(session_ptr);
+  }
+
+  Future<void> waitForBackgroundSync({Credential? credential, void Function()? stateChangedCallback}) {
+    SessionState oldState = state;
+    bool didSeeSyncStart = false;
+    int ticksWithoutSyncStart = 0;
+    return Future.doWhile(() {
+      SessionState newState = state;
+      if (didSeeSyncStart == false) {
+        if (newState.syncInProgress) {
+          didSeeSyncStart = true;
+        }
+        else {
+          ticksWithoutSyncStart += 1;
+          if (ticksWithoutSyncStart >= 100) {
+            credential?.cleanupSession(session_ptr);
+            return Future.error('Background sync failed to start after 1s');
+          }
+        }
+      }
+      else {
+        if (!identical(newState, oldState) && (stateChangedCallback != null)) {
+          stateChangedCallback();
+        }
+        if (!newState.syncInProgress) {
+          credential?.cleanupSession(session_ptr);
+          return false;
+        }
+      }
+      return Future.delayed(const Duration(milliseconds: 10), () => true);
     });
   }
 
@@ -351,6 +406,7 @@ class SessionState {
   final bool pushInProgress;
   final bool fetchInProgress;
   final bool mergeInProgress;
+  final bool syncInProgress;
 
   SessionState(int state):
         initialized = stateIncludes(state, gitkebab_lib.RepositoryState.INITIALIZED),
@@ -363,7 +419,8 @@ class SessionState {
         mergePendingOnDisk = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_PENDING_ON_DISK),
         pushInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.PUSH_IN_PROGRESS),
         fetchInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.FETCH_IN_PROGRESS),
-        mergeInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS) {
+        mergeInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS),
+        syncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.SYNC_IN_PROGRESS) {
   }
 
   static bool stateIncludes(int totalState, int flag) {
@@ -401,6 +458,9 @@ class SessionState {
     }
     if (mergeInProgress != other.mergeInProgress) {
       diffs["mergeInProgress"] = mergeInProgress ? "off" : "on";
+    }
+    if (syncInProgress != other.syncInProgress) {
+      diffs["syncInProgress"] = syncInProgress ? "off" : "on";
     }
     return diffs;
   }

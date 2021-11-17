@@ -273,4 +273,3 @@ int gk_push(gk_session *session, const char *remote_name) {
     
     return gk_session_success(session, purpose);
 }
-

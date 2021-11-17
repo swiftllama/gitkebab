@@ -1,7 +1,12 @@
 
+#if defined(__APPLE__)
 // NOTE: macos wants stdio.h before _XOPEN_SOURCE
 #include <stdio.h>
 #define _XOPEN_SOURCE 500
+#else
+#define _XOPEN_SOURCE 500
+#include <stdio.h>
+#endif
 #include <stdlib.h>
 #include <dirent.h>
 #include <errno.h>

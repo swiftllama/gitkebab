@@ -1,5 +1,7 @@
 
 #include <string.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "gk_session.h"
 #include "gk_repository.h"
@@ -23,6 +25,33 @@ static void gk_session_generate_uid(gk_session *session) {
     session->id_ptr = session->id;
 }
 
+static int gk_session_init_state_lock(gk_session *session) {
+    const char *purpose = "create state lock";
+    if (gk_session_context_push(session, purpose, &COMP_SESSION, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    session->state_lock = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+    if (session->state_lock == NULL) {
+        return gk_session_failure_ex(session, purpose, GK_ERR, "failed to allocate memory for state lock");
+    }
+    int rc = pthread_mutex_init(session->state_lock, NULL);
+    if (rc != 0){
+        free(session->state_lock);
+        session->state_lock = NULL;
+        return gk_session_failure_ex(session, purpose, rc, "failed to initialize state lock (error %d)", rc);
+    }
+    return gk_session_success(session, purpose);
+}
+
+static void gk_session_destroy_state_lock(gk_session *session) {
+    if (session->state_lock == NULL) return;
+    pthread_mutex_destroy(session->state_lock);
+    free(session->state_lock);
+    session->state_lock = NULL;
+}
+
+
 gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user, gk_session_progress_callback *progress_callback, gk_repository_state_changed_callback *state_changed_callback, gk_repository_did_query_merge_conflict_summary *merge_conflict_query_callback) {
     gk_session *session = (gk_session *)malloc(sizeof(gk_session));
     memset(session, 0, sizeof(gk_session));
@@ -31,7 +60,9 @@ gk_session *gk_session_new(const char *source_url, gk_repository_source_url_type
     gk_repository_init(session->repository, source_url, source_url_type, local_path, user);
     gk_session_credential_init(session);
     gk_session_credential_username_password_init(session, "", "");
+    session->progress = NULL;
     session->context = gk_execution_context_new("root context", &COMP_GENERAL);
+    gk_session_init_state_lock(session); // must come after session->context is created
     session->internal_last_result = gk_result_success();
     session->callbacks.progress_callback = progress_callback;
     session->callbacks.state_changed_callback = state_changed_callback;
@@ -46,6 +77,8 @@ void gk_session_free(gk_session *session) {
     gk_repository_free(session->repository);
     session->repository = NULL;
     gk_session_credential_free_members(&session->credential);
+    gk_session_progress_free(session->progress);
+    gk_session_destroy_state_lock(session);
     gk_execution_context_free(session->context);
     session->context = NULL;
     free(session);
@@ -59,7 +92,8 @@ int gk_session_initialize(gk_session *session) {
 
     log_info(COMP_SESSION, "Initializing session");
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_INITIALIZED)) {
-        return gk_session_failure_ex(session, purpose, GK_ERR, "Session already initialized");
+        log_warn(COMP_SESSION, "Session already initialized");
+        return gk_session_success(session, purpose);
     }
 
     if (gk_directory_exists(session->repository->spec.local_path) == 0) {
@@ -123,6 +157,12 @@ int gk_session_verify(gk_session *session, int condition, const char *purpose) {
     if ((condition & GK_REPOSITORY_VERIFY_INITIALIZED) || (condition & GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT)) {
         if (gk_repository_state_disabled(repository, GK_REPOSITORY_STATE_INITIALIZED)) {
             return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_NOT_INITIALIZED, "repository not initialized");
+        }
+    }
+
+    if (condition & GK_REPOSITORY_VERIFY_STATE_LOCK) {
+        if (session->state_lock == NULL) {
+            return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_NOT_INITIALIZED, "state lock is NULL");
         }
     }
     
@@ -330,3 +370,48 @@ int gk_session_last_result_code(gk_session *session) {
     return gk_result_code(result);
 }
 
+int gk_session_state_lock(gk_session *session) {
+    const char *purpose = "lock state";
+    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    int rc = pthread_mutex_lock(session->state_lock);
+    if (rc != 0) {
+        return gk_session_failure_ex(session, purpose, rc, "failed to lock state lock (error %d)", rc);
+    }
+    return gk_session_success(session, purpose);
+}
+
+
+// NOTE: returns -1 on error, 0 on success (mutex is locked) and 1 if the mutex is currently locked
+int gk_session_state_trylock(gk_session *session) {
+    const char *purpose = "try lock state";
+    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+        return -1;
+    }
+
+    int rc = pthread_mutex_trylock(session->state_lock);
+    if ((rc == 0) || (rc == EAGAIN)) {
+        gk_session_success(session, purpose);
+        return rc == 0 ? 0 : 1;
+    }
+
+    return gk_session_failure_ex(session, purpose, rc, "try lock resulted in error %d", rc);
+}
+
+int gk_session_state_unlock(gk_session *session) {
+    const char *purpose = "unlock state";
+    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    int rc = pthread_mutex_unlock(session->state_lock);
+    if (rc == EPERM) {
+        return gk_session_failure_ex(session, purpose, rc, "failed to unlock state lock, unlock must be called from the same thread that locked the state");
+    }
+    if (rc != 0) {
+        return gk_session_failure_ex(session, purpose, rc, "failed to unlock state lock (error %d)", rc);
+    }
+    return gk_session_success(session, purpose);
+}

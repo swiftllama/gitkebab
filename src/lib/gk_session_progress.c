@@ -4,6 +4,7 @@
 #include "git2.h"
 
 #include "gk_repository.h"
+#include "gk_session.h"
 #include "gk_logging.h"
 
 static int gk_session_check_progress_pointer(void *payload, const char *progress_type) {
@@ -143,7 +144,13 @@ int gk_session_fetch_progress_callback(const void *stats_vptr, void *payload) {
     gk_session *session = (gk_session *)payload;
     gk_session_progress *progress =  gk_session_progress_init_fetch(stats->received_bytes, stats->total_objects, stats->total_deltas, stats->received_objects, stats->indexed_objects, stats->indexed_deltas);
     session->callbacks.progress_callback(session->id_ptr, progress);
-    gk_session_progress_free(progress);
+
+
+    if (gk_session_state_lock(session) == GK_SUCCESS) {
+        gk_session_progress_free(session->progress);
+        session->progress = progress;
+        gk_session_state_unlock(session);
+    }
     
     return 0;
 }

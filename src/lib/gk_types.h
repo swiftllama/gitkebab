@@ -3,6 +3,7 @@
 #define __GK_TYPES_H__
 
 #include <stdio.h>
+#include <pthread.h>
 #include "rxi_log.h"
 
 
@@ -42,7 +43,8 @@ typedef enum gk_repository_verify_condition {
     GK_REPOSITORY_VERIFY_MERGE_IN_PROGRESS  = (1 << 4),
     GK_REPOSITORY_VERIFY_INDEX_LOADED       = (1 << 5),
     GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED = (1 << 6),
-    GK_REPOSITORY_VERIFY_DEFAULT = GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_INDEX_LOADED,
+    GK_REPOSITORY_VERIFY_STATE_LOCK         = (1 << 7),
+    GK_REPOSITORY_VERIFY_DEFAULT = GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_INDEX_LOADED | GK_REPOSITORY_VERIFY_STATE_LOCK,
 } gk_repository_verify_condition;
 
 typedef struct {
@@ -146,9 +148,10 @@ typedef enum gk_repository_state {
     GK_REPOSITORY_STATE_PUSH_IN_PROGRESS           = (1 << 8),  // 256
     GK_REPOSITORY_STATE_FETCH_IN_PROGRESS          = (1 << 9),  // 512
     GK_REPOSITORY_STATE_MERGE_IN_PROGRESS          = (1 << 10), // 1024
+    GK_REPOSITORY_STATE_SYNC_IN_PROGRESS           = (1 << 11), // 2048
 } gk_repository_state;
 
-#define GK_REPOSITORY_STATE_MAX_EXP 11
+#define GK_REPOSITORY_STATE_MAX_EXP 12
 
 typedef enum gk_repository_source_url_type {
     GK_REPOSITORY_SOURCE_URL_SSH,
@@ -200,6 +203,8 @@ typedef struct {
     gk_execution_context *context;
     gk_repository *repository;
     gk_session_credential credential;
+    gk_session_progress *progress;
+    pthread_mutex_t *state_lock;
     gk_session_callbacks callbacks;
     gk_result *internal_last_result;
 } gk_session;

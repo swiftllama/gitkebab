@@ -38,7 +38,7 @@ cmake ${RELATIVE_SOURCE} \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}/ \
       -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og --save-temps" \
       -DENABLE_TRACE=ON \
-      -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+      -DCMAKE_POSITION_INDEPENDENT_CODE=ON 
 
 cmake -LAH .
 cmake --build . -- VERBOSE=1

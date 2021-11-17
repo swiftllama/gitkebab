@@ -3071,6 +3071,566 @@ class GitKebabLib {
 
   log_Component get COMP_SESSION => _COMP_SESSION.ref;
 
+  int __sched_cpucount(
+    int __setsize,
+    ffi.Pointer<cpu_set_t> __setp,
+  ) {
+    return ___sched_cpucount(
+      __setsize,
+      __setp,
+    );
+  }
+
+  late final ___sched_cpucount_ptr =
+      _lookup<ffi.NativeFunction<_c___sched_cpucount>>('__sched_cpucount');
+  late final _dart___sched_cpucount ___sched_cpucount =
+      ___sched_cpucount_ptr.asFunction<_dart___sched_cpucount>();
+
+  ffi.Pointer<cpu_set_t> __sched_cpualloc(
+    int __count,
+  ) {
+    return ___sched_cpualloc(
+      __count,
+    );
+  }
+
+  late final ___sched_cpualloc_ptr =
+      _lookup<ffi.NativeFunction<_c___sched_cpualloc>>('__sched_cpualloc');
+  late final _dart___sched_cpualloc ___sched_cpualloc =
+      ___sched_cpualloc_ptr.asFunction<_dart___sched_cpualloc>();
+
+  void __sched_cpufree(
+    ffi.Pointer<cpu_set_t> __set,
+  ) {
+    return ___sched_cpufree(
+      __set,
+    );
+  }
+
+  late final ___sched_cpufree_ptr =
+      _lookup<ffi.NativeFunction<_c___sched_cpufree>>('__sched_cpufree');
+  late final _dart___sched_cpufree ___sched_cpufree =
+      ___sched_cpufree_ptr.asFunction<_dart___sched_cpufree>();
+
+  int sched_setparam(
+    int __pid,
+    ffi.Pointer<sched_param> __param,
+  ) {
+    return _sched_setparam(
+      __pid,
+      __param,
+    );
+  }
+
+  late final _sched_setparam_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_setparam>>('sched_setparam');
+  late final _dart_sched_setparam _sched_setparam =
+      _sched_setparam_ptr.asFunction<_dart_sched_setparam>();
+
+  int sched_getparam(
+    int __pid,
+    ffi.Pointer<sched_param> __param,
+  ) {
+    return _sched_getparam(
+      __pid,
+      __param,
+    );
+  }
+
+  late final _sched_getparam_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_getparam>>('sched_getparam');
+  late final _dart_sched_getparam _sched_getparam =
+      _sched_getparam_ptr.asFunction<_dart_sched_getparam>();
+
+  int sched_setscheduler(
+    int __pid,
+    int __policy,
+    ffi.Pointer<sched_param> __param,
+  ) {
+    return _sched_setscheduler(
+      __pid,
+      __policy,
+      __param,
+    );
+  }
+
+  late final _sched_setscheduler_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_setscheduler>>('sched_setscheduler');
+  late final _dart_sched_setscheduler _sched_setscheduler =
+      _sched_setscheduler_ptr.asFunction<_dart_sched_setscheduler>();
+
+  int sched_getscheduler(
+    int __pid,
+  ) {
+    return _sched_getscheduler(
+      __pid,
+    );
+  }
+
+  late final _sched_getscheduler_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_getscheduler>>('sched_getscheduler');
+  late final _dart_sched_getscheduler _sched_getscheduler =
+      _sched_getscheduler_ptr.asFunction<_dart_sched_getscheduler>();
+
+  int sched_yield() {
+    return _sched_yield();
+  }
+
+  late final _sched_yield_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_yield>>('sched_yield');
+  late final _dart_sched_yield _sched_yield =
+      _sched_yield_ptr.asFunction<_dart_sched_yield>();
+
+  int sched_get_priority_max(
+    int __algorithm,
+  ) {
+    return _sched_get_priority_max(
+      __algorithm,
+    );
+  }
+
+  late final _sched_get_priority_max_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_get_priority_max>>(
+          'sched_get_priority_max');
+  late final _dart_sched_get_priority_max _sched_get_priority_max =
+      _sched_get_priority_max_ptr.asFunction<_dart_sched_get_priority_max>();
+
+  int sched_get_priority_min(
+    int __algorithm,
+  ) {
+    return _sched_get_priority_min(
+      __algorithm,
+    );
+  }
+
+  late final _sched_get_priority_min_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_get_priority_min>>(
+          'sched_get_priority_min');
+  late final _dart_sched_get_priority_min _sched_get_priority_min =
+      _sched_get_priority_min_ptr.asFunction<_dart_sched_get_priority_min>();
+
+  int sched_rr_get_interval(
+    int __pid,
+    ffi.Pointer<timespec> __t,
+  ) {
+    return _sched_rr_get_interval(
+      __pid,
+      __t,
+    );
+  }
+
+  late final _sched_rr_get_interval_ptr =
+      _lookup<ffi.NativeFunction<_c_sched_rr_get_interval>>(
+          'sched_rr_get_interval');
+  late final _dart_sched_rr_get_interval _sched_rr_get_interval =
+      _sched_rr_get_interval_ptr.asFunction<_dart_sched_rr_get_interval>();
+
+  void pthread_exit(
+    ffi.Pointer<ffi.Void> __retval,
+  ) {
+    return _pthread_exit(
+      __retval,
+    );
+  }
+
+  late final _pthread_exit_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_exit>>('pthread_exit');
+  late final _dart_pthread_exit _pthread_exit =
+      _pthread_exit_ptr.asFunction<_dart_pthread_exit>();
+
+  int pthread_join(
+    int __th,
+    ffi.Pointer<ffi.Pointer<ffi.Void>> __thread_return,
+  ) {
+    return _pthread_join(
+      __th,
+      __thread_return,
+    );
+  }
+
+  late final _pthread_join_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_join>>('pthread_join');
+  late final _dart_pthread_join _pthread_join =
+      _pthread_join_ptr.asFunction<_dart_pthread_join>();
+
+  int pthread_detach(
+    int __th,
+  ) {
+    return _pthread_detach(
+      __th,
+    );
+  }
+
+  late final _pthread_detach_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_detach>>('pthread_detach');
+  late final _dart_pthread_detach _pthread_detach =
+      _pthread_detach_ptr.asFunction<_dart_pthread_detach>();
+
+  int pthread_self() {
+    return _pthread_self();
+  }
+
+  late final _pthread_self_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_self>>('pthread_self');
+  late final _dart_pthread_self _pthread_self =
+      _pthread_self_ptr.asFunction<_dart_pthread_self>();
+
+  int pthread_equal(
+    int __thread1,
+    int __thread2,
+  ) {
+    return _pthread_equal(
+      __thread1,
+      __thread2,
+    );
+  }
+
+  late final _pthread_equal_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_equal>>('pthread_equal');
+  late final _dart_pthread_equal _pthread_equal =
+      _pthread_equal_ptr.asFunction<_dart_pthread_equal>();
+
+  int pthread_setschedparam(
+    int __target_thread,
+    int __policy,
+    ffi.Pointer<sched_param> __param,
+  ) {
+    return _pthread_setschedparam(
+      __target_thread,
+      __policy,
+      __param,
+    );
+  }
+
+  late final _pthread_setschedparam_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_setschedparam>>(
+          'pthread_setschedparam');
+  late final _dart_pthread_setschedparam _pthread_setschedparam =
+      _pthread_setschedparam_ptr.asFunction<_dart_pthread_setschedparam>();
+
+  int pthread_getschedparam(
+    int __target_thread,
+    ffi.Pointer<ffi.Int32> __policy,
+    ffi.Pointer<sched_param> __param,
+  ) {
+    return _pthread_getschedparam(
+      __target_thread,
+      __policy,
+      __param,
+    );
+  }
+
+  late final _pthread_getschedparam_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_getschedparam>>(
+          'pthread_getschedparam');
+  late final _dart_pthread_getschedparam _pthread_getschedparam =
+      _pthread_getschedparam_ptr.asFunction<_dart_pthread_getschedparam>();
+
+  int pthread_setschedprio(
+    int __target_thread,
+    int __prio,
+  ) {
+    return _pthread_setschedprio(
+      __target_thread,
+      __prio,
+    );
+  }
+
+  late final _pthread_setschedprio_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_setschedprio>>(
+          'pthread_setschedprio');
+  late final _dart_pthread_setschedprio _pthread_setschedprio =
+      _pthread_setschedprio_ptr.asFunction<_dart_pthread_setschedprio>();
+
+  int pthread_once(
+    ffi.Pointer<ffi.Int32> __once_control,
+    ffi.Pointer<ffi.NativeFunction<_typedefC_6>> __init_routine,
+  ) {
+    return _pthread_once(
+      __once_control,
+      __init_routine,
+    );
+  }
+
+  late final _pthread_once_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_once>>('pthread_once');
+  late final _dart_pthread_once _pthread_once =
+      _pthread_once_ptr.asFunction<_dart_pthread_once>();
+
+  int pthread_setcancelstate(
+    int __state,
+    ffi.Pointer<ffi.Int32> __oldstate,
+  ) {
+    return _pthread_setcancelstate(
+      __state,
+      __oldstate,
+    );
+  }
+
+  late final _pthread_setcancelstate_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_setcancelstate>>(
+          'pthread_setcancelstate');
+  late final _dart_pthread_setcancelstate _pthread_setcancelstate =
+      _pthread_setcancelstate_ptr.asFunction<_dart_pthread_setcancelstate>();
+
+  int pthread_setcanceltype(
+    int __type,
+    ffi.Pointer<ffi.Int32> __oldtype,
+  ) {
+    return _pthread_setcanceltype(
+      __type,
+      __oldtype,
+    );
+  }
+
+  late final _pthread_setcanceltype_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_setcanceltype>>(
+          'pthread_setcanceltype');
+  late final _dart_pthread_setcanceltype _pthread_setcanceltype =
+      _pthread_setcanceltype_ptr.asFunction<_dart_pthread_setcanceltype>();
+
+  int pthread_cancel(
+    int __th,
+  ) {
+    return _pthread_cancel(
+      __th,
+    );
+  }
+
+  late final _pthread_cancel_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_cancel>>('pthread_cancel');
+  late final _dart_pthread_cancel _pthread_cancel =
+      _pthread_cancel_ptr.asFunction<_dart_pthread_cancel>();
+
+  void pthread_testcancel() {
+    return _pthread_testcancel();
+  }
+
+  late final _pthread_testcancel_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_testcancel>>('pthread_testcancel');
+  late final _dart_pthread_testcancel _pthread_testcancel =
+      _pthread_testcancel_ptr.asFunction<_dart_pthread_testcancel>();
+
+  void __pthread_register_cancel(
+    ffi.Pointer<__pthread_unwind_buf_t> __buf,
+  ) {
+    return ___pthread_register_cancel(
+      __buf,
+    );
+  }
+
+  late final ___pthread_register_cancel_ptr =
+      _lookup<ffi.NativeFunction<_c___pthread_register_cancel>>(
+          '__pthread_register_cancel');
+  late final _dart___pthread_register_cancel ___pthread_register_cancel =
+      ___pthread_register_cancel_ptr
+          .asFunction<_dart___pthread_register_cancel>();
+
+  void __pthread_unregister_cancel(
+    ffi.Pointer<__pthread_unwind_buf_t> __buf,
+  ) {
+    return ___pthread_unregister_cancel(
+      __buf,
+    );
+  }
+
+  late final ___pthread_unregister_cancel_ptr =
+      _lookup<ffi.NativeFunction<_c___pthread_unregister_cancel>>(
+          '__pthread_unregister_cancel');
+  late final _dart___pthread_unregister_cancel ___pthread_unregister_cancel =
+      ___pthread_unregister_cancel_ptr
+          .asFunction<_dart___pthread_unregister_cancel>();
+
+  void __pthread_unwind_next(
+    ffi.Pointer<__pthread_unwind_buf_t> __buf,
+  ) {
+    return ___pthread_unwind_next(
+      __buf,
+    );
+  }
+
+  late final ___pthread_unwind_next_ptr =
+      _lookup<ffi.NativeFunction<_c___pthread_unwind_next>>(
+          '__pthread_unwind_next');
+  late final _dart___pthread_unwind_next ___pthread_unwind_next =
+      ___pthread_unwind_next_ptr.asFunction<_dart___pthread_unwind_next>();
+
+  int __sigsetjmp(
+    ffi.Pointer<__jmp_buf_tag> __env,
+    int __savemask,
+  ) {
+    return ___sigsetjmp(
+      __env,
+      __savemask,
+    );
+  }
+
+  late final ___sigsetjmp_ptr =
+      _lookup<ffi.NativeFunction<_c___sigsetjmp>>('__sigsetjmp');
+  late final _dart___sigsetjmp ___sigsetjmp =
+      ___sigsetjmp_ptr.asFunction<_dart___sigsetjmp>();
+
+  int pthread_spin_init(
+    ffi.Pointer<ffi.Int32> __lock,
+    int __pshared,
+  ) {
+    return _pthread_spin_init(
+      __lock,
+      __pshared,
+    );
+  }
+
+  late final _pthread_spin_init_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_spin_init>>('pthread_spin_init');
+  late final _dart_pthread_spin_init _pthread_spin_init =
+      _pthread_spin_init_ptr.asFunction<_dart_pthread_spin_init>();
+
+  int pthread_spin_destroy(
+    ffi.Pointer<ffi.Int32> __lock,
+  ) {
+    return _pthread_spin_destroy(
+      __lock,
+    );
+  }
+
+  late final _pthread_spin_destroy_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_spin_destroy>>(
+          'pthread_spin_destroy');
+  late final _dart_pthread_spin_destroy _pthread_spin_destroy =
+      _pthread_spin_destroy_ptr.asFunction<_dart_pthread_spin_destroy>();
+
+  int pthread_spin_lock(
+    ffi.Pointer<ffi.Int32> __lock,
+  ) {
+    return _pthread_spin_lock(
+      __lock,
+    );
+  }
+
+  late final _pthread_spin_lock_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_spin_lock>>('pthread_spin_lock');
+  late final _dart_pthread_spin_lock _pthread_spin_lock =
+      _pthread_spin_lock_ptr.asFunction<_dart_pthread_spin_lock>();
+
+  int pthread_spin_trylock(
+    ffi.Pointer<ffi.Int32> __lock,
+  ) {
+    return _pthread_spin_trylock(
+      __lock,
+    );
+  }
+
+  late final _pthread_spin_trylock_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_spin_trylock>>(
+          'pthread_spin_trylock');
+  late final _dart_pthread_spin_trylock _pthread_spin_trylock =
+      _pthread_spin_trylock_ptr.asFunction<_dart_pthread_spin_trylock>();
+
+  int pthread_spin_unlock(
+    ffi.Pointer<ffi.Int32> __lock,
+  ) {
+    return _pthread_spin_unlock(
+      __lock,
+    );
+  }
+
+  late final _pthread_spin_unlock_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_spin_unlock>>(
+          'pthread_spin_unlock');
+  late final _dart_pthread_spin_unlock _pthread_spin_unlock =
+      _pthread_spin_unlock_ptr.asFunction<_dart_pthread_spin_unlock>();
+
+  int pthread_key_create(
+    ffi.Pointer<ffi.Uint32> __key,
+    ffi.Pointer<ffi.NativeFunction<_typedefC_8>> __destr_function,
+  ) {
+    return _pthread_key_create(
+      __key,
+      __destr_function,
+    );
+  }
+
+  late final _pthread_key_create_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_key_create>>('pthread_key_create');
+  late final _dart_pthread_key_create _pthread_key_create =
+      _pthread_key_create_ptr.asFunction<_dart_pthread_key_create>();
+
+  int pthread_key_delete(
+    int __key,
+  ) {
+    return _pthread_key_delete(
+      __key,
+    );
+  }
+
+  late final _pthread_key_delete_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_key_delete>>('pthread_key_delete');
+  late final _dart_pthread_key_delete _pthread_key_delete =
+      _pthread_key_delete_ptr.asFunction<_dart_pthread_key_delete>();
+
+  ffi.Pointer<ffi.Void> pthread_getspecific(
+    int __key,
+  ) {
+    return _pthread_getspecific(
+      __key,
+    );
+  }
+
+  late final _pthread_getspecific_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_getspecific>>(
+          'pthread_getspecific');
+  late final _dart_pthread_getspecific _pthread_getspecific =
+      _pthread_getspecific_ptr.asFunction<_dart_pthread_getspecific>();
+
+  int pthread_setspecific(
+    int __key,
+    ffi.Pointer<ffi.Void> __pointer,
+  ) {
+    return _pthread_setspecific(
+      __key,
+      __pointer,
+    );
+  }
+
+  late final _pthread_setspecific_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_setspecific>>(
+          'pthread_setspecific');
+  late final _dart_pthread_setspecific _pthread_setspecific =
+      _pthread_setspecific_ptr.asFunction<_dart_pthread_setspecific>();
+
+  int pthread_getcpuclockid(
+    int __thread_id,
+    ffi.Pointer<ffi.Int32> __clock_id,
+  ) {
+    return _pthread_getcpuclockid(
+      __thread_id,
+      __clock_id,
+    );
+  }
+
+  late final _pthread_getcpuclockid_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_getcpuclockid>>(
+          'pthread_getcpuclockid');
+  late final _dart_pthread_getcpuclockid _pthread_getcpuclockid =
+      _pthread_getcpuclockid_ptr.asFunction<_dart_pthread_getcpuclockid>();
+
+  int pthread_atfork(
+    ffi.Pointer<ffi.NativeFunction<_typedefC_9>> __prepare,
+    ffi.Pointer<ffi.NativeFunction<_typedefC_10>> __parent,
+    ffi.Pointer<ffi.NativeFunction<_typedefC_11>> __child,
+  ) {
+    return _pthread_atfork(
+      __prepare,
+      __parent,
+      __child,
+    );
+  }
+
+  late final _pthread_atfork_ptr =
+      _lookup<ffi.NativeFunction<_c_pthread_atfork>>('pthread_atfork');
+  late final _dart_pthread_atfork _pthread_atfork =
+      _pthread_atfork_ptr.asFunction<_dart_pthread_atfork>();
+
   ffi.Pointer<gk_result> gk_result_new(
     int code,
     ffi.Pointer<ffi.Int8> message,
@@ -4881,6 +5441,30 @@ class GitKebabLib {
       _gk_session_unset_repository_state_with_callback_ptr
           .asFunction<_dart_gk_session_unset_repository_state_with_callback>();
 
+  int gk_background_sync(
+    ffi.Pointer<gk_session> session,
+  ) {
+    return _gk_background_sync(
+      session,
+    );
+  }
+
+  late final _gk_background_sync_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_background_sync>>('gk_background_sync');
+  late final _dart_gk_background_sync _gk_background_sync =
+      _gk_background_sync_ptr.asFunction<_dart_gk_background_sync>();
+
+  int gk_sync(
+    ffi.Pointer<gk_session> session,
+  ) {
+    return _gk_sync(
+      session,
+    );
+  }
+
+  late final _gk_sync_ptr = _lookup<ffi.NativeFunction<_c_gk_sync>>('gk_sync');
+  late final _dart_gk_sync _gk_sync = _gk_sync_ptr.asFunction<_dart_gk_sync>();
+
   ffi.Pointer<gk_execution_context> gk_execution_context_new(
     ffi.Pointer<ffi.Int8> purpose,
     ffi.Pointer<log_Component> log_component,
@@ -5415,6 +5999,57 @@ class log_Component extends ffi.Struct {
   external ffi.Pointer<ffi.Int8> label;
 }
 
+class sched_param extends ffi.Struct {
+  @ffi.Int32()
+  external int sched_priority;
+}
+
+class cpu_set_t extends ffi.Struct {
+  @ffi.Array.multi([16])
+  external ffi.Array<ffi.Uint64> __bits;
+}
+
+class _pthread_cleanup_buffer extends ffi.Struct {
+  external ffi.Pointer<ffi.NativeFunction<_typedefC_4>> __routine;
+
+  external ffi.Pointer<ffi.Void> __arg;
+
+  @ffi.Int32()
+  external int __canceltype;
+
+  external ffi.Pointer<_pthread_cleanup_buffer> __prev;
+}
+
+class unnamedStruct_1 extends ffi.Struct {
+  @ffi.Array.multi([8])
+  external ffi.Array<ffi.Int64> __cancel_jmp_buf;
+
+  @ffi.Int32()
+  external int __mask_was_saved;
+}
+
+class __pthread_unwind_buf_t extends ffi.Struct {
+  @ffi.Array.multi([1])
+  external ffi.Array<unnamedStruct_1> __cancel_jmp_buf;
+
+  @ffi.Array.multi([4])
+  external ffi.Array<ffi.Pointer<ffi.Void>> __pad;
+}
+
+class __pthread_cleanup_frame extends ffi.Struct {
+  external ffi.Pointer<ffi.NativeFunction<_typedefC_7>> __cancel_routine;
+
+  external ffi.Pointer<ffi.Void> __cancel_arg;
+
+  @ffi.Int32()
+  external int __do_it;
+
+  @ffi.Int32()
+  external int __cancel_type;
+}
+
+class __jmp_buf_tag extends ffi.Opaque {}
+
 class gk_repository_spec extends ffi.Struct {
   external ffi.Pointer<ffi.Int8> local_path;
 
@@ -5660,6 +6295,7 @@ abstract class RepositoryState {
   static const int PUSH_IN_PROGRESS = 256;
   static const int FETCH_IN_PROGRESS = 512;
   static const int MERGE_IN_PROGRESS = 1024;
+  static const int SYNC_IN_PROGRESS = 2048;
 }
 
 abstract class RepositorySourceUrlType {
@@ -5680,22 +6316,7 @@ class gk_session_callbacks extends ffi.Struct {
       state_changed_callback;
 }
 
-class gk_session extends ffi.Struct {
-  @ffi.Array.multi([16])
-  external ffi.Array<ffi.Int8> id;
-
-  external ffi.Pointer<ffi.Int8> id_ptr;
-
-  external ffi.Pointer<gk_execution_context> context;
-
-  external ffi.Pointer<gk_repository> repository;
-
-  external gk_session_credential credential;
-
-  external gk_session_callbacks callbacks;
-
-  external ffi.Pointer<gk_result> internal_last_result;
-}
+class gk_session extends ffi.Opaque {}
 
 class gk_void_linked_node extends ffi.Struct {
   external ffi.Pointer<ffi.Void> data;
@@ -5725,6 +6346,68 @@ const int LOG_WARN = 3;
 const int LOG_ERROR = 4;
 
 const int LOG_FATAL = 5;
+
+const int PTHREAD_CREATE_JOINABLE = 0;
+
+const int PTHREAD_CREATE_DETACHED = 1;
+
+const int PTHREAD_MUTEX_TIMED_NP = 0;
+
+const int PTHREAD_MUTEX_RECURSIVE_NP = 1;
+
+const int PTHREAD_MUTEX_ERRORCHECK_NP = 2;
+
+const int PTHREAD_MUTEX_ADAPTIVE_NP = 3;
+
+const int PTHREAD_MUTEX_NORMAL = 0;
+
+const int PTHREAD_MUTEX_RECURSIVE = 1;
+
+const int PTHREAD_MUTEX_ERRORCHECK = 2;
+
+const int PTHREAD_MUTEX_DEFAULT = 0;
+
+const int PTHREAD_MUTEX_STALLED = 0;
+
+const int PTHREAD_MUTEX_STALLED_NP = 0;
+
+const int PTHREAD_MUTEX_ROBUST = 1;
+
+const int PTHREAD_MUTEX_ROBUST_NP = 1;
+
+const int PTHREAD_PRIO_NONE = 0;
+
+const int PTHREAD_PRIO_INHERIT = 1;
+
+const int PTHREAD_PRIO_PROTECT = 2;
+
+const int PTHREAD_RWLOCK_PREFER_READER_NP = 0;
+
+const int PTHREAD_RWLOCK_PREFER_WRITER_NP = 1;
+
+const int PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP = 2;
+
+const int PTHREAD_RWLOCK_DEFAULT_NP = 0;
+
+const int PTHREAD_INHERIT_SCHED = 0;
+
+const int PTHREAD_EXPLICIT_SCHED = 1;
+
+const int PTHREAD_SCOPE_SYSTEM = 0;
+
+const int PTHREAD_SCOPE_PROCESS = 1;
+
+const int PTHREAD_PROCESS_PRIVATE = 0;
+
+const int PTHREAD_PROCESS_SHARED = 1;
+
+const int PTHREAD_CANCEL_ENABLE = 0;
+
+const int PTHREAD_CANCEL_DISABLE = 1;
+
+const int PTHREAD_CANCEL_DEFERRED = 0;
+
+const int PTHREAD_CANCEL_ASYNCHRONOUS = 1;
 
 const int _FEATURES_H = 1;
 
@@ -6090,7 +6773,57 @@ const int TIME_UTC = 1;
 
 const String LOG_VERSION = '0.1.0';
 
-const int GK_REPOSITORY_STATE_MAX_EXP = 11;
+const int _PTHREAD_H = 1;
+
+const int _SCHED_H = 1;
+
+const int _BITS_SCHED_H = 1;
+
+const int SCHED_OTHER = 0;
+
+const int SCHED_FIFO = 1;
+
+const int SCHED_RR = 2;
+
+const int _BITS_TYPES_STRUCT_SCHED_PARAM = 1;
+
+const int _BITS_CPU_SET_H = 1;
+
+const int __CPU_SETSIZE = 1024;
+
+const int __NCPUBITS = 64;
+
+const int _BITS_SETJMP_H = 1;
+
+const int PTHREAD_CREATE_JOINABLE_1 = 0;
+
+const int PTHREAD_CREATE_DETACHED_1 = 1;
+
+const int PTHREAD_INHERIT_SCHED_1 = 0;
+
+const int PTHREAD_EXPLICIT_SCHED_1 = 1;
+
+const int PTHREAD_SCOPE_SYSTEM_1 = 0;
+
+const int PTHREAD_SCOPE_PROCESS_1 = 1;
+
+const int PTHREAD_PROCESS_PRIVATE_1 = 0;
+
+const int PTHREAD_PROCESS_SHARED_1 = 1;
+
+const int PTHREAD_CANCEL_ENABLE_1 = 0;
+
+const int PTHREAD_CANCEL_DISABLE_1 = 1;
+
+const int PTHREAD_CANCEL_DEFERRED_1 = 0;
+
+const int PTHREAD_CANCEL_ASYNCHRONOUS_1 = 1;
+
+const int PTHREAD_ONCE_INIT = 0;
+
+const int PTHREAD_BARRIER_SERIAL_THREAD = -1;
+
+const int GK_REPOSITORY_STATE_MAX_EXP = 12;
 
 const int GK_OBJECT_ID_STR_LENGTH = 40;
 
@@ -8199,6 +8932,364 @@ typedef _dart_log_log = void Function(
   ffi.Pointer<ffi.Int8> fmt,
 );
 
+typedef _c___sched_cpucount = ffi.Int32 Function(
+  ffi.Uint64 __setsize,
+  ffi.Pointer<cpu_set_t> __setp,
+);
+
+typedef _dart___sched_cpucount = int Function(
+  int __setsize,
+  ffi.Pointer<cpu_set_t> __setp,
+);
+
+typedef _c___sched_cpualloc = ffi.Pointer<cpu_set_t> Function(
+  ffi.Uint64 __count,
+);
+
+typedef _dart___sched_cpualloc = ffi.Pointer<cpu_set_t> Function(
+  int __count,
+);
+
+typedef _c___sched_cpufree = ffi.Void Function(
+  ffi.Pointer<cpu_set_t> __set,
+);
+
+typedef _dart___sched_cpufree = void Function(
+  ffi.Pointer<cpu_set_t> __set,
+);
+
+typedef _c_sched_setparam = ffi.Int32 Function(
+  ffi.Int32 __pid,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _dart_sched_setparam = int Function(
+  int __pid,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _c_sched_getparam = ffi.Int32 Function(
+  ffi.Int32 __pid,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _dart_sched_getparam = int Function(
+  int __pid,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _c_sched_setscheduler = ffi.Int32 Function(
+  ffi.Int32 __pid,
+  ffi.Int32 __policy,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _dart_sched_setscheduler = int Function(
+  int __pid,
+  int __policy,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _c_sched_getscheduler = ffi.Int32 Function(
+  ffi.Int32 __pid,
+);
+
+typedef _dart_sched_getscheduler = int Function(
+  int __pid,
+);
+
+typedef _c_sched_yield = ffi.Int32 Function();
+
+typedef _dart_sched_yield = int Function();
+
+typedef _c_sched_get_priority_max = ffi.Int32 Function(
+  ffi.Int32 __algorithm,
+);
+
+typedef _dart_sched_get_priority_max = int Function(
+  int __algorithm,
+);
+
+typedef _c_sched_get_priority_min = ffi.Int32 Function(
+  ffi.Int32 __algorithm,
+);
+
+typedef _dart_sched_get_priority_min = int Function(
+  int __algorithm,
+);
+
+typedef _c_sched_rr_get_interval = ffi.Int32 Function(
+  ffi.Int32 __pid,
+  ffi.Pointer<timespec> __t,
+);
+
+typedef _dart_sched_rr_get_interval = int Function(
+  int __pid,
+  ffi.Pointer<timespec> __t,
+);
+
+typedef _c_pthread_exit = ffi.Void Function(
+  ffi.Pointer<ffi.Void> __retval,
+);
+
+typedef _dart_pthread_exit = void Function(
+  ffi.Pointer<ffi.Void> __retval,
+);
+
+typedef _c_pthread_join = ffi.Int32 Function(
+  ffi.Uint64 __th,
+  ffi.Pointer<ffi.Pointer<ffi.Void>> __thread_return,
+);
+
+typedef _dart_pthread_join = int Function(
+  int __th,
+  ffi.Pointer<ffi.Pointer<ffi.Void>> __thread_return,
+);
+
+typedef _c_pthread_detach = ffi.Int32 Function(
+  ffi.Uint64 __th,
+);
+
+typedef _dart_pthread_detach = int Function(
+  int __th,
+);
+
+typedef _c_pthread_self = ffi.Uint64 Function();
+
+typedef _dart_pthread_self = int Function();
+
+typedef _c_pthread_equal = ffi.Int32 Function(
+  ffi.Uint64 __thread1,
+  ffi.Uint64 __thread2,
+);
+
+typedef _dart_pthread_equal = int Function(
+  int __thread1,
+  int __thread2,
+);
+
+typedef _c_pthread_setschedparam = ffi.Int32 Function(
+  ffi.Uint64 __target_thread,
+  ffi.Int32 __policy,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _dart_pthread_setschedparam = int Function(
+  int __target_thread,
+  int __policy,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _c_pthread_getschedparam = ffi.Int32 Function(
+  ffi.Uint64 __target_thread,
+  ffi.Pointer<ffi.Int32> __policy,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _dart_pthread_getschedparam = int Function(
+  int __target_thread,
+  ffi.Pointer<ffi.Int32> __policy,
+  ffi.Pointer<sched_param> __param,
+);
+
+typedef _c_pthread_setschedprio = ffi.Int32 Function(
+  ffi.Uint64 __target_thread,
+  ffi.Int32 __prio,
+);
+
+typedef _dart_pthread_setschedprio = int Function(
+  int __target_thread,
+  int __prio,
+);
+
+typedef _typedefC_6 = ffi.Void Function();
+
+typedef _c_pthread_once = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32> __once_control,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_6>> __init_routine,
+);
+
+typedef _dart_pthread_once = int Function(
+  ffi.Pointer<ffi.Int32> __once_control,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_6>> __init_routine,
+);
+
+typedef _c_pthread_setcancelstate = ffi.Int32 Function(
+  ffi.Int32 __state,
+  ffi.Pointer<ffi.Int32> __oldstate,
+);
+
+typedef _dart_pthread_setcancelstate = int Function(
+  int __state,
+  ffi.Pointer<ffi.Int32> __oldstate,
+);
+
+typedef _c_pthread_setcanceltype = ffi.Int32 Function(
+  ffi.Int32 __type,
+  ffi.Pointer<ffi.Int32> __oldtype,
+);
+
+typedef _dart_pthread_setcanceltype = int Function(
+  int __type,
+  ffi.Pointer<ffi.Int32> __oldtype,
+);
+
+typedef _c_pthread_cancel = ffi.Int32 Function(
+  ffi.Uint64 __th,
+);
+
+typedef _dart_pthread_cancel = int Function(
+  int __th,
+);
+
+typedef _c_pthread_testcancel = ffi.Void Function();
+
+typedef _dart_pthread_testcancel = void Function();
+
+typedef _c___pthread_register_cancel = ffi.Void Function(
+  ffi.Pointer<__pthread_unwind_buf_t> __buf,
+);
+
+typedef _dart___pthread_register_cancel = void Function(
+  ffi.Pointer<__pthread_unwind_buf_t> __buf,
+);
+
+typedef _c___pthread_unregister_cancel = ffi.Void Function(
+  ffi.Pointer<__pthread_unwind_buf_t> __buf,
+);
+
+typedef _dart___pthread_unregister_cancel = void Function(
+  ffi.Pointer<__pthread_unwind_buf_t> __buf,
+);
+
+typedef _c___pthread_unwind_next = ffi.Void Function(
+  ffi.Pointer<__pthread_unwind_buf_t> __buf,
+);
+
+typedef _dart___pthread_unwind_next = void Function(
+  ffi.Pointer<__pthread_unwind_buf_t> __buf,
+);
+
+typedef _c___sigsetjmp = ffi.Int32 Function(
+  ffi.Pointer<__jmp_buf_tag> __env,
+  ffi.Int32 __savemask,
+);
+
+typedef _dart___sigsetjmp = int Function(
+  ffi.Pointer<__jmp_buf_tag> __env,
+  int __savemask,
+);
+
+typedef _c_pthread_spin_init = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32> __lock,
+  ffi.Int32 __pshared,
+);
+
+typedef _dart_pthread_spin_init = int Function(
+  ffi.Pointer<ffi.Int32> __lock,
+  int __pshared,
+);
+
+typedef _c_pthread_spin_destroy = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _dart_pthread_spin_destroy = int Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _c_pthread_spin_lock = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _dart_pthread_spin_lock = int Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _c_pthread_spin_trylock = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _dart_pthread_spin_trylock = int Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _c_pthread_spin_unlock = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _dart_pthread_spin_unlock = int Function(
+  ffi.Pointer<ffi.Int32> __lock,
+);
+
+typedef _typedefC_8 = ffi.Void Function(
+  ffi.Pointer<ffi.Void>,
+);
+
+typedef _c_pthread_key_create = ffi.Int32 Function(
+  ffi.Pointer<ffi.Uint32> __key,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_8>> __destr_function,
+);
+
+typedef _dart_pthread_key_create = int Function(
+  ffi.Pointer<ffi.Uint32> __key,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_8>> __destr_function,
+);
+
+typedef _c_pthread_key_delete = ffi.Int32 Function(
+  ffi.Uint32 __key,
+);
+
+typedef _dart_pthread_key_delete = int Function(
+  int __key,
+);
+
+typedef _c_pthread_getspecific = ffi.Pointer<ffi.Void> Function(
+  ffi.Uint32 __key,
+);
+
+typedef _dart_pthread_getspecific = ffi.Pointer<ffi.Void> Function(
+  int __key,
+);
+
+typedef _c_pthread_setspecific = ffi.Int32 Function(
+  ffi.Uint32 __key,
+  ffi.Pointer<ffi.Void> __pointer,
+);
+
+typedef _dart_pthread_setspecific = int Function(
+  int __key,
+  ffi.Pointer<ffi.Void> __pointer,
+);
+
+typedef _c_pthread_getcpuclockid = ffi.Int32 Function(
+  ffi.Uint64 __thread_id,
+  ffi.Pointer<ffi.Int32> __clock_id,
+);
+
+typedef _dart_pthread_getcpuclockid = int Function(
+  int __thread_id,
+  ffi.Pointer<ffi.Int32> __clock_id,
+);
+
+typedef _typedefC_9 = ffi.Void Function();
+
+typedef _typedefC_10 = ffi.Void Function();
+
+typedef _typedefC_11 = ffi.Void Function();
+
+typedef _c_pthread_atfork = ffi.Int32 Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_9>> __prepare,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_10>> __parent,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_11>> __child,
+);
+
+typedef _dart_pthread_atfork = int Function(
+  ffi.Pointer<ffi.NativeFunction<_typedefC_9>> __prepare,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_10>> __parent,
+  ffi.Pointer<ffi.NativeFunction<_typedefC_11>> __child,
+);
+
 typedef _c_gk_result_new = ffi.Pointer<gk_result> Function(
   ffi.Int32 code,
   ffi.Pointer<ffi.Int8> message,
@@ -9272,6 +10363,22 @@ typedef _dart_gk_session_unset_repository_state_with_callback = int Function(
   int states,
 );
 
+typedef _c_gk_background_sync = ffi.Int32 Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _dart_gk_background_sync = int Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _c_gk_sync = ffi.Int32 Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _dart_gk_sync = int Function(
+  ffi.Pointer<gk_session> session,
+);
+
 typedef _c_gk_execution_context_new = ffi.Pointer<gk_execution_context>
     Function(
   ffi.Pointer<ffi.Int8> purpose,
@@ -9366,4 +10473,12 @@ typedef _c_gk_execution_context_print_execution_chain = ffi.Void Function(
 
 typedef _dart_gk_execution_context_print_execution_chain = void Function(
   ffi.Pointer<gk_execution_context> context,
+);
+
+typedef _typedefC_4 = ffi.Void Function(
+  ffi.Pointer<ffi.Void>,
+);
+
+typedef _typedefC_7 = ffi.Void Function(
+  ffi.Pointer<ffi.Void>,
 );

@@ -1,5 +1,6 @@
 
 #include <string.h>
+#include <time.h>
 #include "git2.h"
 
 #include "gk_commit.h"
