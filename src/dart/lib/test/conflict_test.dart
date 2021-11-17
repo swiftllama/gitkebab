@@ -24,17 +24,14 @@ void main() {
     Session session2 = sessions.last;
     session2.onStateChanged = stateChangedCallbackWithHistory;
 
-    expect(session2.state.hasChangesToMerge, equals(
-        true)); // Fetch in Repo B should have brought in changes to merge
-    expect(session2.state.hasConflicts,
-        equals(false)); //don't know about conflicts until we try to merge
+    expect(session2.state.hasChangesToMerge, equals(true)); // Fetch in Repo B should have brought in changes to merge
+    expect(session2.state.hasConflicts, equals(false)); //don't know about conflicts until we try to merge
 
     stateHistory.reset();
     session2.mergeIntoHead(); // merge call succeeds despite the merge not finishing
-    expect(stateHistory.changes[0]["hasChangesToMerge"], equals("on")); // first change will "artificially" have a "localCheckoutExists" entry because reset after clone
-    expect(stateHistory.changes[0]["mergeInProgress"], equals("on"));
-    expect(stateHistory.changes[1], equals({"hasConflicts":"on"}));
-    expect(stateHistory.changes[2], equals({"mergeFinalizationPending":"on", "mergeInProgress":"off"}));
+    expect(stateHistory.changes[0], equals(SessionStateDiff(mergeInProgress: BooleanChange.TurnedOn)));
+    expect(stateHistory.changes[1], equals(SessionStateDiff(hasConflicts: BooleanChange.TurnedOn)));
+    expect(stateHistory.changes[2], equals(SessionStateDiff(mergeInProgress: BooleanChange.TurnedOff, mergeFinalizationPending: BooleanChange.TurnedOn)));
 
     expect(session2.mergeConflictSummary.conflicts.length, equals(6));
     expect(session2.mergeConflictSummary.conflicts[0].path, equals("file1"));
@@ -49,7 +46,6 @@ void main() {
     expect(session2.mergeConflictSummary.conflicts[4].conflictType, equals(MergeConflictType.localDeleteRemoteEdit));
     expect(session2.mergeConflictSummary.conflicts[5].path, equals("file6"));
     expect(session2.mergeConflictSummary.conflicts[5].conflictType, equals(MergeConflictType.incompatibleTwoSidedCreate));
-
 
   });
 
@@ -84,6 +80,7 @@ void main() {
 
     expect(session2.mergeConflictSummary.conflicts.length, equals(5));
     expect(session2.mergeConflictSummary.conflicts[0].path, equals("file2"));
+
   });
 
   test('Conflicts - local edit remote delete file 2', ()
@@ -116,6 +113,7 @@ void main() {
     session2.mergeConflictsQuery();
     expect(session2.mergeConflictSummary.conflicts.length, equals(5));
     expect(session2.mergeConflictSummary.conflicts[1].path, equals("file3"));
+
   });
 
   test('Conflicts - incompatible two sided edit', ()
@@ -156,6 +154,7 @@ void main() {
     session2.mergeConflictsQuery();
     expect(session2.mergeConflictSummary.conflicts.length, equals(5));
     expect(session2.mergeConflictSummary.conflicts[2].path, equals("file4"));
+
   });
 
   test('Conflicts - incompatible two sided create', ()
@@ -187,7 +186,9 @@ void main() {
     session2.mergeConflictsQuery();
     expect(session2.mergeConflictSummary.conflicts.length, equals(5));
     expect(session2.mergeConflictSummary.conflicts[4].path, equals("file5"));
+
   });
+
 
   test('Conflicts - partial resolution causes failed merge', ()
   {
@@ -207,9 +208,11 @@ void main() {
     expect(session2.state.hasChangesToMerge, equals(true));
     expect(session2.state.mergeFinalizationPending, equals(true));
     expect(session2.state.mergeInProgress, equals(false));
-    expect(stateHistory.changes[0]["mergeInProgress"], equals("on"));
-    expect(stateHistory.changes[1], equals({"hasConflicts": "on"}));
-    expect(stateHistory.changes[2], equals({"mergeFinalizationPending": "on", "mergeInProgress": "off"}));
+    expect(stateHistory.changes, equals([
+      SessionStateDiff(mergeInProgress:BooleanChange.TurnedOn),
+      SessionStateDiff(hasConflicts: BooleanChange.TurnedOn),
+      SessionStateDiff(mergeFinalizationPending: BooleanChange.TurnedOn, mergeInProgress: BooleanChange.TurnedOff)
+    ]));
 
     // We should now have 6 conflicts of various types
     expect(session2.mergeConflictSummary.conflicts.length, equals(6));
@@ -228,8 +231,8 @@ void main() {
     expect(session2.state.hasChangesToMerge, equals(true));
     expect(session2.state.mergeFinalizationPending, equals(true));
     expect(session2.state.mergeInProgress, equals(false));
-    expect(stateHistory.changes[stateHistory.changes.length - 2], equals({"mergeInProgress":"on"}));
-    expect(stateHistory.changes[stateHistory.changes.length - 1], equals({"mergeInProgress":"off"}));
+    expect(stateHistory.changes[stateHistory.changes.length - 2], equals(SessionStateDiff(mergeInProgress: BooleanChange.TurnedOn)));
+    expect(stateHistory.changes[stateHistory.changes.length - 1], equals(SessionStateDiff(mergeInProgress: BooleanChange.TurnedOff)));
 
     // Abort, it should clean things up
     session2.mergeAbort();
@@ -237,9 +240,9 @@ void main() {
     expect(session2.state.hasChangesToMerge, equals(true));
     expect(session2.state.mergeFinalizationPending, equals(false));
     expect(session2.state.mergeInProgress, equals(false));
-    expect(stateHistory.changes.last, equals({"hasConflicts":"off", "mergeFinalizationPending":"off"}));
-  });
+    expect(stateHistory.changes.last, equals(SessionStateDiff(hasConflicts: BooleanChange.TurnedOff, mergeFinalizationPending: BooleanChange.TurnedOff)));
 
+  });
 
   test('Conflicts - resolution and merge', ()
   {
@@ -259,9 +262,11 @@ void main() {
     expect(session2.state.hasChangesToMerge, equals(true));
     expect(session2.state.mergeFinalizationPending, equals(true));
     expect(session2.state.mergeInProgress, equals(false));
-    expect(stateHistory.changes[0]["mergeInProgress"], equals("on"));
-    expect(stateHistory.changes[1], equals({"hasConflicts": "on"}));
-    expect(stateHistory.changes[2], equals({"mergeFinalizationPending": "on", "mergeInProgress": "off"}));
+    expect(stateHistory.changes, equals([
+      SessionStateDiff(mergeInProgress:BooleanChange.TurnedOn),
+      SessionStateDiff(hasConflicts: BooleanChange.TurnedOn),
+      SessionStateDiff(mergeFinalizationPending: BooleanChange.TurnedOn, mergeInProgress: BooleanChange.TurnedOff)
+    ]));
 
     // We should now have 6 conflicts of various types
     expect(session2.mergeConflictSummary.conflicts.length, equals(6));
@@ -277,13 +282,13 @@ void main() {
     // We should now have 0 conflicts
     session2.mergeConflictsQuery();
     expect(session2.mergeConflictSummary.conflicts.length, equals(0));
-    expect(stateHistory.changes.last, equals({"hasConflicts":"off"}));
+    expect(stateHistory.changes.last, equals(SessionStateDiff(hasConflicts: BooleanChange.TurnedOff)));
     expect(session2.state.hasConflicts, equals(false));
 
     // Finalize the merge
     session2.mergeIntoHeadFinalize();
-    expect(stateHistory.changes[stateHistory.changes.length - 2], equals({"mergeInProgress":"on"}));
-    expect(stateHistory.changes[stateHistory.changes.length - 1], equals({"mergeInProgress":"off", "mergeFinalizationPending":"off", "hasChangesToMerge":"off"}));
+    expect(stateHistory.changes[stateHistory.changes.length - 2], equals(SessionStateDiff(mergeInProgress: BooleanChange.TurnedOn)));
+    expect(stateHistory.changes[stateHistory.changes.length - 1], equals(SessionStateDiff(mergeInProgress: BooleanChange.TurnedOff, mergeFinalizationPending: BooleanChange.TurnedOff, hasChangesToMerge: BooleanChange.TurnedOff)));
     expect(session2.state.hasConflicts, equals(false));
     expect(session2.state.hasChangesToMerge, equals(false));
     expect(session2.state.mergeFinalizationPending, equals(false));
@@ -292,6 +297,7 @@ void main() {
     // Verify file3/file4 content after merge
     expect(File("${session2.repositorySpec.localPath}/file3").readAsStringSync(), equals("hello3"));
     expect(File("${session2.repositorySpec.localPath}/file4").readAsStringSync(), equals("hello4"));
+
   });
 
   test('Conflicts - status query during merge respects merge conflict data', () {

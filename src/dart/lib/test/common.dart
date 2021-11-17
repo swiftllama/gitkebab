@@ -61,25 +61,19 @@ void copySourceRepoSimpleRepo1DotGit() {
 }
 
 class SessionStateChangeHistory {
-  List<Map<String, String>> changes = [];
+  List<SessionStateDiff> changes = [];
 
   void reset() {
     changes = [];
   }
 }
 
-
 var stateHistory = SessionStateChangeHistory();
-SessionState lastSessionState = SessionState(0);
-
-void stateChangedCallbackWithHistory(Session session) {
-  var diff = lastSessionState.diff(session.state);
-  if (diff.keys.length > 0) {
-     stateHistory.changes.add(diff);
+void stateChangedCallbackWithHistory(SessionStateUpdateEvent stateUpdate) {
+  if (!stateUpdate.diff.isEmptyDiff()) {
+     stateHistory.changes.add(stateUpdate.diff);
   }
-  lastSessionState = session.state;
 }
-
 
 List<Session> createConflictingReposAAndBWithExtendedConflicts() {
   var session1 =  Session(simpleRepo1DotGitSourcePath(), RepositorySourceUrlType.FILESYSTEM, simpleRepoAPath(), "");

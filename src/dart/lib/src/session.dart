@@ -9,6 +9,7 @@ import 'status.dart';
 import 'errors.dart';
 import 'repository.dart';
 import 'credentials.dart';
+import 'session_state.dart';
 
 Map<String, Session> g_sessions = {};
 
@@ -28,29 +29,7 @@ Session sessionFromSessionIdPtr(Pointer<Int8> session_id_ptr, String callbackNam
   return session;
 }
 
-
-void session_progress_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_session_progress> sessionProgress) {
-  print("DBG session progress callback in dart");
-  /*
-  String sessionId = "(unknown-id)";
-  try {
-    Session session = sessionFromSessionIdPtr(session_id_ptr, "session progress");
-    sessionId = session.id;
-    if (sessionProgress.address == 0) {
-      print("WARNING: received session progress callback for session [${session.id}] with null progress structure");
-      return;
-    }
-    var progress = sessionProgress.ref;
-
-    session.onProgress(session, progress);
-  }
-  catch (exc ){
-    print("Error during session progress callback for session [$sessionId]: $exc");
-  }*/
-}
-
-
-void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
+void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr, Pointer<gitkebab_lib.gk_session_progress> progressPtr) {
   String sessionId = "(unknown-id)";
   try {
     final session = sessionFromSessionIdPtr(session_id_ptr, "state changed");
@@ -61,9 +40,10 @@ void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.g
       return;
     }
 
+    final oldState = session.state;
     session.state = SessionState.fromSessionPointer(session.session_ptr);
-    session.stateStreamController.add(session.state);
-    session.onStateChanged(session);
+    final updateEvent = SessionStateUpdateEvent.from(oldState:oldState, newState:session.state);
+    session.notifySessionStateChanged(updateEvent);
   }
   catch (exc) {
     print("Error during session state changed callback for session [$sessionId]: $exc");
@@ -89,8 +69,7 @@ void session_merge_conflicts_query_callback(Pointer<Int8> session_id_ptr, Pointe
   }
 }
 
-typedef void SessionProgressCallback(Session session, gitkebab_lib.gk_session_progress progress);
-typedef void SessionStateCallback(Session session);
+typedef SessionStateChangedCallback = void Function(SessionStateUpdateEvent);
 typedef void MergeStateQueryCallback(Session session);
 
 class Session {
@@ -102,11 +81,11 @@ class Session {
   RepositoryStatusList status = RepositoryStatusList();
   MergeConflictSummary mergeConflictSummary = MergeConflictSummary();
 
-  final stateStreamController = StreamController<SessionState>.broadcast();
+  SessionStateChangedCallback? onStateChanged;
+
+  final stateStreamController = StreamController<SessionStateUpdateEvent>.broadcast();
   get stateStream => stateStreamController.stream;
 
-  SessionProgressCallback onProgress = (session, progress) => {};
-  SessionStateCallback onStateChanged = (session) => {};
   MergeStateQueryCallback onDidQueryMergeConflicts = (session) => {};
 
   bool get isSynchronous => callbackMode == SessionCallbackMode.synchronous;
@@ -119,7 +98,6 @@ class Session {
         urlType,
         localPath.toFfiPtr(),
         user.toFfiPtr(),
-        isSynchronous ? Pointer.fromFunction(session_progress_callback) : Pointer.fromAddress(0),
         isSynchronous ? Pointer.fromFunction(session_state_callback) : Pointer.fromAddress(0),
         isSynchronous ? Pointer.fromFunction(session_merge_conflicts_query_callback) : Pointer.fromAddress(0));
     initWithSessionPointer(sessionPointer);
@@ -144,6 +122,12 @@ class Session {
     repositorySpec = RepositorySpec(session_ptr.ref.repository.ref.spec);
 
     g_sessions[id] = this;
+  }
+
+  void notifySessionStateChanged(SessionStateUpdateEvent updateEvent){
+    final callback = onStateChanged;
+    stateStreamController.add(updateEvent);
+    if (callback != null) callback(updateEvent);
   }
 
   ////
@@ -227,11 +211,11 @@ class Session {
     }
     int progress = session_ptr.ref.progress.address == 0 ? 0 : session_ptr.ref
         .progress.ref.percent;
+    final oldState = state;
     state = SessionState(session_ptr.ref.repository.ref.state,
         counter: session_ptr.ref.repository.ref.state_counter,
         progressPercent: progress);
-    stateStreamController.add(state);
-    onStateChanged(this);
+    notifySessionStateChanged(SessionStateUpdateEvent.from(oldState: oldState, newState: state));
     if (GitKebab.lib.gk_session_state_unlock(session_ptr) != 0) {
       throw lastResultException();
     }
@@ -443,181 +427,5 @@ extension ConflictResolutionIntValue on ConflictResolution {
       case ConflictResolution.theirs: return gitkebab_lib.ConflictResolution.THEIRS;
       case ConflictResolution.ancestor: return gitkebab_lib.ConflictResolution.ANCESTOR;
     }
-  }
-}
-
-class SessionStateBooleanChange {
-  static const TurnedOn = const SessionStateBooleanChange._(1);
-  static const TurnedOff = const SessionStateBooleanChange._(-1);
-  static const Unchanged = const SessionStateBooleanChange._(0);
-
-  final int change;
-  const SessionStateBooleanChange._(this.change);
-
-  bool get turnedOn => change == 1;
-  bool get turnedOff => change == -1;
-  bool get unchanged => change == 0;
-
-  static SessionStateBooleanChange from({required bool oldValue, required bool newValue}) {
-    if (oldValue == newValue) return Unchanged;
-    if (newValue) return TurnedOn;
-    return TurnedOff;
-  }
-}
-
-class SessionStateUpdateEvent {
-  final SessionState newState;
-  final SessionStateDiff diff;
-  SessionStateUpdateEvent({required this.newState, required this.diff});
-  SessionStateUpdateEvent.from({required SessionState oldState, required this.newState}): diff = SessionStateDiff.from(oldState: oldState, newState: newState);
-}
-
-class SessionStateDiff {
-  final SessionStateBooleanChange initialized;
-  final SessionStateBooleanChange localCheckoutExists;
-  final SessionStateBooleanChange hasConflicts;
-  final SessionStateBooleanChange hasChangesToCommit;
-  final SessionStateBooleanChange hasChangesToMerge;
-  final SessionStateBooleanChange cloneInProgress;
-  final SessionStateBooleanChange mergeFinalizationPending;
-  final SessionStateBooleanChange mergePendingOnDisk;
-  final SessionStateBooleanChange pushInProgress;
-  final SessionStateBooleanChange fetchInProgress;
-  final SessionStateBooleanChange mergeInProgress;
-  final SessionStateBooleanChange syncInProgress;
-  final SessionStateBooleanChange backgroundSyncInProgress;
-
-  SessionStateDiff({
-    required this.initialized,
-    required this.localCheckoutExists,
-    required this.hasConflicts,
-    required this.hasChangesToCommit,
-    required this.hasChangesToMerge,
-    required this.cloneInProgress,
-    required this.mergeFinalizationPending,
-    required this.mergePendingOnDisk,
-    required this.pushInProgress,
-    required this.fetchInProgress,
-    required this.mergeInProgress,
-    required this.syncInProgress,
-    required this.backgroundSyncInProgress
-  });
-
-  static SessionStateDiff from({required SessionState oldState, required SessionState newState}) {
-      return SessionStateDiff(
-          initialized: SessionStateBooleanChange.from(oldValue: oldState.initialized, newValue: newState.initialized),
-          localCheckoutExists: SessionStateBooleanChange.from(oldValue:oldState.localCheckoutExists, newValue: newState.localCheckoutExists),
-          hasConflicts: SessionStateBooleanChange.from(oldValue:oldState.hasConflicts, newValue: newState.hasConflicts),
-          hasChangesToCommit: SessionStateBooleanChange.from(oldValue:oldState.hasChangesToCommit, newValue: newState.hasChangesToCommit),
-          hasChangesToMerge: SessionStateBooleanChange.from(oldValue:oldState.hasChangesToMerge, newValue: newState.hasChangesToMerge),
-          cloneInProgress: SessionStateBooleanChange.from(oldValue:oldState.cloneInProgress, newValue: newState.cloneInProgress),
-          mergeFinalizationPending: SessionStateBooleanChange.from(oldValue:oldState.mergeFinalizationPending, newValue: newState.mergeFinalizationPending),
-          mergePendingOnDisk: SessionStateBooleanChange.from(oldValue:oldState.mergePendingOnDisk, newValue: newState.mergePendingOnDisk),
-          pushInProgress: SessionStateBooleanChange.from(oldValue:oldState.pushInProgress, newValue: newState.pushInProgress),
-          fetchInProgress: SessionStateBooleanChange.from(oldValue:oldState.fetchInProgress, newValue: newState.fetchInProgress),
-          mergeInProgress: SessionStateBooleanChange.from(oldValue:oldState.mergeInProgress, newValue: newState.mergeInProgress),
-          syncInProgress: SessionStateBooleanChange.from(oldValue:oldState.syncInProgress, newValue: newState.syncInProgress),
-          backgroundSyncInProgress: SessionStateBooleanChange.from(oldValue:oldState.backgroundSyncInProgress, newValue: newState.backgroundSyncInProgress)
-      );
-  }
-}
-
-class SessionState {
-  final bool initialized;
-  final bool localCheckoutExists;
-  final bool hasConflicts;
-  final bool hasChangesToCommit;
-  final bool hasChangesToMerge;
-  final bool cloneInProgress;
-  final bool mergeFinalizationPending;
-  final bool mergePendingOnDisk;
-  final bool pushInProgress;
-  final bool fetchInProgress;
-  final bool mergeInProgress;
-  final bool syncInProgress;
-  final bool backgroundSyncInProgress;
-  final int progressPercent;
-  final int counter;
-
-  SessionState(int state, {this.counter = 0, this.progressPercent = 0}):
-        initialized = stateIncludes(state, gitkebab_lib.RepositoryState.INITIALIZED),
-        localCheckoutExists = stateIncludes(state, gitkebab_lib.RepositoryState.LOCAL_CHECKOUT_EXISTS),
-        hasConflicts = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CONFLICTS),
-        hasChangesToCommit = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CHANGES_TO_COMMIT),
-        hasChangesToMerge = stateIncludes(state, gitkebab_lib.RepositoryState.HAS_CHANGES_TO_MERGE),
-        cloneInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.CLONE_IN_PROGRESS),
-        mergeFinalizationPending = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_FINALIZATION_PENDING),
-        mergePendingOnDisk = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_PENDING_ON_DISK),
-        pushInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.PUSH_IN_PROGRESS),
-        fetchInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.FETCH_IN_PROGRESS),
-        mergeInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.MERGE_IN_PROGRESS),
-        syncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.SYNC_IN_PROGRESS),
-        backgroundSyncInProgress = stateIncludes(state, gitkebab_lib.RepositoryState.BACKGROUND_SYNC_IN_PROGRESS) {
-  }
-
-  static SessionState fromSessionPointer(Pointer<gitkebab_lib.gk_session> sessionPtr) {
-    final repository = sessionPtr.address == 0 ? null : sessionPtr.ref.repository.address == 0 ? null : sessionPtr.ref.repository.ref;
-    final progress = sessionPtr.address == 0 ? null : sessionPtr.ref.progress.address == 0 ? null : sessionPtr.ref.progress.ref;
-    return SessionState(repository?.state ?? 0, counter:repository?.state_counter ?? 0, progressPercent:progress?.percent ?? 0);
-  }
-
-  static bool stateIncludes(int totalState, int flag) {
-    return (totalState > 0) && ((totalState & flag) == flag);
-  }
-
-  Map<String, String> diff(SessionState other) {
-    Map<String, String> diffs = {};
-    if (localCheckoutExists != other.localCheckoutExists) {
-      diffs["localCheckoutExists"] = localCheckoutExists ? "off" : "on";
-    }
-    if (hasConflicts != other.hasConflicts) {
-      diffs["hasConflicts"] = hasConflicts ? "off" : "on";
-    }
-    if (hasChangesToCommit != other.hasChangesToCommit) {
-      diffs["hasChangesToCommit"] = hasChangesToMerge ? "off" : "on";
-    }
-    if (hasChangesToMerge != other.hasChangesToMerge) {
-      diffs["hasChangesToMerge"] = hasChangesToMerge ? "off" : "on";
-    }
-    if (cloneInProgress != other.cloneInProgress) {
-      diffs["cloneInProgress"] = cloneInProgress ? "off" : "on";
-    }
-    if (mergeFinalizationPending != other.mergeFinalizationPending) {
-      diffs["mergeFinalizationPending"] = mergeFinalizationPending ? "off" : "on";
-    }
-    if (mergePendingOnDisk != other.mergePendingOnDisk) {
-      diffs["mergePendingOnDisk"] = mergePendingOnDisk ? "off" : "on";
-    }
-    if (pushInProgress != other.pushInProgress) {
-      diffs["pushInProgress"] = pushInProgress ? "off" : "on";
-    }
-    if (fetchInProgress != other.fetchInProgress) {
-      diffs["fetchInProgress"] = fetchInProgress ? "off" : "on";
-    }
-    if (mergeInProgress != other.mergeInProgress) {
-      diffs["mergeInProgress"] = mergeInProgress ? "off" : "on";
-    }
-    if (syncInProgress != other.syncInProgress) {
-      diffs["syncInProgress"] = syncInProgress ? "off" : "on";
-    }
-    if (backgroundSyncInProgress != other.backgroundSyncInProgress) {
-      diffs["backgroundSyncInProgress"] = backgroundSyncInProgress ? "off" : "on";
-    }
-    return diffs;
-  }
-
-  String toString() {
-    String str = "<SessionState counter:$counter progres:$progressPercent% ";
-    str += localCheckoutExists ? "localCheckoutExists " : "";
-    str += hasConflicts ? "hasConflicts " : "";
-    str += hasChangesToMerge ? "hasChangesToMerge " : "";
-    str += cloneInProgress ? "cloneInProgress " : "";
-    str += mergeFinalizationPending ? "mergeFinalizationPending " : "";
-    str += mergePendingOnDisk ? "mergePendingOnDisk " : "";
-    str += pushInProgress ? "pushInProgress " : "";
-    str += fetchInProgress ? "fetchInProgress " : "";
-    str += mergeInProgress ? "mergeInProgress " : "";
-    str += ">";
-    return str;
   }
 }

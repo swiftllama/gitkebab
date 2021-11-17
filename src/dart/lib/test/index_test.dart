@@ -65,7 +65,6 @@ void main() {
   test('Index - add non-existent path', () {
     stateHistory.reset();
     var session = gitkebab.Session("${testFixturesPath()}/simple-repo1.git", gitkebab.RepositorySourceUrlType.FILESYSTEM, cloneTest1, "");
-    session.onStateChanged = stateChangedCallbackWithHistory;
     session.initialize();
     session.clone();
     expect(session.lastResultCode(), equals(0));

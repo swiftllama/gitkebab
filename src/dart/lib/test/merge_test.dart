@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-import '../gitkebab.dart' as gitkebab;
+import '../gitkebab.dart' as gk;
 
 import 'common.dart';
 
@@ -20,7 +20,7 @@ void main() {
   test('Merge - no changes', () {
     stateHistory.reset();
     String localPath = cloneTest1;
-    var session = gitkebab.Session(simpleRepo1DotGitSourcePath(), gitkebab.RepositorySourceUrlType.FILESYSTEM, localPath, "");
+    var session = gk.Session(simpleRepo1DotGitSourcePath(), gk.RepositorySourceUrlType.FILESYSTEM, localPath, "");
     session.onStateChanged = stateChangedCallbackWithHistory;
     session.initialize();
     session.clone();
@@ -43,8 +43,8 @@ void main() {
 
   test('Merge - one commit', () {
     stateHistory.reset();
-    var session1 = gitkebab.Session(simpleRepo1DotGitSourcePath(), gitkebab.RepositorySourceUrlType.FILESYSTEM, simpleRepoAPath(), "");
-    var session2 = gitkebab.Session(simpleRepo1DotGitSourcePath(), gitkebab.RepositorySourceUrlType.FILESYSTEM, simpleRepoBPath(), "");
+    var session1 = gk.Session(simpleRepo1DotGitSourcePath(), gk.RepositorySourceUrlType.FILESYSTEM, simpleRepoAPath(), "");
+    var session2 = gk.Session(simpleRepo1DotGitSourcePath(), gk.RepositorySourceUrlType.FILESYSTEM, simpleRepoBPath(), "");
     session2.onStateChanged = stateChangedCallbackWithHistory;
 
     
@@ -67,7 +67,10 @@ void main() {
     stateHistory.reset();
     session2.fetch(session2.repositorySpec.remoteName);
     expect(session2.state.hasChangesToMerge, equals(true));
-    expect(stateHistory.changes, equals([{"fetchInProgress":"on"}, {"hasChangesToMerge":"on", "fetchInProgress":"off"}]));
+    expect(stateHistory.changes, equals([
+      gk.SessionStateDiff(fetchInProgress: gk.BooleanChange.TurnedOn),
+        gk.SessionStateDiff(fetchInProgress: gk.BooleanChange.TurnedOff, hasChangesToMerge: gk.BooleanChange.TurnedOn)
+    ]));
     String repoBFetchedCommit = session2.resolveReference(session2.repositorySpec.remoteRefName);
 
     // Merge in repo B
@@ -75,7 +78,9 @@ void main() {
     session2.mergeIntoHead();
     String repoBNewHead = session2.resolveReference("HEAD");
     expect(session2.state.hasChangesToMerge, equals(false));
-    expect(stateHistory.changes, equals([{"mergeInProgress":"on"}, {"mergeInProgress":"off", "hasChangesToMerge":"off"}]));
+    expect(stateHistory.changes, equals([
+      gk.SessionStateDiff(mergeInProgress: gk.BooleanChange.TurnedOn),
+        gk.SessionStateDiff(mergeInProgress: gk.BooleanChange.TurnedOff, hasChangesToMerge: gk.BooleanChange.TurnedOff)]));
 
     // Compare
     expect(repoAOriginalHead, equals(repoBOriginalHead));

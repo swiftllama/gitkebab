@@ -4603,8 +4603,6 @@ class GitKebabLib {
     int source_url_type,
     ffi.Pointer<ffi.Int8> local_path,
     ffi.Pointer<ffi.Int8> user,
-    ffi.Pointer<ffi.NativeFunction<gk_session_progress_callback>>
-        progress_callback,
     ffi.Pointer<ffi.NativeFunction<gk_repository_state_changed_callback>>
         state_changed_callback,
     ffi.Pointer<
@@ -4616,7 +4614,6 @@ class GitKebabLib {
       source_url_type,
       local_path,
       user,
-      progress_callback,
       state_changed_callback,
       merge_conflict_query_callback,
     );
@@ -5759,9 +5756,6 @@ abstract class RepositorySourceUrlType {
 }
 
 class gk_session_callbacks extends ffi.Struct {
-  external ffi.Pointer<ffi.NativeFunction<gk_session_progress_callback>>
-      progress_callback;
-
   external ffi.Pointer<
           ffi.NativeFunction<gk_repository_did_query_merge_conflict_summary>>
       merge_conflict_query_callback;
@@ -9165,14 +9159,10 @@ typedef _dart_gk_status_summary_entrycount = int Function(
   ffi.Pointer<gk_session> session,
 );
 
-typedef gk_session_progress_callback = ffi.Void Function(
-  ffi.Pointer<ffi.Int8>,
-  ffi.Pointer<gk_session_progress>,
-);
-
 typedef gk_repository_state_changed_callback = ffi.Void Function(
   ffi.Pointer<ffi.Int8>,
   ffi.Pointer<gk_repository>,
+  ffi.Pointer<gk_session_progress>,
 );
 
 typedef gk_repository_did_query_merge_conflict_summary = ffi.Void Function(
@@ -9185,8 +9175,6 @@ typedef _c_gk_session_new = ffi.Pointer<gk_session> Function(
   ffi.Int32 source_url_type,
   ffi.Pointer<ffi.Int8> local_path,
   ffi.Pointer<ffi.Int8> user,
-  ffi.Pointer<ffi.NativeFunction<gk_session_progress_callback>>
-      progress_callback,
   ffi.Pointer<ffi.NativeFunction<gk_repository_state_changed_callback>>
       state_changed_callback,
   ffi.Pointer<
@@ -9199,8 +9187,6 @@ typedef _dart_gk_session_new = ffi.Pointer<gk_session> Function(
   int source_url_type,
   ffi.Pointer<ffi.Int8> local_path,
   ffi.Pointer<ffi.Int8> user,
-  ffi.Pointer<ffi.NativeFunction<gk_session_progress_callback>>
-      progress_callback,
   ffi.Pointer<ffi.NativeFunction<gk_repository_state_changed_callback>>
       state_changed_callback,
   ffi.Pointer<

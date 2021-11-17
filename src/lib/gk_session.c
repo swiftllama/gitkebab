@@ -217,10 +217,8 @@ int gk_session_trigger_repository_state_callback(gk_session *session) {
         return GK_FAILURE;
     }
     if (session->callbacks.state_changed_callback != NULL) {
-        log_info(COMP_SESSION, "invoking state change callback with new repository state [%d]", session->repository->state);
-        log_warn(COMP_SESSION, "DBG CBK0 callback is [%p]", session->callbacks.state_changed_callback);
+        log_info(COMP_SESSION, "invoking state change callback with new repository state [%d - %s%s%s%s%s%s%s%s%s%s%s%s%s]", session->repository->state,(session->repository->state & GK_REPOSITORY_STATE_INITIALIZED) ? " initialized " : "", (session->repository->state & GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS) ? " local_checkout_exists " : "", (session->repository->state & GK_REPOSITORY_STATE_HAS_CONFLICTS) ? " has_conflicts " : "", (session->repository->state & GK_REPOSITORY_STATE_HAS_CHANGES_TO_COMMIT) ? " has_changes_to_commit " : "", (session->repository->state & GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE) ? " has_changes_to_merge " : "", (session->repository->state & GK_REPOSITORY_STATE_CLONE_IN_PROGRESS) ? " clone_in_progress " : "", (session->repository->state & GK_REPOSITORY_STATE_MERGE_FINALIZATION_PENDING) ? " merge_finalization_pending " : "", (session->repository->state & GK_REPOSITORY_STATE_MERGE_PENDING_ON_DISK) ? " merge_pending_on_disk " : "", (session->repository->state & GK_REPOSITORY_STATE_PUSH_IN_PROGRESS) ? " push_in_progress " : "", (session->repository->state & GK_REPOSITORY_STATE_FETCH_IN_PROGRESS) ? " fetch_in_progress " : "", (session->repository->state & GK_REPOSITORY_STATE_MERGE_IN_PROGRESS) ? " merge_in_progress " : "", (session->repository->state & GK_REPOSITORY_STATE_SYNC_IN_PROGRESS) ? " sync_in_progress " : "", (session->repository->state & GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS) ? " background_sync_in_progress " : "");
         session->callbacks.state_changed_callback(session->id_ptr, session->repository, session->progress);
-        log_warn(COMP_SESSION, "DBG CBK1 callback returned");
     }
     else {
         log_info(COMP_SESSION, "Session's repository state change callback is NULL, no state change callback will be invoked");
