@@ -42,7 +42,7 @@ void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.g
 
     final oldState = session.state;
     session.state = SessionState.fromSessionPointer(session.session_ptr);
-    final updateEvent = SessionStateUpdateEvent.from(oldState:oldState, newState:session.state);
+    final updateEvent = SessionStateUpdateEvent.from(oldState:oldState, newState:session.state, error:session.lastError());
     session.notifySessionStateChanged(updateEvent);
   }
   catch (exc) {
@@ -145,6 +145,10 @@ class Session {
     return GitKebabException(lastResultCode(), lastResultMessage());
   }
 
+  GitKebabException? lastError() {
+    return lastResultCode() == gitkebab_lib.ResultCode.SUCCESS ? null : lastResultException();
+  }
+
   ////
   // Initialisation
   void initialize() {
@@ -197,6 +201,7 @@ class Session {
       updateStateWithLock();
       if (!state.backgroundSyncInProgress) {
         credential?.cleanupSession(session_ptr);
+        updateStateWithLock();
         return false;
       }
       return Future.delayed(const Duration(milliseconds: 10), () => true);
@@ -215,7 +220,7 @@ class Session {
     state = SessionState(session_ptr.ref.repository.ref.state,
         counter: session_ptr.ref.repository.ref.state_counter,
         progressPercent: progress);
-    notifySessionStateChanged(SessionStateUpdateEvent.from(oldState: oldState, newState: state));
+    notifySessionStateChanged(SessionStateUpdateEvent.from(oldState: oldState, newState: state, error:lastError()));
     if (GitKebab.lib.gk_session_state_unlock(session_ptr) != 0) {
       throw lastResultException();
     }

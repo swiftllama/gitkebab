@@ -19,5 +19,6 @@ extern log_Component COMP_MERGE;
 extern log_Component COMP_CONFLICTS;
 extern log_Component COMP_EXCTX;
 extern log_Component COMP_SESSION;
+extern log_Component COMP_SYNC;
 
 #endif // __GITKEBAB_LOG_COMPONENTS_H__

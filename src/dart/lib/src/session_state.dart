@@ -1,5 +1,5 @@
 import 'dart:ffi';
-
+import 'errors.dart';
 import 'gitkebab_lib.dart' as gitkebab_lib;
 
 class BooleanChange {
@@ -24,8 +24,9 @@ class BooleanChange {
 class SessionStateUpdateEvent {
   final SessionState newState;
   final SessionStateDiff diff;
-  SessionStateUpdateEvent({required this.newState, required this.diff});
-  SessionStateUpdateEvent.from({required SessionState oldState, required this.newState}): diff = SessionStateDiff.from(oldState: oldState, newState: newState);
+  final GitKebabException? error;
+  SessionStateUpdateEvent({required this.newState, required this.diff, this.error = null});
+  SessionStateUpdateEvent.from({required SessionState oldState, required this.newState, this.error = null}): diff = SessionStateDiff.from(oldState: oldState, newState: newState);
 }
 
 class SessionStateDiff {

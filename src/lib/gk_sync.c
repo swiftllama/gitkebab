@@ -25,7 +25,10 @@ static void *gk_background_sync_worker(void* session_ptr) {
 
 int gk_background_sync(gk_session* session) {
     const char *purpose = "session background sync";
-    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+    if (gk_session_context_sanity_check(session, &COMP_SYNC, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    if (gk_session_verify(session, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
@@ -36,16 +39,19 @@ int gk_background_sync(gk_session* session) {
     int rc = pthread_create(&thread_id, NULL, gk_background_sync_worker, (void *)session);
     
     if (rc != 0) {
+        if (gk_session_context_push(session, purpose, &COMP_SYNC, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+            return GK_FAILURE;
+        }
         if (rc == EAGAIN) {
             return gk_session_failure_ex(session, purpose, rc, "Encountered EAGAIN while starting sync background thread");
         }
         return gk_session_failure_ex(session, purpose, rc, "Error starting background sync thread");
     }
-    return gk_session_success(session, purpose);
+    return GK_SUCCESS;
 }
 
 int gk_sync(gk_session *session) {
-    const char *purpose = "session sync";
+    const char *purpose = "sync repository";
     if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
@@ -61,14 +67,13 @@ int gk_sync(gk_session *session) {
     }
 
     if (gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS)) {
-        int rc = gk_clone(session);
-        int trigger_rc = gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);
-        if ((rc == GK_SUCCESS) && (trigger_rc == GK_SUCCESS)) {
-            return gk_session_success(session, purpose);
-        }
-        else {
+        if (gk_clone(session) != GK_SUCCESS) {
+            gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);
             return gk_session_failure(session, purpose);
         }
+
+        gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);
+        return gk_session_success(session, purpose);
     }
 
     if (gk_status_summary_query(session) != GK_SUCCESS) {

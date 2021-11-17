@@ -221,7 +221,7 @@ int gk_session_trigger_repository_state_callback(gk_session *session) {
         session->callbacks.state_changed_callback(session->id_ptr, session->repository, session->progress);
     }
     else {
-        log_info(COMP_SESSION, "Session's repository state change callback is NULL, no state change callback will be invoked");
+        //log_info(COMP_SESSION, "Session's repository state change callback is NULL, no state change callback will be invoked");
     }
     return GK_SUCCESS;
 }
@@ -370,47 +370,57 @@ int gk_session_last_result_code(gk_session *session) {
 }
 
 int gk_session_state_lock(gk_session *session) {
-    const char *purpose = "lock state";
-    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+    const char *purpose = "lock session state lock";
+    if (gk_session_context_sanity_check(session, &COMP_SESSION, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    if (gk_session_verify(session, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
     int rc = pthread_mutex_lock((pthread_mutex_t *)session->state_lock);
     if (rc != 0) {
-        return gk_session_failure_ex(session, purpose, rc, "failed to lock state lock (error %d)", rc);
+        log_warn(COMP_SESSION, "failed to lock state lock (error %d)", rc);
     }
-    return gk_session_success(session, purpose);
+    return rc == 0 ? GK_SUCCESS : rc;
 }
 
 
+/*
 // NOTE: returns -1 on error, 0 on success (mutex is locked) and 1 if the mutex is currently locked
 int gk_session_state_trylock(gk_session *session) {
-    const char *purpose = "try lock state";
-    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+    if (gk_session_context_sanity_check(session, &COMP_SESSION, purpose) != GK_SUCCESS) {
+        return -1;
+    }
+    if (gk_session_verify(session, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK, purpose) != GK_SUCCESS) {
         return -1;
     }
 
     int rc = pthread_mutex_trylock((pthread_mutex_t *)session->state_lock);
     if ((rc == 0) || (rc == EAGAIN)) {
-        gk_session_success(session, purpose);
         return rc == 0 ? 0 : 1;
     }
 
-    return gk_session_failure_ex(session, purpose, rc, "try lock resulted in error %d", rc);
-}
+    return -1;
+}*/
 
 int gk_session_state_unlock(gk_session *session) {
-    const char *purpose = "unlock state";
-    if (gk_session_context_push(session, purpose, &COMP_CLONE, GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {
+    const char *purpose = "unlock session state lock";
+    if (gk_session_context_sanity_check(session, &COMP_SESSION, purpose) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    if (gk_session_verify(session, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK, purpose) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 
     int rc = pthread_mutex_unlock((pthread_mutex_t *)session->state_lock);
     if (rc == EPERM) {
-        return gk_session_failure_ex(session, purpose, rc, "failed to unlock state lock, unlock must be called from the same thread that locked the state");
+        log_warn(COMP_SESSION, "failed to unlock state lock, unlock must be called from the same thread that locked the state");
+        return GK_FAILURE;
     }
     if (rc != 0) {
-        return gk_session_failure_ex(session, purpose, rc, "failed to unlock state lock (error %d)", rc);
+        log_warn(COMP_SESSION, "failed to unlock state lock (error %d)", rc);
+        return GK_FAILURE;
     }
-    return gk_session_success(session, purpose);
+    return GK_SUCCESS;
 }

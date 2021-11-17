@@ -3071,6 +3071,11 @@ class GitKebabLib {
 
   log_Component get COMP_SESSION => _COMP_SESSION.ref;
 
+  late final ffi.Pointer<log_Component> _COMP_SYNC =
+      _lookup<log_Component>('COMP_SYNC');
+
+  log_Component get COMP_SYNC => _COMP_SYNC.ref;
+
   ffi.Pointer<gk_result> gk_result_new(
     int code,
     ffi.Pointer<ffi.Int8> message,
@@ -4894,21 +4899,6 @@ class GitKebabLib {
       _gk_session_unset_repository_state_with_callback =
       _gk_session_unset_repository_state_with_callback_ptr
           .asFunction<_dart_gk_session_unset_repository_state_with_callback>();
-
-  int gk_session_state_trylock(
-    ffi.Pointer<gk_session> session,
-  ) {
-    return _gk_session_state_trylock(
-      session,
-    );
-  }
-
-  late final _gk_session_state_trylock_ptr =
-      _lookup<ffi.NativeFunction<_c_gk_session_state_trylock>>(
-          'gk_session_state_trylock');
-  late final _dart_gk_session_state_trylock _gk_session_state_trylock =
-      _gk_session_state_trylock_ptr
-          .asFunction<_dart_gk_session_state_trylock>();
 
   int gk_session_state_lock(
     ffi.Pointer<gk_session> session,
@@ -9360,14 +9350,6 @@ typedef _c_gk_session_unset_repository_state_with_callback = ffi.Int32 Function(
 typedef _dart_gk_session_unset_repository_state_with_callback = int Function(
   ffi.Pointer<gk_session> session,
   int states,
-);
-
-typedef _c_gk_session_state_trylock = ffi.Int32 Function(
-  ffi.Pointer<gk_session> session,
-);
-
-typedef _dart_gk_session_state_trylock = int Function(
-  ffi.Pointer<gk_session> session,
 );
 
 typedef _c_gk_session_state_lock = ffi.Int32 Function(

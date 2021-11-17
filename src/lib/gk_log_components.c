@@ -16,3 +16,4 @@ log_Component COMP_MERGE = {LOG_WARN, "MERGE"};
 log_Component COMP_CONFLICTS = {LOG_WARN, "CONFLICTS"};
 log_Component COMP_EXCTX = {LOG_WARN, "EXECUTION-CONTEXT"};
 log_Component COMP_SESSION = {LOG_INFO, "SESSION"};
+log_Component COMP_SYNC = {LOG_INFO, "SYNC"};
