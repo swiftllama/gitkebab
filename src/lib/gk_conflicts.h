@@ -30,7 +30,7 @@ const char *gk_conflict_merged_buffer_with_conflict_markers(gk_session *session,
 void gk_conflict_merged_buffer_free(const char *buffer);
 
 
-int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, u_int64_t data_length);
+int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, size_t data_length);
 int gk_compare_blobs(gk_session *session, int *similarity, const char *blob1_oid_id, const char *blob2_oid_id);
 
 #endif // __GK_CONFLICTS_H__

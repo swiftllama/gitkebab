@@ -254,16 +254,16 @@ static gk_result *gk_session_internal_last_result(gk_session *session) {
     char *message = NULL;
     if (result_code != GK_SUCCESS) {
       message = (char *)malloc(message_length);
-      u_int64_t offset = 0;
+      size_t offset = 0;
   
       const char *prefix = "Cannot";
       context = session->context->child_context;
       while (context != NULL) {
           if (context->result != NULL) {
-              offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n -> %s (error %d)\n", prefix, context->purpose, gk_result_message(context->result), gk_result_code(context->result));
+              offset += snprintf((char *)((size_t)(message) + offset), message_length - offset - 1, "%s %s\n -> %s (error %d)\n", prefix, context->purpose, gk_result_message(context->result), gk_result_code(context->result));
           }
           else {
-              offset += snprintf((char *)((u_int64_t)(message) + offset), message_length - offset - 1, "%s %s\n", prefix, context->purpose);
+              offset += snprintf((char *)((size_t)(message) + offset), message_length - offset - 1, "%s %s\n", prefix, context->purpose);
           }
           offset -= 1; // don't null-terminate for now
           context = context->child_context;

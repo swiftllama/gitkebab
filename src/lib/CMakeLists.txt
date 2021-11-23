@@ -56,8 +56,15 @@ add_library(gitkebab_static STATIC $<TARGET_OBJECTS:gitkebab_objects>)
 
 target_include_directories(gitkebab_static INTERFACE ./) # allow dependencies to find gitkebab's headers
 target_include_directories(gitkebab INTERFACE ./) # allow dependencies to find gitkebab's headers
-  
-target_link_libraries(gitkebab ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib})
+
+
+#target_link_libraries(gitkebab_static ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib})
+#ENDIF()
+target_link_libraries(gitkebab ${Z_lib} ${PCRE_lib} ${LIBGIT2_lib} ${LIBSSH2_lib} ${OPENSSL_lib} ${CRYPTO_lib})
+
+if ("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
+  target_link_libraries(gitkebab -luuid -lwinhttp -lwsock32 -lcrypt32 -lws2_32 -lrpcrt4)
+endif()
 
 if (APPLE)
    target_link_libraries(gitkebab "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")

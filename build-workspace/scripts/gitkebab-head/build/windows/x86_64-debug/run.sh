@@ -11,4 +11,5 @@ docker run -v${PWD}:${PWD} -w${PWD} --user ${USER_ID} mmozeiko/mingw-w64 /bin/ba
 
 echo "--- Exiting docker build environment ---"
 
-${BUILD_SCRIPTS}/run-direct-2_generate-dart-bindings.sh
+echo "--- Skipping dart binding generations on windows ---"
+#${BUILD_SCRIPTS}/run-direct-2_generate-dart-bindings.sh

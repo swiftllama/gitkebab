@@ -14,7 +14,10 @@
 #include <ftw.h>
 #include <string.h>
 #include "gk_logging.h"
-
+#if defined(_WIN32) || defined(__WIN32__)
+//NOTE: mingw include for _mkdir
+#include <direct.h>
+#endif
 
 int directory_exists(const char* path) {
     DIR* dir = opendir(path);
@@ -56,11 +59,11 @@ int rm_rf(const char *path) {
 }
 
 int create_directory(const char *path) {
-    int rc = mkdir(path, 0755);
-    if (rc != 0) {
-        log_error(COMP_TEST, "Error (%d) creating directory '%s': %s", errno, path, strerror(errno));
-    }
-    return rc;
+#if defined(_WIN32) || defined(__WIN32__)
+    return _mkdir(path);
+#else
+    return mkdir(path, 0755);
+#endif
 }
 
 int copy_file(const char *source_path, const char *dest_path) {

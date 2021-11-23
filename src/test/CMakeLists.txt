@@ -10,14 +10,24 @@ add_custom_target(all_tests)
   
 function(addTest NAME)
   add_executable(test_${NAME} test_${NAME}.c gk_test_filesystem_utils.c gk_test_env_utils.c)
-  set(LINK_LIBS ${CMOCKA_lib} gitkebab_static ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib} dl)
+  set(LINK_LIBS ${CMOCKA_lib} gitkebab_static ${LIBGIT2_lib} ${Z_lib} ${PCRE_lib} ${LIBSSH2_lib} ${OPENSSL_lib} ${CRYPTO_lib})
+  
+  if ("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
+    list(APPEND LINK_LIBS -luuid -lwinhttp -lwsock32 -lcrypt32 -lws2_32 -lrpcrt4)
+  else()
+    list(APPEND LINK_LIBS -ldl)
+  endif()
+  
   if (NOT ANDROID)
     list(APPEND LINK_LIBS pthread)
   endif()
+  
   target_link_libraries(test_${NAME} ${LINK_LIBS})
+  
   if (APPLE)
    target_link_libraries(test_${NAME} "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
-endif()
+ endif()
+ 
   add_test(NAME Test_${NAME}
     COMMAND test_${NAME})
   add_dependencies(all_tests test_${NAME})

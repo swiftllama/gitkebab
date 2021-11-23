@@ -24,6 +24,7 @@ static void *gk_background_sync_worker(void* session_ptr) {
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS);
     log_warn(COMP_SYNC, "after unsetting code is: %d [%s]", gk_session_last_result_code(session), gk_session_last_result_message(session));
     pthread_exit(NULL);
+    return NULL;
 }
 
 int gk_background_sync(gk_session* session) {

@@ -388,7 +388,7 @@ void gk_conflict_merged_buffer_free(const char *buffer) {
 // conflict in the MERGE index. If this merge is abandoned it could
 // potentially leave this dangling blob which would eventually simply
 // get recycled
-int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, u_int64_t data_length) {
+int gk_conflict_resolve_from_buffer(gk_session *session, const char *path, void *data, size_t data_length) {
     const char *purpose = "resolve conflict by accepting data from buffer";
     if (gk_session_context_push(session, purpose, &COMP_CONFLICTS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT | GK_REPOSITORY_VERIFY_MERGE_INDEX_LOADED) != GK_SUCCESS) {
         return GK_FAILURE;
