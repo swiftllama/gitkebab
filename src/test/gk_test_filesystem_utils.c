@@ -42,6 +42,7 @@ int parent_directory_exists(const char* path) {
     return system(command);
 }
 
+#if !defined(_WIN32) && !defined(__WIN32__)
 static int rm_rf_unlink_path(const char *path, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
     (void) sb;
     (void) typeflag;
@@ -53,9 +54,19 @@ static int rm_rf_unlink_path(const char *path, const struct stat *sb, int typefl
     }
     return rc;
 }
+#endif
 
 int rm_rf(const char *path) {
+#if defined(_WIN32) || defined(__WIN32__)
+    char command[1024];
+    snprintf(command, 1023, "rmdir /s/q \"%s\"", path);
+    printf("DBG executing command [%s]\n", command);
+    int rc = system(command);
+    printf("DBG did execute command\n");
+    return rc;
+#else
     return nftw(path, rm_rf_unlink_path, 64, FTW_DEPTH | FTW_PHYS);
+#endif
 }
 
 int create_directory(const char *path) {
@@ -110,6 +121,10 @@ int mv(const char *source_path, const char *dest_path) {
 
 
 void prepare_error_listing(const char *error_listing_name) {
+#if defined(_WIN32) || defined(__WIN32__)
+    (void) error_listing_name; // unused
+    printf("Error listing not implemented on windows, see gk_test_filesystem_utils.c\n");
+#else
     char catalog_path[256];
     snprintf(catalog_path, 256, "test-staging/error-catalog-%s", error_listing_name);
     rm_rf(catalog_path);
@@ -117,9 +132,17 @@ void prepare_error_listing(const char *error_listing_name) {
     snprintf(cp_command, 2048, "touch %s", catalog_path);
     int rc = system(cp_command);
     (void) rc;
+#endif
 }
 
 void append_to_error_listing(const char *error_listing_name, const char *scenario, const char *returned_error_code, const char *context_stack_trace) {
+#if defined(_WIN32) || defined(__WIN32__)
+    (void) error_listing_name; //unused
+    (void) scenario;
+    (void) returned_error_code;
+    (void) context_stack_trace;
+    printf("append to error listing  not implemented on windows, see gk_test_filesystem_utils.c\n");
+#else
     char catalog_path[256];
     snprintf(catalog_path, 256, "test-staging/error-catalog-%s", error_listing_name);   
     FILE *write_stream = fopen(catalog_path, "a");
@@ -134,4 +157,5 @@ void append_to_error_listing(const char *error_listing_name, const char *scenari
     fwrite(context_stack_trace, 1, strlen(context_stack_trace), write_stream);
     fwrite("\n", 1, 1, write_stream);
     fclose(write_stream);
+#endif
 }

@@ -12,7 +12,9 @@
 #include <stdarg.h>
 #include <stdbool.h>
 // NOTE: defines e.g. localtime_r on windows (assuming MingW)
+#ifndef _POSIX_THREAD_SAFE_FUNCTIONS
 #define _POSIX_THREAD_SAFE_FUNCTIONS
+#endif
 #include <time.h>
 
 #define LOG_VERSION "0.1.0"
