@@ -93,6 +93,7 @@ void gk_repository_free(gk_repository *repository) {
     gk_repository_spec_free_members(&repository->spec);
     gk_conflicts_free(repository);
     gk_lg2_free_all_but_repository(repository);
+    gk_lg2_repository_free(repository);
     free(repository->lg2_resources);
     free(repository);
 }
