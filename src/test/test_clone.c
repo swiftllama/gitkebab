@@ -153,32 +153,14 @@ static void test_clone_delete_clone(void **state) {
     gk_session_free(session);
 }
 
-*/
-static void test_simplified_windows_crash(void **state) {
-    (void) state; // unused
-
-    gk_session *session = gk_session_new("./fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-1", "git", &gk_test_state_change_callback, NULL);
-    gk_session_initialize(session);
-    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
-
-    printf("DBG Z8--------------\n");
-    gk_status_summary_query(session);
-    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
-
-    gk_clone(session);
-    
-    gk_session_free(session);
-}
-
 int main(void) {
     const struct CMUnitTest tests[] = {
-        //cmocka_unit_test_setup(test_clone_simple, test_setup),
-        //cmocka_unit_test_setup(test_clone_bad_source_path, test_setup),
-        //cmocka_unit_test_setup(test_clone_null_dest_path, test_setup),
-        //cmocka_unit_test_setup(test_initialize_dest_path_empty_existing_regular_dir, test_setup),
-        //cmocka_unit_test_setup(test_initialize_dest_path_nonempty_existing_regular_dir, test_setup),
-        //cmocka_unit_test_setup(test_clone_delete_clone, test_setup),
-        cmocka_unit_test_setup(test_simplified_windows_crash, test_setup)
+        cmocka_unit_test_setup(test_clone_simple, test_setup),
+        cmocka_unit_test_setup(test_clone_bad_source_path, test_setup),
+        cmocka_unit_test_setup(test_clone_null_dest_path, test_setup),
+        cmocka_unit_test_setup(test_initialize_dest_path_empty_existing_regular_dir, test_setup),
+        cmocka_unit_test_setup(test_initialize_dest_path_nonempty_existing_regular_dir, test_setup),
+        cmocka_unit_test_setup(test_clone_delete_clone, test_setup)
     };
 
     if (directory_exists("fixtures") != 0) {
