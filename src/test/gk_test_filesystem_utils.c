@@ -60,9 +60,7 @@ int rm_rf(const char *path) {
 #if defined(_WIN32) || defined(__WIN32__)
     char command[1024];
     snprintf(command, 1023, "rmdir /s/q \"%s\"", path);
-    printf("DBG executing command [%s]\n", command);
     int rc = system(command);
-    printf("DBG did execute command\n");
     return rc;
 #else
     return nftw(path, rm_rf_unlink_path, 64, FTW_DEPTH | FTW_PHYS);

@@ -69,51 +69,51 @@ int gk_test_state_count_disabled(gk_repository_state state) {
 }
 
 void gk_test_copy_source_repo_simplerepo1_dot_git() {
-    if (directory_exists("test-staging/simple-repo1.git") == 0) {
-        rm_rf("test-staging/simple-repo1.git");
+    if (directory_exists("./test-staging/simple-repo1.git") == 0) {
+        rm_rf("./test-staging/simple-repo1.git");
     }
-    copy_directory("./fixtures/simple-repo1.git", "test-staging/simple-repo1.git");
+    copy_directory("./fixtures/simple-repo1.git", "./test-staging/simple-repo1.git");
 }
 
 void gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak() {
     gk_test_delete_simplerepo1();
-    copy_directory("./fixtures/simple-repo1.gitbak", "test-staging/simple-repo1");
-    mv("test-staging/simple-repo1/.gitbak", "test-staging/simple-repo1/.git");
+    copy_directory("./fixtures/simple-repo1.gitbak", "./test-staging/simple-repo1");
+    mv("./test-staging/simple-repo1/.gitbak", "./test-staging/simple-repo1/.git");
 }
 
 void gk_test_copy_simplerepo1_from_simplerepo1B_mergeconflicts_dot_gitbak() {
     gk_test_delete_simplerepo1B_mergeconflicts();
-    copy_directory("./fixtures/simple-repo1-B_merge-conflicts.gitbak", "test-staging/simple-repo1-B_merge-conflicts");
-    mv("test-staging/simple-repo1-B_merge-conflicts/.gitbak", "test-staging/simple-repo1-B_merge-conflicts/.git");
+    copy_directory("./fixtures/simple-repo1-B_merge-conflicts.gitbak", "./test-staging/simple-repo1-B_merge-conflicts");
+    mv("./test-staging/simple-repo1-B_merge-conflicts/.gitbak", "./test-staging/simple-repo1-B_merge-conflicts/.git");
 }
 
 void gk_test_delete_simplerepo1() {
-    if (directory_exists("test-staging/simple-repo1") == 0) {
-        rm_rf("test-staging/simple-repo1");
+    if (directory_exists("./test-staging/simple-repo1") == 0) {
+        rm_rf("./test-staging/simple-repo1");
     }
 }
 
 void gk_test_delete_simplerepo1A() {
-    if (directory_exists("test-staging/simple-repo1-A") == 0) {
-        rm_rf("test-staging/simple-repo1-A");
+    if (directory_exists("./test-staging/simple-repo1-A") == 0) {
+        rm_rf("./test-staging/simple-repo1-A");
     }
 }
 
 void gk_test_delete_simplerepo1B() {
-    if (directory_exists("test-staging/simple-repo1-B") == 0) {
-        rm_rf("test-staging/simple-repo1-B");
+    if (directory_exists("./test-staging/simple-repo1-B") == 0) {
+        rm_rf("./test-staging/simple-repo1-B");
     }
 }
 
 void gk_test_delete_simplerepo1B_mergeconflicts() {
-    if (directory_exists("test-staging/simple-repo1-B_merge-conflicts") == 0) {
-        rm_rf("test-staging/simple-repo1-B_merge-conflicts");
+    if (directory_exists("./test-staging/simple-repo1-B_merge-conflicts") == 0) {
+        rm_rf("./test-staging/simple-repo1-B_merge-conflicts");
     }
 }
 
 void gk_test_delete_simplerepo1_dot_git() {
-    if (directory_exists("test-staging/simple-repo1.git") == 0) {
-        rm_rf("test-staging/simple-repo1.git");
+    if (directory_exists("./test-staging/simple-repo1.git") == 0) {
+        rm_rf("./test-staging/simple-repo1.git");
     }
 }
 
@@ -201,31 +201,31 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     ////
     
     // modify file1 (should conflict with delete)
-    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file1");
+    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "./test-staging/simple-repo1-A/file1");
     assert_int_equal(rc, 0);
     
     // delete file2 (should conflict should conflict with modification)
-    rc = rm_rf("test-staging/simple-repo1-A/file2");
+    rc = rm_rf("./test-staging/simple-repo1-A/file2");
     assert_int_equal(rc, 0);
     
     // modify file 3 (should conflict with incompatible edit)
-    rc = copy_file("fixtures/simple-repo1-modifications/file3-mod-incompatible-a", "test-staging/simple-repo1-A/file3");
+    rc = copy_file("fixtures/simple-repo1-modifications/file3-mod-incompatible-a", "./test-staging/simple-repo1-A/file3");
     assert_int_equal(rc, 0);
     
     // modify file 4 (should conflict with incompatible edit)
-    rc = copy_file("fixtures/simple-repo1-modifications/file4-mod-incompatible-a", "test-staging/simple-repo1-A/file4");
+    rc = copy_file("fixtures/simple-repo1-modifications/file4-mod-incompatible-a", "./test-staging/simple-repo1-A/file4");
     assert_int_equal(rc, 0);
     
     // modify file 5 (should conflict with directory of same name)
-    rc = copy_file("fixtures/simple-repo1-modifications/file5-mod-compatible-a", "test-staging/simple-repo1-A/file5");
+    rc = copy_file("fixtures/simple-repo1-modifications/file5-mod-compatible-a", "./test-staging/simple-repo1-A/file5");
     assert_int_equal(rc, 0);
 
     // create binary file 6 (should conflict with new text file)
-    rc = copy_file("fixtures/simple-repo1-modifications/green.png", "test-staging/simple-repo1-A/file6");
+    rc = copy_file("fixtures/simple-repo1-modifications/green.png", "./test-staging/simple-repo1-A/file6");
     assert_int_equal(rc, 0);
 
     // create same new file 7 (should NOT conflict with identical file)
-    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file7");
+    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "./test-staging/simple-repo1-A/file7");
     assert_int_equal(rc, 0);
 
     // commit and push
@@ -247,34 +247,34 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     ////
     
     // delete file1 (should conflict)
-    rc = rm_rf("test-staging/simple-repo1-B/file1");
+    rc = rm_rf("./test-staging/simple-repo1-B/file1");
     assert_int_equal(rc, 0);
     
     // modify file2 (should conflict)
-    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file2");
+    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "./test-staging/simple-repo1-B/file2");
     assert_int_equal(rc, 0);
 
     // modify file 3 in incomptabile ways (should conflict)
-    rc = copy_file("fixtures/simple-repo1-modifications/file3-mod-incompatible-b", "test-staging/simple-repo1-B/file3");
+    rc = copy_file("fixtures/simple-repo1-modifications/file3-mod-incompatible-b", "./test-staging/simple-repo1-B/file3");
     assert_int_equal(rc, 0);
 
     // modify file 4 in incompatible ways (should conflict)
-    rc = copy_file("fixtures/simple-repo1-modifications/file4-mod-incompatible-b", "test-staging/simple-repo1-B/file4");
+    rc = copy_file("fixtures/simple-repo1-modifications/file4-mod-incompatible-b", "./test-staging/simple-repo1-B/file4");
     assert_int_equal(rc, 0);
 
     // Delete file5 and create a directory in its place (should conflict)
-    rc = rm_rf("test-staging/simple-repo1-B/file5");
+    rc = rm_rf("./test-staging/simple-repo1-B/file5");
     assert_int_equal(rc, 0);
-    rc = create_directory("test-staging/simple-repo1-B/file5");    
+    rc = create_directory("./test-staging/simple-repo1-B/file5");    
     assert_int_equal(rc, 0);
-    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file5/child1");
+    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "./test-staging/simple-repo1-B/file5/child1");
     
     // create text file 6 (should conflict)
-    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-B/file6");
+    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "./test-staging/simple-repo1-B/file6");
     assert_int_equal(rc, 0);
 
     // create same new file 7 (should NOT conflict)
-    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1-A/file7");
+    rc = copy_file("fixtures/simple-repo1-modifications/file1-modified", "./test-staging/simple-repo1-A/file7");
     assert_int_equal(rc, 0);
 
     // commit but don't push
