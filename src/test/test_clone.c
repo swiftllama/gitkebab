@@ -6,7 +6,6 @@
 #include "gitkebab.h"
 #include "gk_test_filesystem_utils.h"
 #include "gk_test_env_utils.h"
-
 const char *error_listing = "clone";
 
 static int test_staging_setup(void **state) {
@@ -29,7 +28,7 @@ static int test_staging_setup(void **state) {
 }
 
 static int test_staging_teardown(void **state) {
-    (void) state; /* unused */
+    (void) state; // unused
 
     return 0;
 }
@@ -68,7 +67,7 @@ static void test_clone_simple(void **state) {
 }
 
 static void test_clone_bad_source_path(void **state) {
-    (void) state; /* unused */
+    (void) state; // unused
     
     gk_session *session = gk_session_new("test-staging/tmp/non-existent-path/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-2", "git", NULL, NULL);
     gk_session_initialize(session);
@@ -84,9 +83,8 @@ static void test_clone_bad_source_path(void **state) {
 
     gk_session_free(session);
 }
-
 static void test_clone_null_dest_path(void **state) {
-    (void) state; /* unused */
+    (void) state; // unused
     
     gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, NULL, "git", NULL, NULL);
     gk_session_initialize(session);
@@ -101,7 +99,7 @@ static void test_clone_null_dest_path(void **state) {
 }
 
 static void test_initialize_dest_path_empty_existing_regular_dir(void **state) {
-    (void) state; /* unused */
+    (void) state; // unused
     
     gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/empty-dir1", "git", NULL, NULL);
     gk_session_initialize(session);
@@ -112,7 +110,7 @@ static void test_initialize_dest_path_empty_existing_regular_dir(void **state) {
 }
 
 static void test_initialize_dest_path_nonempty_existing_regular_dir(void **state) {
-    (void) state; /* unused */
+    (void) state; // unused
 
     gk_session *session = gk_session_new("fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "test-staging/nonempty-dir1", "git", NULL, NULL);
     gk_session_initialize(session);
