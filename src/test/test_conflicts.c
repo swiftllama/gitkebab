@@ -74,7 +74,7 @@ static void test_conflicts_various_types(void **state) {
     
     gk_session_free(session1);
     gk_session_free(session2);
-}
+    }
 
 static void test_conflicts_local_delete_remote_edit_file1(void **state) {
     (void) state;

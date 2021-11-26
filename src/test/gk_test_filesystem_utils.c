@@ -138,9 +138,16 @@ int copy_directory(const char *source_path, const char *dest_path) {
 }
 
 int diff(const char *source_path, const char *dest_path) {
-    char cp_command[2048];
-    snprintf(cp_command, 2048, "diff %s %s", source_path, dest_path);
-    return system(cp_command);
+    char command[2048];
+#if defined(_WIN32) || defined(__WIN32__)
+    snprintf(command, 2048, "fc %s %s", source_path, dest_path);
+    for (int i = 0; i < 2048; i += 1) {
+        if (command[i] == '/') command[i] = '\\';
+    }
+#else
+    snprintf(command, 2048, "diff %s %s", source_path, dest_path);
+#endif
+    return system(command);
 }
 
 int mv(const char *source_path, const char *dest_path) {

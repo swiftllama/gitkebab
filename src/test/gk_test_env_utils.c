@@ -205,7 +205,7 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     assert_int_equal(rc, 0);
     
     // delete file2 (should conflict should conflict with modification)
-    rc = rm_rf("./test-staging/simple-repo1-A/file2");
+    rc = rm_file("./test-staging/simple-repo1-A/file2");
     assert_int_equal(rc, 0);
     
     // modify file 3 (should conflict with incompatible edit)
@@ -247,7 +247,7 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     ////
     
     // delete file1 (should conflict)
-    rc = rm_rf("./test-staging/simple-repo1-B/file1");
+    rc = rm_file("./test-staging/simple-repo1-B/file1");
     assert_int_equal(rc, 0);
     
     // modify file2 (should conflict)
@@ -263,7 +263,7 @@ void gk_test_env_conflicting_repos_a_and_b_with_extended_conflicts(gk_session **
     assert_int_equal(rc, 0);
 
     // Delete file5 and create a directory in its place (should conflict)
-    rc = rm_rf("./test-staging/simple-repo1-B/file5");
+    rc = rm_file("./test-staging/simple-repo1-B/file5");
     assert_int_equal(rc, 0);
     rc = create_directory("./test-staging/simple-repo1-B/file5");    
     assert_int_equal(rc, 0);
