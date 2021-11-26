@@ -137,7 +137,18 @@ static void test_clone_delete_clone(void **state) {
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
     assert_int_equal(gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
 
+#if defined(_WIN32) || defined(__WIN32__)
+    // NOTE: on windows can't delete a repository until it is closed/freed, this
+    //       changes the nature of the test but that seems to be best
+    gk_session_free(session);
+#endif
+    
     rm_rf("./test-staging/clone-test-1");
+
+#if defined(_WIN32) || defined(__WIN32__)
+    session = gk_session_new("./fixtures/simple-repo1.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/clone-test-1", "git", &gk_test_state_change_callback, NULL);
+    gk_session_initialize(session);
+#endif
 
     gk_status_summary_query(session);
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);

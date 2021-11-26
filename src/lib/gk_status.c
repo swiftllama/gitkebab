@@ -42,7 +42,7 @@ void gk_status_summary_close(gk_session *session) {
 
 int gk_status_summary_query(gk_session *session) {
     const char *purpose = "query status";
-    if (gk_session_context_push(session, purpose, &COMP_STATUS, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_STATUS, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
         return GK_FAILURE;
     }
 

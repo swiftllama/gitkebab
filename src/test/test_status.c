@@ -29,6 +29,7 @@ static int test_staging_clean_repo_setup(void **state) {
     return 0;
 }
 
+
 static void test_status_without_open_repo(void **state) {
     (void) state;
     
@@ -42,7 +43,7 @@ static void test_status_without_open_repo(void **state) {
     assert_non_null(strstr(gk_session_last_result_message(session), "repository not initialized"));
     
     gk_session_free(session);
-}
+    }
 
 static void test_status_no_changes(void **state) {
     (void) state;
@@ -67,15 +68,15 @@ static void test_status_no_changes(void **state) {
                                 
     gk_status_summary_close(session);
     gk_session_free(session);
-}
+    }
 
 static void test_status_new_file_modified_file_deleted_file(void **state) {
     (void) state;
     
-    copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
-    copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
-    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
-    rm_rf("test-staging/simple-repo1/file2");
+    copy_file("./test-staging/simple-repo1/file1", "./test-staging/simple-repo1/new-file");
+    copy_file("./test-staging/simple-repo1/file1", "./test-staging/simple-repo1/ignored-file1");
+    copy_file("./fixtures/simple-repo1-modifications/file1-modified", "./test-staging/simple-repo1/file1");
+    rm_file("./test-staging/simple-repo1/file2");
     
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
@@ -106,8 +107,8 @@ static void test_status_new_file_modified_file_deleted_file(void **state) {
 static void test_status_renamed_file(void **state) {
     (void) state;
     
-    copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file");
-    rm_rf("test-staging/simple-repo1/file1");
+    copy_file("./test-staging/simple-repo1/file1", "./test-staging/simple-repo1/new-file");
+    rm_file("./test-staging/simple-repo1/file1");
     
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);

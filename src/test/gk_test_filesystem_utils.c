@@ -18,7 +18,7 @@
 //NOTE: mingw include for _mkdir
 #include <direct.h>
 #endif
-
+                   
 int directory_exists(const char* path) {
     DIR* dir = opendir(path);
     if (dir) {
@@ -56,6 +56,22 @@ static int rm_rf_unlink_path(const char *path, const struct stat *sb, int typefl
 }
 #endif
 
+int rm_file(const char *file_path) {
+#if defined(_WIN32) || defined(__WIN32__)
+    char command[1024];
+    snprintf(command, 1023, "del \"%s\"", file_path);
+    for (int i = 0; i < 1024; i += 1) {
+        if (command[i] == '/') command[i] = '\\';
+    }
+    printf("DBG executing command [%s]\n", command);
+    int rc = system(command);
+    printf("DBG done\n");
+    return rc;
+#else
+    return rm_rf(file_path);
+#endif
+}
+
 int rm_rf(const char *path) {
 #if defined(_WIN32) || defined(__WIN32__)
     char command[1024];
@@ -76,6 +92,17 @@ int create_directory(const char *path) {
 }
 
 int copy_file(const char *source_path, const char *dest_path) {
+#if defined(_WIN32) || defined(__WIN32__)
+    char cp_command[2048];
+    snprintf(cp_command, 2048, "copy %s %s", source_path, dest_path);
+    for (int i = 0; i < 2048; i += 1) {
+        if (cp_command[i] == '/') cp_command[i] = '\\';
+    }
+    printf("DBG executing [%s]\n", cp_command);
+    int rc = system(cp_command);
+    printf("DBG executed command\n");
+    return rc;
+#else
     if (file_exists(source_path) != 0) {
         log_error(COMP_TEST, "Cannot copy [%s] to [%s], source file does not exist", source_path, dest_path);
         return 1;
@@ -96,12 +123,17 @@ int copy_file(const char *source_path, const char *dest_path) {
     fclose(read_stream);
     fclose(write_stream);
     return 0;
+#endif
 }
 
 
 int copy_directory(const char *source_path, const char *dest_path) {
     char cp_command[2048];
+#if defined(_WIN32) || defined(__WIN32__)
+    snprintf(cp_command, 2048, "robocopy /np /ndl /nfl /nc /ns /njh /njs /E %s %s", source_path, dest_path);
+#else
     snprintf(cp_command, 2048, "cp -PR %s %s", source_path, dest_path);
+#endif
     return system(cp_command);
 }
 
@@ -112,9 +144,13 @@ int diff(const char *source_path, const char *dest_path) {
 }
 
 int mv(const char *source_path, const char *dest_path) {
+#if defined(_WIN32) || defined(__WIN32__)
+    return rename(source_path, dest_path);
+#else
     char mv_command[2048];
     snprintf(mv_command, 2048, "mv %s %s", source_path, dest_path);
     return system(mv_command);
+#endif
 }
 
 

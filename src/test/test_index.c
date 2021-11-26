@@ -33,7 +33,7 @@ static void test_index_add_remove_individual_files(void **state) {
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file2");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
     copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
-    rm_rf("test-staging/simple-repo1/file2");
+    rm_file("test-staging/simple-repo1/file2");
     
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
@@ -78,7 +78,7 @@ static void test_index_update_all(void **state) {
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file2");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
     copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
-    rm_rf("test-staging/simple-repo1/file2");
+    rm_file("test-staging/simple-repo1/file2");
 
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
@@ -120,7 +120,7 @@ static void test_index_add_all(void **state) {
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file2");
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/ignored-file1");
     copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
-    rm_rf("test-staging/simple-repo1/file2");
+    rm_file("test-staging/simple-repo1/file2");
 
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);

@@ -4,6 +4,7 @@
 
 int directory_exists(const char* path);
 int file_exists(const char *path);
+int rm_file(const char *file_path);
 int rm_rf(const char* path);
 int create_directory(const char *path);
 int copy_file(const char *source_path, const char *dest_path);
