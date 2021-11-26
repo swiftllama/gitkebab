@@ -56,6 +56,17 @@ static int rm_rf_unlink_path(const char *path, const struct stat *sb, int typefl
 }
 #endif
 
+int rm_rf(const char *path) {
+#if defined(_WIN32) || defined(__WIN32__)
+    char command[1024];
+    snprintf(command, 1023, "rmdir /s/q \"%s\"", path);
+    int rc = system(command);
+    return rc;
+#else
+    return nftw(path, rm_rf_unlink_path, 64, FTW_DEPTH | FTW_PHYS);
+#endif
+}
+
 int rm_file(const char *file_path) {
 #if defined(_WIN32) || defined(__WIN32__)
     char command[1024];
@@ -69,17 +80,6 @@ int rm_file(const char *file_path) {
     return rc;
 #else
     return rm_rf(file_path);
-#endif
-}
-
-int rm_rf(const char *path) {
-#if defined(_WIN32) || defined(__WIN32__)
-    char command[1024];
-    snprintf(command, 1023, "rmdir /s/q \"%s\"", path);
-    int rc = system(command);
-    return rc;
-#else
-    return nftw(path, rm_rf_unlink_path, 64, FTW_DEPTH | FTW_PHYS);
 #endif
 }
 
