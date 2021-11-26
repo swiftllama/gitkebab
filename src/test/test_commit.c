@@ -101,7 +101,7 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
 
     copy_file("test-staging/simple-repo1/file1", "test-staging/simple-repo1/new-file1");
     copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
-    rm_rf("test-staging/simple-repo1/file2");
+    rm_file("test-staging/simple-repo1/file2");
 
     gk_session *session = gk_test_session_from_local_path("./test-staging/simple-repo1");
     assert_non_null(session);
