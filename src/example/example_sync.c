@@ -14,12 +14,10 @@ char *judo_key_pub = NULL;
 void session_state_changed(const char *session_id, gk_repository *repository, gk_session_progress *progress) {
     (void) repository;
     const char *sess_id = session_id == NULL ? "(unknown sess id)" : session_id;
-    if (progress != NULL) {
+    if (progress != NULL)
         printf("[SESSION PROGRESS] (session %s) %s (TOTAL: %d%%)\n", sess_id, progress->description, progress->percent);
-    }
-    else {
+    else
         printf("[SESSION PROGRESS] (session %s) ...\n", sess_id);
-    }
 }
 
 int main(int argc, char **argv) {
@@ -29,16 +27,15 @@ int main(int argc, char **argv) {
     COMP_INIT.level = LOG_TRACE;
     
     gk_init();
-    //gk_libgit2_set_log_level(LOG_DEBUG);
-
     gk_session *session = gk_session_new("git@gitea.ptskl.com:volund/experimental-notebook.git", GK_REPOSITORY_SOURCE_URL_SSH, "/tmp/clone1", "git", &session_state_changed, NULL);
 
-    gk_session_initialize(session);
+    gk_session_initialize(session
+                          );
     if (gk_session_last_result_code(session) != GK_SUCCESS) {
         printf("Error #%d occurred while initializing session: %s\n", gk_session_last_result_code(session), gk_session_last_result_message(session));
     }
     gk_session_credential_ssh_key_memory_init(session, "git", judo_key, judo_key_pub, NULL);
-    gk_clone(session);
+    gk_sync(session);
     
     if (gk_session_last_result_code(session) == GK_SUCCESS) {
         printf("cloned successfully!\n");

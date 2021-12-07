@@ -23,7 +23,6 @@ static void *gk_background_sync_worker(void* session_ptr) {
     // NOTE: don't trigger a callback for background sync (background syncs rely on polling not callbacks)
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS);
     log_warn(COMP_SYNC, "after unsetting code is: %d [%s]", gk_session_last_result_code(session), gk_session_last_result_message(session));
-    pthread_exit(NULL);
     return NULL;
 }
 
@@ -41,6 +40,7 @@ int gk_background_sync(gk_session* session) {
     
     pthread_t thread_id;
     int rc = pthread_create(&thread_id, NULL, gk_background_sync_worker, (void *)session);
+    pthread_detach(thread_id);
     
     if (rc != 0) {
         if (gk_session_context_push(session, purpose, &COMP_SYNC, GK_REPOSITORY_VERIFY_INITIALIZED | GK_REPOSITORY_VERIFY_STATE_LOCK) != GK_SUCCESS) {

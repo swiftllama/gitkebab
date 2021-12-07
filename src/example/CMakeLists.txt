@@ -1,4 +1,6 @@
 add_executable(example1 main.c)
+add_executable(example_sync example_sync.c)
+add_executable(example_background_sync example_background_sync.c)
 
 set(LINK_LIBS ${LIBGIT2_lib} ${Z_lib} ${PCRE_lib} ${LIBSSH2_lib} ${OPENSSL_lib} ${CRYPTO_lib})
 if (NOT ANDROID)
@@ -9,10 +11,17 @@ if ("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
 else()
   list(APPEND LINK_LIBS dl)
 endif()
+
 target_link_libraries(example1 gitkebab_static ${LINK_LIBS})
+target_link_libraries(example_sync gitkebab_static ${LINK_LIBS})
+target_link_libraries(example_background_sync gitkebab_static ${LINK_LIBS})
 
 if (APPLE)
-   target_link_libraries(example1 "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+  target_link_libraries(example1 "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+  target_link_libraries(example_sync "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+  target_link_libraries(example_background_sync "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
 endif()
 
 install(TARGETS example1 DESTINATION bin)
+install(TARGETS example_sync DESTINATION bin)
+install(TARGETS example_background_sync DESTINATION bin)
