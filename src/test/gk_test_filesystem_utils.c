@@ -74,9 +74,8 @@ int rm_file(const char *file_path) {
     for (int i = 0; i < 1024; i += 1) {
         if (command[i] == '/') command[i] = '\\';
     }
-    printf("DBG executing command [%s]\n", command);
+    printf("executing rm-file command [%s]\n", command);
     int rc = system(command);
-    printf("DBG done\n");
     return rc;
 #else
     return rm_rf(file_path);
@@ -98,9 +97,8 @@ int copy_file(const char *source_path, const char *dest_path) {
     for (int i = 0; i < 2048; i += 1) {
         if (cp_command[i] == '/') cp_command[i] = '\\';
     }
-    printf("DBG executing [%s]\n", cp_command);
+    printf("executing copy-file command [%s]\n", cp_command);
     int rc = system(cp_command);
-    printf("DBG executed command\n");
     return rc;
 #else
     if (file_exists(source_path) != 0) {

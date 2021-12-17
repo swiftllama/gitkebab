@@ -432,7 +432,7 @@ int gk_lg2_iterate_conflicts(gk_session *session) {
         num_conflicts += 1;
     }
 
-    log_info(COMP_MERGE, "Done iteratoring over conflicts (err: %d)", (rc != GIT_ITEROVER ? rc : 0));
+    log_info(COMP_CONFLICTS, "Done iteratoring over [%zu] conflicts (err: %d)", num_conflicts, (rc != GIT_ITEROVER ? rc : 0));
     
     if (rc != GIT_ITEROVER) {
         git_index_conflict_iterator_free(conflicts);

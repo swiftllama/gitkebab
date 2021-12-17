@@ -220,6 +220,7 @@ class Session {
     state = SessionState(session_ptr.ref.repository.ref.state,
         counter: session_ptr.ref.repository.ref.state_counter,
         progressPercent: progress);
+    mergeConflictSummary = MergeConflictSummary.forRepositoryPointer(session_ptr.ref.repository);
     notifySessionStateChanged(SessionStateUpdateEvent.from(oldState: oldState, newState: state, error:lastError()));
     if (GitKebab.lib.gk_session_state_unlock(session_ptr) != 0) {
       throw lastResultException();
@@ -312,6 +313,7 @@ class Session {
     if (GitKebab.lib.gk_merge_conflicts_query(session_ptr) != 0) {
       throw lastResultException();
     }
+    if (isPolling) updateStateWithLock();
   }
 
   ////

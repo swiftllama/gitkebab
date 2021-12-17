@@ -125,7 +125,7 @@ int gk_sync(gk_session *session) {
             return gk_session_failure(session, purpose);
         }
     }
-
+    
     if (gk_repository_state_disabled(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS)) {
         if (gk_push(session, session->repository->spec.remote_name) != GK_SUCCESS) {
             gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);
