@@ -25,7 +25,7 @@ function(addTest NAME)
   target_link_libraries(test_${NAME} ${LINK_LIBS})
   
   if (APPLE)
-   target_link_libraries(test_${NAME} "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+   target_link_libraries(test_${NAME} "-framework Security -framework CoreFoundation ${ICONV_lib}")
  endif()
  
   add_test(NAME Test_${NAME}

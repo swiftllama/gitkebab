@@ -17,9 +17,9 @@ target_link_libraries(example_sync gitkebab_static ${LINK_LIBS})
 target_link_libraries(example_background_sync gitkebab_static ${LINK_LIBS})
 
 if (APPLE)
-  target_link_libraries(example1 "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
-  target_link_libraries(example_sync "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
-  target_link_libraries(example_background_sync "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+  target_link_libraries(example1 "-framework Security -framework CoreFoundation ${ICONV_lib}")
+  target_link_libraries(example_sync "-framework Security -framework CoreFoundation ${ICONV_lib}")
+  target_link_libraries(example_background_sync "-framework Security -framework CoreFoundation ${ICONV_lib}")
 endif()
 
 install(TARGETS example1 DESTINATION bin)

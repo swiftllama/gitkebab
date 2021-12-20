@@ -67,7 +67,7 @@ if ("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
 endif()
 
 if (APPLE)
-   target_link_libraries(gitkebab "-framework Security -framework CoreFoundation ${Iconv_LIBRARIES}")
+   target_link_libraries(gitkebab "-framework Security -framework CoreFoundation ${ICONV_lib}")
 endif()
 
 #  LIBGIT2_lib OPENSSL_lib CRYPTO_lib LIBSSH2_lib Z_lib PCRE_lib <- need these??

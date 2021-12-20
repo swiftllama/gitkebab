@@ -38,12 +38,8 @@ find_library(CMOCKA_lib "libcmocka-static.a" REQUIRED)
 verifyLibraryIsFromBuildSystem(${CMOCKA_lib} "libcmocka.a")
 
 if (APPLE)
-  FIND_PACKAGE(Iconv) # note: we want the system libiconv for macos
-  if (Iconv_FOUND)
-    message(INFO " Found iconv at ${Iconv_LIBRARIES}")
-  else()
-    message(FATAL_ERROR "iconv not found")
-  endif()
+  find_library(ICONV_lib "libiconv.a" REQUIRED)
+  verifyLibraryIsFromBuildSystem(${ICONV_lib} "libiconv.a")
 endif()
 
 find_path(LIBGIT2_include_folder NAMES "git2.h" REQUIRED)
