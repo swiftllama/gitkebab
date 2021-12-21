@@ -10,7 +10,7 @@ init_and_change_into_tmp_build_folder
 ##    - CFLAGS=-fPIC
 ##
 
-${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} CFLAGS=-fPIC CXXFLAGS="-fPIC"
+${RELATIVE_SOURCE}/configure --enable-shared=no --prefix=${ROOT}/${BUILD_FOLDER} CFLAGS=-fPIC CXXFLAGS="-fPIC"
 make
 make install
 

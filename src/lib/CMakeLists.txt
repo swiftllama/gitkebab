@@ -7,7 +7,7 @@ add_custom_target(libraries)
 set(ICONV_COMPAT_SOURCE "")
 if (APPLE)
    set(ICONV_COMPAT_SOURCE "iconv_compat.c")
-endif()
+ endif()
 
 add_library(gitkebab_objects OBJECT
   gitkebab.h
@@ -25,6 +25,8 @@ add_library(gitkebab_objects OBJECT
   gk_index.h
   gk_init.c
   gk_init.h
+  gk_keys.c
+  gk_keys.h
   gk_lg2.c
   gk_log_components.c
   gk_log_components.h
@@ -60,7 +62,7 @@ target_include_directories(gitkebab INTERFACE ./) # allow dependencies to find g
 
 #target_link_libraries(gitkebab_static ${LIBGIT2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${LIBSSH2_lib} ${Z_lib} ${PCRE_lib})
 #ENDIF()
-target_link_libraries(gitkebab ${Z_lib} ${PCRE_lib} ${LIBGIT2_lib} ${LIBSSH2_lib} ${OPENSSL_lib} ${CRYPTO_lib})
+target_link_libraries(gitkebab ${LIBGIT2_lib} ${LIBSSH2_lib} ${OPENSSL_lib} ${CRYPTO_lib} ${PCRE_lib} ${Z_lib} )
 
 if ("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
   target_link_libraries(gitkebab -luuid -lwinhttp -lwsock32 -lcrypt32 -lws2_32 -lrpcrt4)

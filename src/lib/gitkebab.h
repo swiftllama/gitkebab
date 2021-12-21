@@ -8,6 +8,7 @@
 #include "gk_filesystem.h"
 #include "gk_index.h"
 #include "gk_init.h"
+#include "gk_keys.h"
 #include "gk_logging.h"
 #include "gk_merge.h"
 #include "gk_remotes.h"

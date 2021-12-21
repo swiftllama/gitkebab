@@ -4203,6 +4203,35 @@ class GitKebabLib {
       _gk_libgit2_set_log_level_ptr
           .asFunction<_dart_gk_libgit2_set_log_level>();
 
+  ffi.Pointer<ffi.Int8> gk_keys_rsa_key_generate(
+    ffi.Pointer<ffi.Int32> key_length,
+  ) {
+    return _gk_keys_rsa_key_generate(
+      key_length,
+    );
+  }
+
+  late final _gk_keys_rsa_key_generate_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_rsa_key_generate>>(
+          'gk_keys_rsa_key_generate');
+  late final _dart_gk_keys_rsa_key_generate _gk_keys_rsa_key_generate =
+      _gk_keys_rsa_key_generate_ptr
+          .asFunction<_dart_gk_keys_rsa_key_generate>();
+
+  void gk_keys_rsa_key_free(
+    ffi.Pointer<ffi.Int8> key,
+  ) {
+    return _gk_keys_rsa_key_free(
+      key,
+    );
+  }
+
+  late final _gk_keys_rsa_key_free_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_rsa_key_free>>(
+          'gk_keys_rsa_key_free');
+  late final _dart_gk_keys_rsa_key_free _gk_keys_rsa_key_free =
+      _gk_keys_rsa_key_free_ptr.asFunction<_dart_gk_keys_rsa_key_free>();
+
   int gk_analyze_merge_into_head(
     ffi.Pointer<gk_session> session,
     ffi.Pointer<ffi.Int8> from_ref_name,
@@ -8974,6 +9003,22 @@ typedef _c_gk_libgit2_set_log_level = ffi.Void Function(
 
 typedef _dart_gk_libgit2_set_log_level = void Function(
   int level,
+);
+
+typedef _c_gk_keys_rsa_key_generate = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<ffi.Int32> key_length,
+);
+
+typedef _dart_gk_keys_rsa_key_generate = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<ffi.Int32> key_length,
+);
+
+typedef _c_gk_keys_rsa_key_free = ffi.Void Function(
+  ffi.Pointer<ffi.Int8> key,
+);
+
+typedef _dart_gk_keys_rsa_key_free = void Function(
+  ffi.Pointer<ffi.Int8> key,
 );
 
 typedef _c_gk_analyze_merge_into_head = ffi.Int32 Function(

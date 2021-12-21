@@ -2,7 +2,7 @@
 #ifndef __GK_TYPES_H__
 #define __GK_TYPES_H__
 
-#include <stdio.h>
+o#include <stdio.h>
 #include "rxi_log.h"
 
 

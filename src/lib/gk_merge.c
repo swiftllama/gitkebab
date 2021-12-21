@@ -1,5 +1,6 @@
 
 #include <string.h>
+
 #include "git2.h"
 
 #include "gk_merge.h"
