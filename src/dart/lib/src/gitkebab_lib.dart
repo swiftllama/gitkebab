@@ -4203,12 +4203,81 @@ class GitKebabLib {
       _gk_libgit2_set_log_level_ptr
           .asFunction<_dart_gk_libgit2_set_log_level>();
 
-  ffi.Pointer<ffi.Int8> gk_keys_rsa_key_generate(
-    ffi.Pointer<ffi.Int32> key_length,
-  ) {
-    return _gk_keys_rsa_key_generate(
-      key_length,
-    );
+  ffi.Pointer<ffi.Int8> gk_keys_generated_private_key() {
+    return _gk_keys_generated_private_key();
+  }
+
+  late final _gk_keys_generated_private_key_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_generated_private_key>>(
+          'gk_keys_generated_private_key');
+  late final _dart_gk_keys_generated_private_key
+      _gk_keys_generated_private_key = _gk_keys_generated_private_key_ptr
+          .asFunction<_dart_gk_keys_generated_private_key>();
+
+  ffi.Pointer<ffi.Int8> gk_keys_generated_public_key() {
+    return _gk_keys_generated_public_key();
+  }
+
+  late final _gk_keys_generated_public_key_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_generated_public_key>>(
+          'gk_keys_generated_public_key');
+  late final _dart_gk_keys_generated_public_key _gk_keys_generated_public_key =
+      _gk_keys_generated_public_key_ptr
+          .asFunction<_dart_gk_keys_generated_public_key>();
+
+  ffi.Pointer<ffi.Int8> gk_keys_errors() {
+    return _gk_keys_errors();
+  }
+
+  late final _gk_keys_errors_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_errors>>('gk_keys_errors');
+  late final _dart_gk_keys_errors _gk_keys_errors =
+      _gk_keys_errors_ptr.asFunction<_dart_gk_keys_errors>();
+
+  int gk_keys_has_errors() {
+    return _gk_keys_has_errors();
+  }
+
+  late final _gk_keys_has_errors_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_has_errors>>('gk_keys_has_errors');
+  late final _dart_gk_keys_has_errors _gk_keys_has_errors =
+      _gk_keys_has_errors_ptr.asFunction<_dart_gk_keys_has_errors>();
+
+  int gk_keys_key_generation_in_progress() {
+    return _gk_keys_key_generation_in_progress();
+  }
+
+  late final _gk_keys_key_generation_in_progress_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_key_generation_in_progress>>(
+          'gk_keys_key_generation_in_progress');
+  late final _dart_gk_keys_key_generation_in_progress
+      _gk_keys_key_generation_in_progress =
+      _gk_keys_key_generation_in_progress_ptr
+          .asFunction<_dart_gk_keys_key_generation_in_progress>();
+
+  int gk_keys_rsa_key_generate_background() {
+    return _gk_keys_rsa_key_generate_background();
+  }
+
+  late final _gk_keys_rsa_key_generate_background_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_keys_rsa_key_generate_background>>(
+          'gk_keys_rsa_key_generate_background');
+  late final _dart_gk_keys_rsa_key_generate_background
+      _gk_keys_rsa_key_generate_background =
+      _gk_keys_rsa_key_generate_background_ptr
+          .asFunction<_dart_gk_keys_rsa_key_generate_background>();
+
+  void printSslErrors() {
+    return _printSslErrors();
+  }
+
+  late final _printSslErrors_ptr =
+      _lookup<ffi.NativeFunction<_c_printSslErrors>>('printSslErrors');
+  late final _dart_printSslErrors _printSslErrors =
+      _printSslErrors_ptr.asFunction<_dart_printSslErrors>();
+
+  int gk_keys_rsa_key_generate() {
+    return _gk_keys_rsa_key_generate();
   }
 
   late final _gk_keys_rsa_key_generate_ptr =
@@ -4218,12 +4287,8 @@ class GitKebabLib {
       _gk_keys_rsa_key_generate_ptr
           .asFunction<_dart_gk_keys_rsa_key_generate>();
 
-  void gk_keys_rsa_key_free(
-    ffi.Pointer<ffi.Int8> key,
-  ) {
-    return _gk_keys_rsa_key_free(
-      key,
-    );
+  void gk_keys_rsa_key_free() {
+    return _gk_keys_rsa_key_free();
   }
 
   late final _gk_keys_rsa_key_free_ptr =
@@ -9005,21 +9070,41 @@ typedef _dart_gk_libgit2_set_log_level = void Function(
   int level,
 );
 
-typedef _c_gk_keys_rsa_key_generate = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<ffi.Int32> key_length,
-);
+typedef _c_gk_keys_generated_private_key = ffi.Pointer<ffi.Int8> Function();
 
-typedef _dart_gk_keys_rsa_key_generate = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<ffi.Int32> key_length,
-);
+typedef _dart_gk_keys_generated_private_key = ffi.Pointer<ffi.Int8> Function();
 
-typedef _c_gk_keys_rsa_key_free = ffi.Void Function(
-  ffi.Pointer<ffi.Int8> key,
-);
+typedef _c_gk_keys_generated_public_key = ffi.Pointer<ffi.Int8> Function();
 
-typedef _dart_gk_keys_rsa_key_free = void Function(
-  ffi.Pointer<ffi.Int8> key,
-);
+typedef _dart_gk_keys_generated_public_key = ffi.Pointer<ffi.Int8> Function();
+
+typedef _c_gk_keys_errors = ffi.Pointer<ffi.Int8> Function();
+
+typedef _dart_gk_keys_errors = ffi.Pointer<ffi.Int8> Function();
+
+typedef _c_gk_keys_has_errors = ffi.Int32 Function();
+
+typedef _dart_gk_keys_has_errors = int Function();
+
+typedef _c_gk_keys_key_generation_in_progress = ffi.Int32 Function();
+
+typedef _dart_gk_keys_key_generation_in_progress = int Function();
+
+typedef _c_gk_keys_rsa_key_generate_background = ffi.Int32 Function();
+
+typedef _dart_gk_keys_rsa_key_generate_background = int Function();
+
+typedef _c_printSslErrors = ffi.Void Function();
+
+typedef _dart_printSslErrors = void Function();
+
+typedef _c_gk_keys_rsa_key_generate = ffi.Int32 Function();
+
+typedef _dart_gk_keys_rsa_key_generate = int Function();
+
+typedef _c_gk_keys_rsa_key_free = ffi.Void Function();
+
+typedef _dart_gk_keys_rsa_key_free = void Function();
 
 typedef _c_gk_analyze_merge_into_head = ffi.Int32 Function(
   ffi.Pointer<gk_session> session,

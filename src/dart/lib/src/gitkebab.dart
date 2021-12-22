@@ -18,15 +18,5 @@ class GitKebab {
     }
     return _lib!;
   }
-
-  static String generateSshKey() {
-    Pointer<Int32> lengthPtr = ffip.calloc<Int32>();
-    final keyPtr = lib.gk_keys_rsa_key_generate(lengthPtr);
-    if (keyPtr.address == 0) throw 'Error generating ssh key';
-    final dartKey = keyPtr.toDartString();
-    lib.gk_keys_rsa_key_free(keyPtr);
-    ffip.calloc.free(lengthPtr);
-    return dartKey;
-  }
 }
 

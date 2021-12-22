@@ -6,3 +6,4 @@ export 'src/status.dart';
 export 'src/errors.dart';
 export 'src/repository.dart';
 export 'src/credentials.dart';
+export 'src/RSAKey.dart';
