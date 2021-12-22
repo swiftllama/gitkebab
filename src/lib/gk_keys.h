@@ -8,9 +8,9 @@ char *gk_keys_errors();
 int gk_keys_has_errors();
 int gk_keys_key_generation_in_progress();
 
-int gk_keys_rsa_key_generate_background();
+int gk_keys_rsa_key_generate_background(int key_size_bits);
 void printSslErrors();
-int gk_keys_rsa_key_generate();
+int gk_keys_rsa_key_generate(int key_size_bits);
 void gk_keys_rsa_key_free();
 
 

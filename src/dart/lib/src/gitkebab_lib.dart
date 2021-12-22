@@ -4255,8 +4255,12 @@ class GitKebabLib {
       _gk_keys_key_generation_in_progress_ptr
           .asFunction<_dart_gk_keys_key_generation_in_progress>();
 
-  int gk_keys_rsa_key_generate_background() {
-    return _gk_keys_rsa_key_generate_background();
+  int gk_keys_rsa_key_generate_background(
+    int key_size_bits,
+  ) {
+    return _gk_keys_rsa_key_generate_background(
+      key_size_bits,
+    );
   }
 
   late final _gk_keys_rsa_key_generate_background_ptr =
@@ -4276,8 +4280,12 @@ class GitKebabLib {
   late final _dart_printSslErrors _printSslErrors =
       _printSslErrors_ptr.asFunction<_dart_printSslErrors>();
 
-  int gk_keys_rsa_key_generate() {
-    return _gk_keys_rsa_key_generate();
+  int gk_keys_rsa_key_generate(
+    int key_size_bits,
+  ) {
+    return _gk_keys_rsa_key_generate(
+      key_size_bits,
+    );
   }
 
   late final _gk_keys_rsa_key_generate_ptr =
@@ -9090,17 +9098,25 @@ typedef _c_gk_keys_key_generation_in_progress = ffi.Int32 Function();
 
 typedef _dart_gk_keys_key_generation_in_progress = int Function();
 
-typedef _c_gk_keys_rsa_key_generate_background = ffi.Int32 Function();
+typedef _c_gk_keys_rsa_key_generate_background = ffi.Int32 Function(
+  ffi.Int32 key_size_bits,
+);
 
-typedef _dart_gk_keys_rsa_key_generate_background = int Function();
+typedef _dart_gk_keys_rsa_key_generate_background = int Function(
+  int key_size_bits,
+);
 
 typedef _c_printSslErrors = ffi.Void Function();
 
 typedef _dart_printSslErrors = void Function();
 
-typedef _c_gk_keys_rsa_key_generate = ffi.Int32 Function();
+typedef _c_gk_keys_rsa_key_generate = ffi.Int32 Function(
+  ffi.Int32 key_size_bits,
+);
 
-typedef _dart_gk_keys_rsa_key_generate = int Function();
+typedef _dart_gk_keys_rsa_key_generate = int Function(
+  int key_size_bits,
+);
 
 typedef _c_gk_keys_rsa_key_free = ffi.Void Function();
 

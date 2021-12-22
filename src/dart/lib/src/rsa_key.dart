@@ -10,10 +10,11 @@ class RSAKey {
 
 class RSAKeyGenerator {
   static final instance = RSAKeyGenerator();
-  static final timeout = 10;
+  static const timeout = 10;
+  static const defaultKeySize = 2048;
 
-  RSAKey generateRsaKeySync() {
-    GitKebab.lib.gk_keys_rsa_key_generate();
+  RSAKey generateRsaKeySync({int keySize = defaultKeySize}) {
+    GitKebab.lib.gk_keys_rsa_key_generate(keySize);
     if (GitKebab.lib.gk_keys_has_errors() == 1) {
       String errors = GitKebab.lib.gk_keys_errors().toDartString();
       GitKebab.lib.gk_keys_rsa_key_free();
@@ -27,8 +28,8 @@ class RSAKeyGenerator {
   }
 
   // Note: synchronous key generation takes around 50ms on my laptop
-  Future<RSAKey> generateRsaKey() async {
-    GitKebab.lib.gk_keys_rsa_key_generate_background();
+  Future<RSAKey> generateRsaKey({int keySize = defaultKeySize}) async {
+    GitKebab.lib.gk_keys_rsa_key_generate_background(keySize);
     final startTime = DateTime.now();
     return Future.doWhile(() {
       if (GitKebab.lib.gk_keys_key_generation_in_progress() == 0) return Future.value(false);
@@ -43,6 +44,7 @@ class RSAKeyGenerator {
 
       String privateKey = GitKebab.lib.gk_keys_generated_private_key().toDartString();
       String publicKey = GitKebab.lib.gk_keys_generated_public_key().toDartString();
+
       GitKebab.lib.gk_keys_rsa_key_free();
       return RSAKey(privateKey, publicKey);
     });

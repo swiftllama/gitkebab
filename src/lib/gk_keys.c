@@ -2,6 +2,7 @@
 
 #include <pthread.h>
 #include <errno.h>
+#include <stdint.h>
 
 #include <openssl/pem.h>
 #include <openssl/x509.h>
@@ -19,7 +20,7 @@ BIO *g_errors_bio = NULL;
 char *g_errors = NULL;
 
 static void gk_keys_rsa_key_free_ex(BIO *private_key_bio, BIO *public_key_bio, BIO *errors_bio);
-static int gk_keys_rsa_key_generate_ex(BIO **private_key_bio, char **private_key, BIO **public_key_bio, char **public_key, BIO **errors_bio, char **errors);
+static int gk_keys_rsa_key_generate_ex(int key_size_bits, BIO **private_key_bio, char **private_key, BIO **public_key_bio, char **public_key, BIO **errors_bio, char **errors);
 static void freeSslErrors(BIO *errors_bio);
 static void loadSslErrors(BIO **errors_bio, char **errors);
 
@@ -45,13 +46,13 @@ int gk_keys_key_generation_in_progress() {
 }
 
 static void *gk_keys_rsa_key_generate_background_worker(void *payload) {
-    (void) payload;
-    gk_keys_rsa_key_generate();
+    int key_size_bits = (intptr_t)payload;
+    gk_keys_rsa_key_generate(key_size_bits);
     g_key_generation_in_progress = 0;
     return NULL;
 }
 
-int gk_keys_rsa_key_generate_background() {
+int gk_keys_rsa_key_generate_background(int key_size_bits) {
     if (g_key_generation_in_progress == 1) {
         g_errors = "An ssh key generation is already in progress";
         return GK_FAILURE;
@@ -59,7 +60,7 @@ int gk_keys_rsa_key_generate_background() {
     g_key_generation_in_progress = 1;
 
     pthread_t thread_id;
-    int rc = pthread_create(&thread_id, NULL, gk_keys_rsa_key_generate_background_worker, NULL);
+    int rc = pthread_create(&thread_id, NULL, gk_keys_rsa_key_generate_background_worker, (void *)(intptr_t) key_size_bits);
     pthread_detach(thread_id);
 
     if (rc != 0) {
@@ -98,8 +99,8 @@ void printSslErrors() {
     freeSslErrors(bio);
 }
 
-int gk_keys_rsa_key_generate() {
-    return gk_keys_rsa_key_generate_ex(&g_private_key_bio, &g_private_key, &g_public_key_bio, &g_public_key, &g_errors_bio, &g_errors);
+int gk_keys_rsa_key_generate(int key_size_bits) {
+    return gk_keys_rsa_key_generate_ex(key_size_bits, &g_private_key_bio, &g_private_key, &g_public_key_bio, &g_public_key, &g_errors_bio, &g_errors);
 }
 
 void gk_keys_rsa_key_free() {
@@ -112,7 +113,7 @@ void gk_keys_rsa_key_free() {
     g_errors = NULL;
 }
 
-static int gk_keys_rsa_key_generate_ex(BIO **private_key_bio, char **private_key, BIO **public_key_bio, char **public_key, BIO **errors_bio, char **errors) {
+static int gk_keys_rsa_key_generate_ex(int key_size_bits, BIO **private_key_bio, char **private_key, BIO **public_key_bio, char **public_key, BIO **errors_bio, char **errors) {
     if (errors == NULL) {
         printf("ERROR: gk_keys_rsa_key_generate_ex received NULL errors buffer, no key will be generated\n");
         return GK_FAILURE;
@@ -160,7 +161,7 @@ static int gk_keys_rsa_key_generate_ex(BIO **private_key_bio, char **private_key
         return GK_FAILURE;
     }
     
-    if (RSA_generate_key_ex(rsa, 2048, bne, NULL) != 1) {
+    if (RSA_generate_key_ex(rsa, key_size_bits, bne, NULL) != 1) {
         loadSslErrors(errors_bio, errors);
         return GK_FAILURE;
     }
