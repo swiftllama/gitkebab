@@ -42,6 +42,7 @@ if (APPLE)
   verifyLibraryIsFromBuildSystem(${ICONV_lib} "libiconv.a")
 endif()
 
+find_path(OPENSSL_include_folder NAMES "openssl/opensslconf.h" REQUIRED)
 find_path(LIBGIT2_include_folder NAMES "git2.h" REQUIRED)
 find_path(CMOCKA_include_folder NAMES "cmocka.h" REQUIRED)
 

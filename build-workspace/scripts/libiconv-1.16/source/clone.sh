@@ -2,6 +2,7 @@ set -e
 echo "--- Downloading Libiconv 1.16 Source ---"
 
 set -x
+rm -rf source/libiconv-1.16
 rm -rf source/tmp/libiconv
 mkdir -p source/tmp/libiconv
 cd source/tmp/libiconv

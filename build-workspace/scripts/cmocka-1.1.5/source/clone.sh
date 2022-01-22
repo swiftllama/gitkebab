@@ -2,6 +2,7 @@ set -e
 echo "--- Downloading Cmocka 1.1.5 Source ---"
 
 set -x
+rm -rf source/cmocka-1.1.5
 rm -rf source/tmp/cmocka
 mkdir -p source/tmp/cmocka
 cd source/tmp/cmocka

@@ -1,6 +1,7 @@
 enable_language(C)
 
 include_directories(${LIBGIT2_include_folder})
+include_directories(${OPENSSL_include_folder})
 
 add_custom_target(libraries)
 

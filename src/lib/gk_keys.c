@@ -4,10 +4,9 @@
 #include <errno.h>
 #include <stdint.h>
 
-#include <openssl/pem.h>
-#include <openssl/x509.h>
-#include <openssl/err.h>
-
+#include "openssl/pem.h"
+#include "openssl/x509.h"
+#include "openssl/err.h"
 
 #include "gk_types.h"
 
