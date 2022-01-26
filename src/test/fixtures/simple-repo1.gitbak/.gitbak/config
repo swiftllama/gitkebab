@@ -6,6 +6,6 @@
 [remote "origin"]
 	url = /home/amos/Projects/gitkebab/src/test/fixtures/simple-repo1.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
+[branch "main"]
 	remote = origin
-	merge = refs/heads/master
+	merge = refs/heads/main

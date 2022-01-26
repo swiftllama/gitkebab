@@ -104,7 +104,7 @@ static void test_merge_one_commit(void **state) {
     assert_int_equal(gk_repository_state_enabled(session2->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE), 1);
             
     gk_object_id repo_B_fetched_commit = {0};
-    gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/main", &repo_B_fetched_commit);
         
     // Merge in repo-B
     gk_merge_into_head(session2);
@@ -170,7 +170,7 @@ static void test_merge_divergent_commits_no_conflict(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id repo_B_fetched_commit = {0};
-    gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/main", &repo_B_fetched_commit);
 
     gk_object_id repo_B_head_after_fetch = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);
@@ -251,7 +251,7 @@ static void test_merge_divergent_commits_with_conflict(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id repo_B_fetched_commit = {0};
-    gk_resolve_reference(session2, "refs/remotes/origin/master", &repo_B_fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/main", &repo_B_fetched_commit);
 
     gk_object_id repo_B_head_after_fetch = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_head_after_fetch);

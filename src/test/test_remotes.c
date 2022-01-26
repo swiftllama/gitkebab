@@ -163,7 +163,7 @@ static void test_fetch_one_commit_with_no_push(void **state) {
     assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
 
     gk_object_id fetched_commit = {0};
-    gk_resolve_reference(session, "refs/remotes/origin/master", &fetched_commit);
+    gk_resolve_reference(session, "refs/remotes/origin/main", &fetched_commit);
 
     gk_object_id new_head = {0};
     gk_resolve_reference(session, "HEAD", &new_head);
@@ -209,7 +209,7 @@ static void test_fetch_one_commit(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id fetched_commit = {0};
-    gk_resolve_reference(session2, "refs/remotes/origin/master", &fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/main", &fetched_commit);
 
     gk_object_id repo_B_first_commit = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_first_commit);
@@ -267,7 +267,7 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     assert_int_equal(gk_session_last_result_code(session2), 0);
 
     gk_object_id fetched_commit = {0};
-    gk_resolve_reference(session2, "refs/remotes/origin/master", &fetched_commit);
+    gk_resolve_reference(session2, "refs/remotes/origin/main", &fetched_commit);
 
     gk_object_id repo_B_new_head = {0};
     gk_resolve_reference(session2, "HEAD", &repo_B_new_head);

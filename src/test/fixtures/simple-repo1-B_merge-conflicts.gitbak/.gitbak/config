@@ -6,8 +6,8 @@
 [remote "origin"]
 	url = /home/amos/Projects/gitkebab/test-staging/simple-repo1.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
+[branch "main"]
 	remote = origin
-	merge = refs/heads/master
+	merge = refs/heads/main
 [remote "origin"]
-	push = refs/heads/master:refs/heads/master
+	push = refs/heads/main:refs/heads/main

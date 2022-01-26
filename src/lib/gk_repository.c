@@ -30,10 +30,10 @@ static void gk_repository_spec_init(gk_repository_spec *repository_spec, const c
     repository_spec->source_url = source_url != NULL ? strdup(source_url) : strdup("");
     repository_spec->source_url_type = source_url_type;
     repository_spec->user = usr != NULL ? strdup(usr) : strdup("");
-    repository_spec->main_branch_name = "master";
-    repository_spec->remote_ref_name = "refs/remotes/origin/master";
+    repository_spec->main_branch_name = "main";
+    repository_spec->remote_ref_name = "refs/remotes/origin/main";
     repository_spec->remote_name = "origin";
-    repository_spec->push_refspec = "refs/heads/master:refs/heads/master";
+    repository_spec->push_refspec = "refs/heads/main:refs/heads/main";
 }
 
 static void gk_repository_spec_free_members(gk_repository_spec *repository_spec) {
