@@ -164,6 +164,28 @@ static void test_clone_delete_clone(void **state) {
     gk_session_free(session);
 }
 
+static void test_clone_empty_repo(void **state) {
+    (void) state; /* unused */
+
+    gk_test_delete_empty_repository_dot_git();
+    gk_test_copy_empty_repository_from_empty_repository_dot_gitbak();
+    
+    gk_session *session = gk_session_new("./test-staging/empty-repository.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/empty-repo-test-1", "git", &gk_test_state_change_callback, NULL);
+    gk_session_initialize(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+    assert_int_equal(gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_INITIALIZED), 1);
+    
+    gk_clone(session);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_CLONE_IN_PROGRESS), 1);
+    assert_int_equal(gk_test_state_count_enabled(GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
+    assert_int_equal(gk_test_state_count_disabled(GK_REPOSITORY_STATE_CLONE_IN_PROGRESS), 1);
+    
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+    assert_int_equal(gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
+
+    gk_session_free(session);
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_clone_simple, test_setup),
@@ -171,7 +193,8 @@ int main(void) {
         cmocka_unit_test_setup(test_clone_null_dest_path, test_setup),
         cmocka_unit_test_setup(test_initialize_dest_path_empty_existing_regular_dir, test_setup),
         cmocka_unit_test_setup(test_initialize_dest_path_nonempty_existing_regular_dir, test_setup),
-        cmocka_unit_test_setup(test_clone_delete_clone, test_setup)
+        cmocka_unit_test_setup(test_clone_delete_clone, test_setup),
+        cmocka_unit_test_setup(test_clone_empty_repo, test_setup),
     };
 
     if (directory_exists("fixtures") != 0) {

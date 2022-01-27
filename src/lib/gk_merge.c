@@ -33,8 +33,14 @@ int gk_analyze_merge_into_head(gk_session *session, const char* from_ref_name, i
     git_merge_analysis_t analysis;
     git_merge_preference_t preference;
 
-    if (git_merge_analysis(&analysis, &preference, session->repository->lg2_resources->repository, (const git_annotated_commit **)&session->repository->lg2_resources->annotated_fetch_head_commit, 1) != 0) {
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Cannot analyze merge from reference [%s]", from_ref_name);
+    if (session->repository->lg2_resources->annotated_fetch_head_commit == NULL) {
+        log_info(COMP_MERGE, "fetch head is NULL, interpreting as remote being empty, no merge needs to be performed");
+        analysis = GIT_MERGE_ANALYSIS_UP_TO_DATE;
+    }
+    else {
+        if (git_merge_analysis(&analysis, &preference, session->repository->lg2_resources->repository, (const git_annotated_commit **)&session->repository->lg2_resources->annotated_fetch_head_commit, 1) != 0) {
+            return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Cannot analyze merge from reference [%s]", from_ref_name);
+        }
     }
     
     log_info(COMP_MERGE, "Merge analysis result is: %d", analysis);
@@ -222,17 +228,38 @@ static int merge_fast_forward(gk_session *session, const char *from_ref_name) {
     checkout_options.progress_cb = gk_session_checkout_progress_callback;
     checkout_options.progress_payload = session;
 
-    log_debug(COMP_MERGE, "Checked out tree at rev [%s] for reference [%s] into working directory", lg2_resources->fetch_head_oid_id, from_ref_name);
-    if (git_checkout_tree(lg2_resources->repository, lg2_resources->fetch_head_object, &checkout_options) != 0) {
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to checkout out tree at rev [%s]", lg2_resources->fetch_head_oid_id);
-    }
-
-    git_reference *new_head_ref = NULL;
-    log_debug(COMP_MERGE, "Advancing HEAD to rev '%s'", lg2_resources->fetch_head_oid_id);
-    /* Move the target reference to the target OID */
-    if (git_reference_set_target(&new_head_ref, lg2_resources->repository_head_ref, lg2_resources->fetch_head_oid, NULL) != 0) {
-        git_reference_free(new_head_ref);
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to advance head to oid [%s]", lg2_resources->fetch_head_oid_id);
+    if (lg2_resources->fetch_head_object != NULL) {
+        // If if the fetch head is NULL, remote repo is empty, so
+        // there's nothing to actually merge. For this assumption to
+        // be valid, gk_lg2_load_references() must have been called at
+        // some recent point, to be sure that it tried to load the
+        // remote fetch head
+        log_debug(COMP_MERGE, "Checked out tree at rev [%s] for reference [%s] into working directory", lg2_resources->fetch_head_oid_id, from_ref_name);
+        if (git_checkout_tree(lg2_resources->repository, lg2_resources->fetch_head_object, &checkout_options) != 0) {
+            return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to checkout out tree at rev [%s]", lg2_resources->fetch_head_oid_id);
+        }
+        
+        git_reference *new_head_ref = NULL;
+        log_debug(COMP_MERGE, "Advancing HEAD to rev '%s'", lg2_resources->fetch_head_oid_id);
+        if (lg2_resources->repository_head_ref == NULL) {
+            // Repository is empty, create head reference
+            
+            char ref_name[128];
+            snprintf(ref_name, 128, "refs/heads/%s", session->repository->spec.main_branch_name);
+            if (git_commit_lookup(&lg2_resources->repository_head_commit, lg2_resources->repository, lg2_resources->fetch_head_oid) != 0) {
+                return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to look up fetch head oid [%s] while creating main branch for incoming commits from remote main branch", lg2_resources->fetch_head_oid_id);
+            }
+            if (git_reference_create(&lg2_resources->repository_head_ref, lg2_resources->repository, ref_name, lg2_resources->fetch_head_oid, 0, "create main branch for incoming commits on remote main branch") != 0) {
+                return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to create head reference for branch [%s] while creating main branch for incoming commits from remote main branch", session->repository->spec.main_branch_name);
+            }
+        }
+        else {
+            // Repository has other commits, move the current head to point to the newly fetched commit
+            if (git_reference_set_target(&new_head_ref, lg2_resources->repository_head_ref, lg2_resources->fetch_head_oid, NULL) != 0) {
+                git_reference_free(new_head_ref);
+                return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to advance head to oid [%s]", lg2_resources->fetch_head_oid_id);
+            }
+        }
     }
 
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_HAS_CONFLICTS);

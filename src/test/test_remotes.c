@@ -283,6 +283,44 @@ static void test_fetch_divergent_commits_no_conflict(void **state) {
     gk_session_free(session2);
 }
 
+static void test_push_one_commit_in_empty_repo(void **state) {
+    (void) state; /* unused */
+
+    gk_test_delete_empty_repository_dot_git();
+    gk_test_copy_empty_repository_from_empty_repository_dot_gitbak();
+    
+    // Clone repo, commit and push
+    gk_session *session = gk_session_new("./test-staging/empty-repository.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/empty-repo-test-1", "git", &gk_test_state_change_callback, NULL);
+    gk_session_initialize(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+    
+    gk_clone(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/empty-repo-test-1/file1");
+    gk_index_add_path(session, "file1");
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+
+    gk_object_id new_commit = {0};
+    gk_commit(session, "HEAD", &new_commit);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+
+    gk_push(session, "origin");
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+
+    /*
+    // Check new commit in source repo
+    gk_object_id source_last_commit = {0};
+    gk_resolve_reference(session2, "HEAD", &source_last_commit);
+    assert_int_equal(gk_session_last_result_code(session2), 0);
+
+    assert_string_equal(new_commit.id, source_last_commit.id);
+    assert_string_not_equal(new_commit.id, source_current_commit.id);
+
+    gk_session_free(session2);*/
+    gk_session_free(session);
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
@@ -291,6 +329,7 @@ int main(void) {
         cmocka_unit_test_setup(test_fetch_no_changes, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_fetch_one_commit_with_no_push, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_fetch_divergent_commits_no_conflict, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_push_one_commit_in_empty_repo, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("fixtures") != 0) {

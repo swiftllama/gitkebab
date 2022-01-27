@@ -118,7 +118,6 @@ int gk_sync(gk_session *session) {
         return gk_session_failure(session, purpose);
     }
   
-
     if (gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_HAS_CHANGES_TO_MERGE)) {
         if (gk_merge_into_head(session) != GK_SUCCESS) {
             gk_session_unset_repository_state_with_callback(session, GK_REPOSITORY_STATE_SYNC_IN_PROGRESS);

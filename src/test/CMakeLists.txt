@@ -40,7 +40,7 @@ endfunction()
 # Add tests
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/run-all-tests.sh" "echo '=== Running GitKebab C Test Suite ==='\n")
 file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/run-all-tests.sh" "set -e\n")
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/run-all-tests.sh" "set -x\n\n")
+file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/run-all-tests.sh" "set -x\n\n")
 addTest("session_progress")
 addTest("clone")
 addTest("no_init")
@@ -51,6 +51,7 @@ addTest("remotes")
 addTest("merge")
 addTest("conflicts")
 addTest("execution_context")
+addTest("sync")
 file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/run-all-tests.sh" "echo '=== Finished GitKebab Test Suite ==='\n")
 
 # Install fixtures

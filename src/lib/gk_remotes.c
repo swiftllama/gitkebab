@@ -173,6 +173,36 @@ int gk_clone(gk_session *session) {
         return return_value;
     }
 
+    
+    // Set HEAD to main branch
+    char ref_name[128];
+    snprintf(ref_name, 128, "refs/heads/%s", session->repository->spec.main_branch_name);
+    if (git_repository_set_head(session->repository->lg2_resources->repository, ref_name) != 0) {
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to set HEAD to [%s]", ref_name);
+    }
+
+    /*
+    // If there are no commits, create one
+    git_reference *head_ref = NULL;
+    int rc = git_repository_head(&head_ref, session->repository->lg2_resources->repository);
+    if (rc == GIT_EUNBORNBRANCH) {
+        git_oid commit_oid;
+        git_signature(
+        if (git_commit_create_v(&commit_oid, session->repository->lg2_resources->repository, "HEAD", lg2_resources->signature, lg2_resources->signature, NULL, safe_commit_message, lg2_resources->tree, lg2_resources->repository_head_object != NULL? 1 : 0, lg2_resources->repository_head_object) != 0) {
+        gk_lg2_free_references(session->repository);
+        gk_lg2_signature_free(session->repository);
+        gk_lg2_tree_free(session->repository);
+        gk_lg2_index_free(session->repository);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to create commit");
+    }
+    }
+    else if (rc != 0) {
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed parsing HEAD to verify repository isn't empty", );
+    }
+    git_reference_free(head_ref);
+    head_ref = NULL;*/
+    
+    // Add remote push refspec
     if (git_remote_add_push(session->repository->lg2_resources->repository, session->repository->spec.remote_name, session->repository->spec.push_refspec) != 0) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add push refspec [%s] to remote [%s]", session->repository->spec.push_refspec, session->repository->spec.remote_name);
     }
@@ -249,6 +279,21 @@ int gk_push(gk_session *session, const char *remote_name) {
     if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_LOCAL_CHECKOUT) != GK_SUCCESS) {
         return GK_FAILURE;
     }
+
+    if (gk_lg2_load_references(session) != 0) {
+        gk_lg2_free_references(session->repository);
+        if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+        }
+        return gk_session_failure(session, purpose);
+    }
+
+    if (session->repository->lg2_resources->repository_head_object == NULL) {
+        // if the repository head object is null then there is nothing
+        // to push
+        return gk_session_success(session, purpose);
+    }
+    
     gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
     if (remote_name == NULL) {
         return gk_session_failure_ex(session, purpose, GK_ERR, "remote is NULL");
@@ -258,6 +303,30 @@ int gk_push(gk_session *session, const char *remote_name) {
     if (git_remote_lookup(&remote, lg2_resources->repository, remote_name) != 0) {
         git_remote_free(remote);
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error looking up remote [%s]", remote_name);
+    }
+
+    if (session->repository->lg2_resources->fetch_head_object == NULL) {
+        // if the repository fetch head is null the remote must be
+        // empty, so create a head for it
+
+        /*
+        git_reference *remote_head = NULL;
+	if (git_reference_symbolic_create(&remote_head, session->repository->lg2_resources->repository, "refs/remotes/origin/HEAD", "master", true, "set remote HEAD since remote repository is empty (gitkebab)") != 0) {
+            return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error setting remote HEAD to track branch [%s]", session->repository->spec.main_branch_name);
+            }*/
+
+        /*
+        if (update_remote_head(session->repository->lg2_resources->repsitory, remote, session->repository->spec.main_branch_name, "set remote HEAD since remote repository is empty (gitkebab)") != 0) {
+            return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "error setting remote HEAD to track branch [%s]", session->repository->spec.main_branch_name);
+            }*/
+
+        // Then reload the references
+        //git_reference_free(remote_head);
+        /*
+        gk_lg2_free_all_but_repository(session->repository);
+        if (gk_lg2_load_references(session) != GK_SUCCESS) {
+            return gk_session_failure(session, purpose);
+            }*/
     }
 
     git_push_options push_options = GIT_PUSH_OPTIONS_INIT;
@@ -282,3 +351,8 @@ int gk_push(gk_session *session, const char *remote_name) {
     
     return gk_session_success(session, purpose);
 }
+
+
+
+
+

@@ -72,36 +72,47 @@ int gk_lg2_load_references(gk_session *session) {
     const char *from_ref_name = session->repository->spec.remote_ref_name;
     int rc = git_revparse_ext(&lg2_resources->fetch_head_object, &lg2_resources->fetch_head_ref, lg2_resources->repository, from_ref_name);
     if (rc == GIT_ENOTFOUND) {
-        return gk_session_failure_ex(session, purpose, GK_ERR, "could not revparse refname [%s], ref not found", from_ref_name);
+        //return gk_session_failure_ex(session, purpose, GK_ERR, "could not revparse refname [%s], ref not found", from_ref_name);
+        log_info(COMP_REPOSITORY, "repository does not contain a refspec [%s], might be empty repository", from_ref_name);
+        lg2_resources->fetch_head_object = NULL;
+        lg2_resources->fetch_head_ref = NULL;
     }
-    if ((rc != 0)) {
+    else if ((rc != 0)) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "could not revparse refname [%s]", from_ref_name);
     }
 
     rc = git_revparse_ext(&lg2_resources->repository_head_object, &lg2_resources->repository_head_ref, lg2_resources->repository, "HEAD");
     if (rc == GIT_ENOTFOUND) {
-        return gk_session_failure_ex(session, purpose, GK_ERR, "could not revparse refname HEAD, ref not found");
+        log_info(COMP_REPOSITORY, "repository does not contain a HEAD refname, might be empty repository");
+        lg2_resources->repository_head_object = NULL;
+        lg2_resources->repository_head_ref = NULL;
     }
-    if ((rc != 0)) {
+    else if ((rc != 0)) {
         return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "could not revparse refname HEAD");
     }
 
-    rc = git_annotated_commit_from_ref(&lg2_resources->annotated_fetch_head_commit, lg2_resources->repository, lg2_resources->fetch_head_ref);
-    if ((rc != 0)) {
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "could not annotate commit for reference [%s]", from_ref_name);
-    }    
+    if (lg2_resources->repository_head_object != NULL) {
+        lg2_resources->repository_head_oid = git_object_id(lg2_resources->repository_head_object);
+        git_oid_tostr(lg2_resources->repository_head_oid_id, 41, lg2_resources->repository_head_oid);
 
-    lg2_resources->repository_head_oid = git_object_id(lg2_resources->repository_head_object);
-    lg2_resources->fetch_head_oid = git_object_id(lg2_resources->fetch_head_object);
-    git_oid_tostr(lg2_resources->repository_head_oid_id, 41, lg2_resources->repository_head_oid);
-    git_oid_tostr(lg2_resources->fetch_head_oid_id, 41, lg2_resources->fetch_head_oid);
 
-    if (git_commit_lookup(&lg2_resources->repository_head_commit, lg2_resources->repository, lg2_resources->repository_head_oid) != 0) {
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Could not look up HEAD commit [%s]", lg2_resources->repository_head_oid_id);
+        if (git_commit_lookup(&lg2_resources->repository_head_commit, lg2_resources->repository, lg2_resources->repository_head_oid) != 0) {
+            return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Could not look up HEAD commit [%s]", lg2_resources->repository_head_oid_id);
+        }
     }
 
-    if (git_commit_lookup(&lg2_resources->fetch_head_commit, lg2_resources->repository, lg2_resources->fetch_head_oid) != 0) {
-        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Could not look up FETCH HEAD  commit [%s] for reference [%s]", lg2_resources->fetch_head_oid_id, from_ref_name);
+    if (lg2_resources->fetch_head_object != NULL) {
+        rc = git_annotated_commit_from_ref(&lg2_resources->annotated_fetch_head_commit, lg2_resources->repository, lg2_resources->fetch_head_ref);
+        if ((rc != 0)) {
+            return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "could not annotate commit for reference [%s]", from_ref_name);
+        }
+        
+        lg2_resources->fetch_head_oid = git_object_id(lg2_resources->fetch_head_object);
+        git_oid_tostr(lg2_resources->fetch_head_oid_id, 41, lg2_resources->fetch_head_oid);
+
+        if (git_commit_lookup(&lg2_resources->fetch_head_commit, lg2_resources->repository, lg2_resources->fetch_head_oid) != 0) {
+            return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Could not look up FETCH HEAD  commit [%s] for reference [%s]", lg2_resources->fetch_head_oid_id, from_ref_name);
+        }
     }
     
     return gk_session_success(session, purpose);
@@ -630,3 +641,6 @@ int gk_lg2_blob_lookup(gk_session *session, git_blob **blob, const git_oid *oid)
     }
     return gk_session_success(session, purpose);
 }
+
+
+

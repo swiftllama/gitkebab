@@ -44,7 +44,7 @@ void gk_test_state_change_callback(const char *session_id, gk_repository *reposi
         log_info(COMP_TEST, "PROGRESS session [%s] [%s] (%zu%%)", session_id, progress->description, progress->percent);
     }
     else {
-        log_error(COMP_TEST, "Error in session state (progress) callback, callback invoked with NULL progress struct");
+        //log_error(COMP_TEST, "Error in session state (progress) callback, callback invoked with NULL progress struct");
     }
 }
 
@@ -81,6 +81,11 @@ void gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak() {
     mv("./test-staging/simple-repo1/.gitbak", "./test-staging/simple-repo1/.git");
 }
 
+void gk_test_copy_empty_repository_from_empty_repository_dot_gitbak() {
+    gk_test_delete_simplerepo1();
+    copy_directory("./fixtures/empty-repository.gitbak", "./test-staging/empty-repository.git");
+}
+
 void gk_test_copy_simplerepo1_from_simplerepo1B_mergeconflicts_dot_gitbak() {
     gk_test_delete_simplerepo1B_mergeconflicts();
     copy_directory("./fixtures/simple-repo1-B_merge-conflicts.gitbak", "./test-staging/simple-repo1-B_merge-conflicts");
@@ -114,6 +119,24 @@ void gk_test_delete_simplerepo1B_mergeconflicts() {
 void gk_test_delete_simplerepo1_dot_git() {
     if (directory_exists("./test-staging/simple-repo1.git") == 0) {
         rm_rf("./test-staging/simple-repo1.git");
+    }
+}
+
+void gk_test_delete_empty_repository_dot_git() {
+    if (directory_exists("./test-staging/empty-repository.git") == 0) {
+        rm_rf("./test-staging/empty-repository.git");
+    }
+}
+
+void gk_test_delete_empty_repo_test_1() {
+    if (directory_exists("./test-staging/empty-repo-test-1") == 0) {
+        rm_rf("./test-staging/empty-repo-test-1");
+    }
+}
+
+void gk_test_delete_empty_repo_test_2() {
+    if (directory_exists("./test-staging/empty-repo-test-2") == 0) {
+        rm_rf("./test-staging/empty-repo-test-2");
     }
 }
 

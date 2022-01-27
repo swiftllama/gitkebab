@@ -141,6 +141,28 @@ static void test_commit_new_file_and_deletion_then_modification(void **state) {
     gk_session_free(session);
 }
 
+static void test_commit_in_empty_repository(void **state) {
+    (void) state;
+     
+    gk_test_delete_empty_repository_dot_git();
+    gk_test_copy_empty_repository_from_empty_repository_dot_gitbak();
+
+    gk_session *session = gk_session_new("./test-staging/empty-repository.git/", GK_REPOSITORY_SOURCE_URL_FILESYSTEM, "./test-staging/empty-repo-test-1", "git", &gk_test_state_change_callback, NULL);
+    gk_session_initialize(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+    
+    gk_clone(session);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+    assert_int_equal(gk_repository_state_enabled(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS), 1);
+
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/empty-repo-test-1/file1");
+    gk_index_add_path(session, "file1");
+    gk_object_id commit = {0};
+    gk_commit(session, "HEAD", &commit);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+    
+    gk_session_free(session);
+}
 
 
 
@@ -149,7 +171,8 @@ int main(void) {
         cmocka_unit_test_setup(test_commit_count_reflog_entries, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_commit_no_changes, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_commit_new_file, test_staging_clean_repo_setup),
-        cmocka_unit_test_setup(test_commit_new_file_and_deletion_then_modification, test_staging_clean_repo_setup)
+        cmocka_unit_test_setup(test_commit_new_file_and_deletion_then_modification, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_commit_in_empty_repository, test_staging_clean_repo_setup)
     };
 
     if (directory_exists("fixtures") != 0) {
