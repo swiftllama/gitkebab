@@ -332,10 +332,10 @@ int gk_session_failure_ex(gk_session *session, const char *purpose, int code, co
     else if (strcmp(last_unresolved->purpose, purpose) != 0) {
         log_error(COMP_EXCTX, "Cannot set session failure for purpose [%s], the last unresolved execution context has a different purpose [%s]. The most likely cause is a method that doesn't properly report its success/failure via gk_session_success() or gk_session_failure*()", purpose, last_unresolved->purpose);
         gk_execution_context_print_execution_chain(session->context);
-        return GK_FAILURE;
     }
     else {
         gk_execution_context_set_result(last_unresolved, result);
+        session->internal_last_result = gk_result_new(result->code, result->message);
     }
     
     return GK_FAILURE;
@@ -374,6 +374,10 @@ const char *gk_session_last_result_message(gk_session *session) {
 int gk_session_last_result_code(gk_session *session) {
     gk_result *result = gk_session_internal_last_result(session);
     return gk_result_code(result);
+}
+
+void gk_session_print_execution_context_chain(gk_session *session) {
+    gk_execution_context_print_execution_chain(session->context);
 }
 
 int gk_session_state_lock(gk_session *session) {

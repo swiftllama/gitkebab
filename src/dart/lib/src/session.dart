@@ -141,6 +141,10 @@ class Session {
         ffip.Utf8>().toDartString();
   }
 
+  void printExecutionContextChain() {
+    GitKebab.lib.gk_session_print_execution_context_chain(session_ptr);
+  }
+  
   GitKebabException lastResultException() {
     return GitKebabException(lastResultCode(), lastResultMessage());
   }

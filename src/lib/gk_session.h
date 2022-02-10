@@ -17,6 +17,7 @@ int gk_session_failure_ex(gk_session *session, const char *purpose, int code, co
 int gk_session_lg2_failure(gk_session *session, const char *purpose, int code);
 int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code, const char *message, ...);
 int gk_session_last_result_code(gk_session *session);
+void gk_session_print_execution_context_chain(gk_session *session);
 const char *gk_session_last_result_message(gk_session *session) ;
 
 int gk_session_trigger_repository_state_callback(gk_session *session);

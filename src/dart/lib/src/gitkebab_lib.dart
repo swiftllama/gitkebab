@@ -4934,6 +4934,22 @@ class GitKebabLib {
       _gk_session_last_result_code_ptr
           .asFunction<_dart_gk_session_last_result_code>();
 
+  void gk_session_print_execution_context_chain(
+    ffi.Pointer<gk_session> session,
+  ) {
+    return _gk_session_print_execution_context_chain(
+      session,
+    );
+  }
+
+  late final _gk_session_print_execution_context_chain_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_session_print_execution_context_chain>>(
+          'gk_session_print_execution_context_chain');
+  late final _dart_gk_session_print_execution_context_chain
+      _gk_session_print_execution_context_chain =
+      _gk_session_print_execution_context_chain_ptr
+          .asFunction<_dart_gk_session_print_execution_context_chain>();
+
   ffi.Pointer<ffi.Int8> gk_session_last_result_message(
     ffi.Pointer<gk_session> session,
   ) {
@@ -9459,6 +9475,14 @@ typedef _c_gk_session_last_result_code = ffi.Int32 Function(
 );
 
 typedef _dart_gk_session_last_result_code = int Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _c_gk_session_print_execution_context_chain = ffi.Void Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _dart_gk_session_print_execution_context_chain = void Function(
   ffi.Pointer<gk_session> session,
 );
 
