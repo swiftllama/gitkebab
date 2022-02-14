@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:io' as io;
 import 'package:ffi/ffi.dart' as ffip;
-
+import 'package:path/path.dart' as path_pkg;
 import 'gitkebab.dart';
 import 'gitkebab_lib.dart' as gitkebab_lib;
 import 'pointer_casting.dart';
@@ -370,6 +371,24 @@ class Session {
     }
   }
 
+  void conflictResolveRestoreTheirsPathFromBlobId(String path, String theirsBlobId) {
+    // NOTE: it may be possible to resolve these type of conflict in a more low-level way, by modifying
+    // e.g. gk_conflict_resolve_accept_existing. I have not yet been able to get that to work.
+    final relativeParentPath = path_pkg.dirname(path);
+    if (relativeParentPath.isNotEmpty && (relativeParentPath != '.')) {
+      final fullParentPath = path_pkg.join(repositorySpec.localPath, relativeParentPath);
+      final parentDirectory = io.Directory(fullParentPath);
+      if (!parentDirectory.existsSync()) {
+        parentDirectory.createSync(recursive: true);
+      }
+    }
+    writeBlobContents(theirsBlobId, path);
+    addPath(path);
+    if (GitKebab.lib.gk_conflict_resolve_accept_existing(session_ptr, path.toFfiPtr(), ConflictResolution.theirs.intValue()) != 0) {
+      throw lastResultException();
+    }
+  }
+  
   int compareBlobs(String blob1Id, String blob2Id) {
     Pointer<Int32> similarityPtr = ffip.calloc<Int32>();
     int rc = GitKebab.lib.gk_compare_blobs(

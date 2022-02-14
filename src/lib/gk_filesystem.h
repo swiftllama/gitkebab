@@ -4,7 +4,12 @@
 
 #include <stdio.h>
 
+#if defined(WIN32)
+#define GK_FILESYSTEM_PATH_SEPARATOR "\\"
+#else
 #define GK_FILESYSTEM_PATH_SEPARATOR "/"
+#endif
+
 int gk_concatenate_paths(char *buffer, size_t buffer_length, const char *path1, const char *path2);
 int gk_directory_exists(const char *path);
 int gk_subdirectory_exists(const char *path, const char* subdirectory);

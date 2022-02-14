@@ -50,7 +50,7 @@ void main() {
   });
 
 
-  test('Conflicts - local delete remote edit file 1', () {
+  test('Conflicts - local delete remote edit file 1, accept local delete', () {
     stateHistory.reset();
     List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
     Session session1 = sessions.first;
@@ -83,7 +83,7 @@ void main() {
 
   });
 
-  test('Conflicts - local edit remote delete file 2', ()
+  test('Conflicts - local edit remote delete file 2, accept remote delete', ()
   {
     stateHistory.reset();
     List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
@@ -103,7 +103,7 @@ void main() {
     expect(session2.mergeConflictSummary.conflicts[1].path, equals("file2"));
     expect(session2.mergeConflictSummary.conflicts[1].conflictType, equals(MergeConflictType.localEditRemoteDelete));
 
-    // write "theirs" version onto disk at new location
+    // write "ours" version onto disk at new location
     session2.writeBlobContents(session2.mergeConflictSummary.conflicts[1].oursBlobId, "new_file2");
 
     // Verify that the file we "preserved" is the same as our edit
@@ -335,5 +335,106 @@ void main() {
     expect(session2.mergeConflictSummary.conflicts[0].path, equals("file2"));
     expect(session2.state.hasConflicts, equals(true));
 
+  });
+
+
+  test('Conflicts - local delete, remote edit file 1, accept remote edit', () {
+    stateHistory.reset();
+    List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
+    Session session1 = sessions.first;
+    Session session2 = sessions.last;
+    session2.onStateChanged = stateChangedCallbackWithHistory;
+
+    expect(session2.state.hasChangesToMerge, equals(
+        true)); // Fetch in Repo B should have brought in changes to merge
+    expect(session2.state.hasConflicts,
+        equals(false)); //don't know about conflicts until we try to merge
+
+    session2.mergeIntoHead(); // merge call succeeds despite the merge not finishing
+
+    // file1 should have a local-delete-remote-edit type conflict
+    expect(session2.mergeConflictSummary.conflicts.length, equals(6));
+    expect(session2.mergeConflictSummary.conflicts[0].path, equals("file1"));
+    expect(session2.mergeConflictSummary.conflicts[0].conflictType, equals(MergeConflictType.localDeleteRemoteEdit));
+
+    session2.conflictResolveRestoreTheirsPathFromBlobId("file1", session2.mergeConflictSummary.conflicts[0].theirsBlobId);
+    // Verify that the 'theirs' copy of "file1" is the same as in session1
+    expect(diff("${session1.repositorySpec.localPath}/file1", "${session2.repositorySpec.localPath}/file1"), equals(0));    
+    session2.mergeConflictsQuery();
+    
+    expect(session2.mergeConflictSummary.conflicts.length, equals(5));
+    expect(session2.mergeConflictSummary.conflicts[0].path, equals("file2"));
+  });
+
+
+  test('Conflicts - local edit remote delete file 2, accept local edit', ()
+  {
+    stateHistory.reset();
+    List<Session> sessions = createConflictingReposAAndBWithExtendedConflicts();
+    Session session1 = sessions.first;
+    Session session2 = sessions.last;
+    session2.onStateChanged = stateChangedCallbackWithHistory;
+
+    expect(session2.state.hasChangesToMerge, equals(
+        true)); // Fetch in Repo B should have brought in changes to merge
+    expect(session2.state.hasConflicts,
+        equals(false)); //don't know about conflicts until we try to merge
+
+    session2.mergeIntoHead(); // merge call succeeds despite the merge not finishing
+
+    // file2 should have a local-edit-remote-delete type conflict
+    expect(session2.mergeConflictSummary.conflicts.length, equals(6));
+    expect(session2.mergeConflictSummary.conflicts[1].path, equals("file2"));
+    expect(session2.mergeConflictSummary.conflicts[1].conflictType, equals(MergeConflictType.localEditRemoteDelete));
+
+    session2.conflictResolveAcceptExisting("file2", ConflictResolution.ours);
+    session2.mergeConflictsQuery();
+    expect(session2.mergeConflictSummary.conflicts.length, equals(5));
+    expect(session2.mergeConflictSummary.conflicts[1].path, equals("file3"));
+
+  });
+
+      
+  test('Conflicts - local delete folder1 remote edit folder1/file3, accept remote edit', () {
+    stateHistory.reset();
+
+    var session1 =  Session(simpleRepo1DotGitSourcePath(), RepositorySourceUrlType.FILESYSTEM, simpleRepoAPath(), "");
+    var session2 =  Session(simpleRepo1DotGitSourcePath(), RepositorySourceUrlType.FILESYSTEM, simpleRepoBPath(), "");
+
+    session1.initialize();
+    session1.clone();
+
+    session2.initialize();
+    session2.clone();
+
+    // Modify repo A, commit and push
+    File("${testFixturesPath()}/simple-repo1-modifications/file1-modified").copySync("${simpleRepoAPath()}/folder1/file3");
+    session1.addAll("*");
+    session1.commit("commit changes in repo A");
+    session1.push(session1.repositorySpec.remoteName);
+    
+    ////
+    // Modify repo B
+    // delete folder1 (should conflict with modification)
+    Directory("${simpleRepoBPath()}/folder1").deleteSync(recursive: true);
+
+    // commit but don't push
+    session2.addAll("*");
+    session2.commit("commit changes in repo B");
+
+    ////
+    // RepoB fetch
+    session2.fetch(session2.repositorySpec.remoteName);
+    session2.mergeIntoHead();
+
+    expect(session2.mergeConflictSummary.conflicts.length, equals(1));
+    expect(session2.mergeConflictSummary.conflicts[0].path, equals("folder1/file3"));
+    expect(session2.state.hasConflicts, equals(true));
+
+    session2.conflictResolveRestoreTheirsPathFromBlobId("folder1/file3", session2.mergeConflictSummary.conflicts[0].theirsBlobId);
+    // Verify that the 'theirs' copy of "folder1/file3" is the same as in session1
+    expect(diff("${session1.repositorySpec.localPath}/folder1/file3", "${session2.repositorySpec.localPath}/folder1/file3"), equals(0));    
+
+    
   });
 }

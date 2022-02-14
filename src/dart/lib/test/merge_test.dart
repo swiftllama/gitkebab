@@ -87,5 +87,6 @@ void main() {
     expect(repoAOriginalHead, isNot(repoANewCommit));
     expect(repoBFetchedCommit, equals(repoANewCommit));
     expect(repoBNewHead, equals(repoANewCommit));
-  });
+});
+
 }

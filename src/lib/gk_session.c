@@ -304,6 +304,7 @@ void gk_session_context_pop(gk_session *session, const char *purpose) {
 
 int gk_session_success(gk_session *session, const char *purpose) {
     log_info(COMP_EXCTX, "popping purpose [%s]", purpose);
+    gk_session_clear_internal_last_result(session);
     gk_execution_context_pop(session->context, purpose);
     return GK_SUCCESS;
 }
