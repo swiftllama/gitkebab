@@ -10,6 +10,7 @@
 #define PRIuZ "zu"
 
 static int did_init = 0;
+static const char *gitkebab_version = "develop";
 
 void libgit2_log_cb(git_trace_level_t level, const char *msg) {
     // libgit2 logging levels count opposite from us
@@ -24,11 +25,16 @@ int gk_did_init() {
 }
 
 void gk_init() {
-    log_info(COMP_INIT, "Initializing GitKebab");
+    log_info(COMP_INIT, "Initializing GitKebab v%s", gitkebab_version);
     did_init = 1;
     
     int num_times_init = git_libgit2_init();
-    log_info(COMP_INIT, "git_libgit2_init() returned %d", num_times_init);
+    int lg2_ver_major = 0;
+    int lg2_ver_minor = 0;
+    int lg2_ver_rev = 0;
+    git_libgit2_version(&lg2_ver_major, &lg2_ver_minor, &lg2_ver_rev);
+    
+    log_info(COMP_INIT, "git_libgit2_init() returned %d for libgit2 v%d.%d.%d", num_times_init, lg2_ver_major, lg2_ver_minor, lg2_ver_rev);
     
     if (num_times_init != 1) {
         log_warn(COMP_INIT, "libgit2 initialized %d times (which is more than once)", num_times_init);
