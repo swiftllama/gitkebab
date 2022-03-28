@@ -1,0 +1,27 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a46eca5..b22c0a7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -18,6 +18,8 @@ project(libgit2 VERSION "1.1.1" LANGUAGES C)
+ # Add find modules to the path
+ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${libgit2_SOURCE_DIR}/cmake/")
+ 
++set(LIBGIT2_CLAR_EXTRA_LIBS ${LIBGIT2_CLAR_EXTRA_LIBS} "")
++
+ INCLUDE(CheckLibraryExists)
+ INCLUDE(CheckFunctionExists)
+ INCLUDE(CheckSymbolExists)
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 6f8a18e..197c1cc 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -43,7 +43,8 @@ SET_TARGET_PROPERTIES(libgit2_clar PROPERTIES C_STANDARD 90)
+ SET_TARGET_PROPERTIES(libgit2_clar PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${libgit2_BINARY_DIR})
+ 
+ TARGET_INCLUDE_DIRECTORIES(libgit2_clar PRIVATE ../src PUBLIC ../include)
+-TARGET_LINK_LIBRARIES(libgit2_clar ${LIBGIT2_LIBS})
++#TARGET_LINK_LIBRARIES(libgit2_clar ${LIBGIT2_LIBS} /home/amos/Projects/projectjudo/gitkebab/build-workspace/build/openssl-1.1.1k/windows/x86_64-debug/lib/libssl.a /home/amos/Projects/projectjudo/gitkebab/build-workspace/build/openssl-1.1.1k/windows/x86_64-debug/lib/libcrypto.a /usr/local/x86_64-w64-mingw32/lib/libwsock32.a /usr/local/x86_64-w64-mingw32/lib/libcrypt32.a)
++TARGET_LINK_LIBRARIES(libgit2_clar ${LIBGIT2_LIBS} ${LIBGIT2_CLAR_EXTRA_LIBS})
+ IDE_SPLIT_SOURCES(libgit2_clar)
+ 
+ IF (MSVC_IDE)
