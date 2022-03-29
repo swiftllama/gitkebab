@@ -1,4 +1,7 @@
 
+#include <stdio.h>
+#include <string.h>
+
 #include "git2.h"
 
 #include "gk_logging.h"
@@ -349,6 +352,108 @@ int gk_push(gk_session *session, const char *remote_name) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
     
+    return gk_session_success(session, purpose);
+}
+
+
+gk_remote_list *gk_remote_list_new(size_t length) {
+    gk_remote_list *list = (gk_remote_list *)malloc(sizeof(gk_remote_list));
+    if (list == NULL) return NULL;
+    list->count = length;
+    list->remotes = (gk_remote **)calloc(length, sizeof(gk_remote));
+    if (list->remotes == NULL) {
+        free(list);
+        return NULL;
+    }
+    return list;
+}
+
+void gk_remote_list_free(gk_remote_list *list) {
+    if (list == NULL) return;
+    if (list->remotes != NULL) {
+        free(list->remotes);
+        list->remotes = NULL;
+    }
+    free(list);
+}
+
+gk_remote *gk_remote_new(const char *name, const char *url) {
+    gk_remote *remote = (gk_remote *)malloc(sizeof(gk_remote));
+    if (remote == NULL) return NULL;
+    remote->name = name == NULL ? strdup("") : strdup(name);
+    remote->url = url == NULL ? strdup("") : strdup(url);
+    return remote;
+}
+
+void gk_remote_free(gk_remote *remote) {
+    free((void *)remote->name);
+    free((void *)remote->url);
+    remote->name = NULL;
+    remote->url = NULL;
+    free(remote);
+}
+
+gk_remote_list *gk_remotes_list(gk_session *session) {
+    const char *purpose = "remotes count";
+    if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+        return NULL;
+    }
+
+    git_strarray remote_names;
+    int rc = git_remote_list(&remote_names, session->repository->lg2_resources->repository);
+    if (rc != 0) {
+        gk_session_lg2_failure(session, purpose, GK_ERR);
+        return NULL;
+    }
+    
+    gk_remote_list *remote_list = gk_remote_list_new(remote_names.count);
+
+    for (size_t i = 0; i < remote_list->count; i += 1) {
+        git_remote *next_remote = NULL;
+        const char *next_url = "";
+        if (git_remote_lookup(&next_remote, session->repository->lg2_resources->repository, remote_names.strings[i]) == 0) {
+            next_url = git_remote_url(next_remote);
+        }
+        remote_list->remotes[i] = gk_remote_new(remote_names.strings[i], next_url);
+        if (next_remote != NULL) {
+            git_remote_free(next_remote);
+            next_remote = NULL;
+        }
+    }
+
+    git_strarray_dispose(&remote_names);
+    
+    gk_session_success(session, purpose);
+
+    return remote_list;
+}
+
+
+int gk_remote_delete(gk_session *session, const char* name) {
+    const char *purpose = "remote destroy";
+    if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    int rc = git_remote_delete(session->repository->lg2_resources->repository, name);
+    if (rc != 0) {
+        return gk_session_lg2_failure(session, purpose, GK_ERR);
+    }
+
+    return gk_session_success(session, purpose);
+}
+
+int gk_remote_create(gk_session *session, const char* name, const char* url) {
+    const char *purpose = "remote create";
+    if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    int rc = git_remote_create(NULL, session->repository->lg2_resources->repository, name, url);
+    if (rc != 0) {
+        return gk_session_lg2_failure(session, purpose, GK_ERR);
+    }
+
     return gk_session_success(session, purpose);
 }
 

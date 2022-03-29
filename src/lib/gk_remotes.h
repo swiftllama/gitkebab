@@ -8,4 +8,8 @@ int gk_clone(gk_session *session);
 int gk_fetch(gk_session *session, const char *remote_name);
 int gk_push(gk_session *session, const char *remote_name);
 
+gk_remote_list *gk_remotes_list(gk_session *session);
+int gk_remote_create(gk_session *session, const char* name, const char* url);
+int gk_remote_destroy(gk_session *session, const char* name);
+
 #endif // __GK_REMOTES_H__

@@ -221,4 +221,15 @@ typedef enum gk_conflict_resolution {
     GK_CONFLICT_RESOLUTION_ANCESTOR,
 } gk_conflict_resolution;
 
+typedef struct gk_remote {
+    const char* name;
+    const char* url;
+} gk_remote;
+
+typedef struct gk_remote_list {
+    gk_remote **remotes;
+    size_t count;
+} gk_remote_list;
+
+
 #endif // __GK_TYPES_H__
