@@ -57,6 +57,7 @@ void gk_lg2_index_free(gk_repository *repository);
 void gk_lg2_merge_index_free(gk_repository *repository);
 int gk_lg2_promote_merge_index(gk_session *session);
 int gk_lg2_repository_open(gk_session *session);
+int gk_lg2_repository_init_ext(gk_session *session, const char *main_branch_name);
 void gk_lg2_repository_free(gk_repository *repository);
 int gk_lg2_reflog_read(gk_session *session, const char *ref_name);
 void gk_lg2_reflog_free(gk_repository *gk_repository);

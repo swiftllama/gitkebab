@@ -210,6 +210,26 @@ int gk_lg2_repository_open(gk_session *session) {
     return gk_session_success(session, purpose);
 }
 
+int gk_lg2_repository_init_ext(gk_session *session, const char* main_branch_name) {
+    const char *purpose = "libgit2 repository init";
+    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+
+    gk_lg2_resources *lg2_resources = session->repository->lg2_resources;
+
+    git_repository_init_options opts;
+    git_repository_init_options_init(&opts, GIT_REPOSITORY_INIT_OPTIONS_VERSION);
+    opts.initial_head = main_branch_name;
+    opts.flags = GIT_REPOSITORY_INIT_MKPATH;
+    
+    if (git_repository_init_ext(&lg2_resources->repository, session->repository->spec.local_path, &opts) != 0) {
+        gk_lg2_repository_free(session->repository);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "Could not init repository at local path [%s] with main branch [%s]", session->repository->spec.local_path, main_branch_name);
+    }
+    return gk_session_success(session, purpose);
+}
+
 void gk_lg2_repository_free(gk_repository *repository) {
     git_repository_free(repository->lg2_resources->repository);
     repository->lg2_resources->repository = NULL;

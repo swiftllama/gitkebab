@@ -85,6 +85,20 @@ int gk_open_local_repository(gk_session *session) {
     return gk_session_success(session, purpose);
 }
 
+int gk_create_local_repository(gk_session *session, const char *main_branch_name) {
+    const char *purpose = "create local repository";
+    if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {
+        return GK_FAILURE;
+    }
+    
+    if (gk_lg2_repository_init_ext(session, main_branch_name) != GK_SUCCESS) {
+        return gk_session_failure(session, purpose);
+    }
+
+    gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_LOCAL_CHECKOUT_EXISTS);
+    return gk_session_success(session, purpose);
+}
+
 void gk_repository_free(gk_repository *repository) {
     if (repository == NULL) {
         return;
