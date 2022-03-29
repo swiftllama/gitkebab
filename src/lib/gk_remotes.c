@@ -449,10 +449,13 @@ int gk_remote_create(gk_session *session, const char* name, const char* url) {
         return GK_FAILURE;
     }
 
-    int rc = git_remote_create(NULL, session->repository->lg2_resources->repository, name, url);
+    git_remote *remote = NULL;
+    int rc = git_remote_create(&remote, session->repository->lg2_resources->repository, name, url);
     if (rc != 0) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
+
+    git_remote_free(remote);
 
     return gk_session_success(session, purpose);
 }
