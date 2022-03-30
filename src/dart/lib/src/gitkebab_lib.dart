@@ -3536,6 +3536,23 @@ class GitKebabLib {
       _gk_open_local_repository_ptr
           .asFunction<_dart_gk_open_local_repository>();
 
+  int gk_create_local_repository(
+    ffi.Pointer<gk_session> session,
+    ffi.Pointer<ffi.Int8> main_branch_name,
+  ) {
+    return _gk_create_local_repository(
+      session,
+      main_branch_name,
+    );
+  }
+
+  late final _gk_create_local_repository_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_create_local_repository>>(
+          'gk_create_local_repository');
+  late final _dart_gk_create_local_repository _gk_create_local_repository =
+      _gk_create_local_repository_ptr
+          .asFunction<_dart_gk_create_local_repository>();
+
   void gk_repository_free(
     ffi.Pointer<gk_repository> repository,
   ) {
@@ -4501,6 +4518,93 @@ class GitKebabLib {
 
   late final _gk_push_ptr = _lookup<ffi.NativeFunction<_c_gk_push>>('gk_push');
   late final _dart_gk_push _gk_push = _gk_push_ptr.asFunction<_dart_gk_push>();
+
+  ffi.Pointer<gk_remote_list> gk_remotes_list(
+    ffi.Pointer<gk_session> session,
+  ) {
+    return _gk_remotes_list(
+      session,
+    );
+  }
+
+  late final _gk_remotes_list_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_remotes_list>>('gk_remotes_list');
+  late final _dart_gk_remotes_list _gk_remotes_list =
+      _gk_remotes_list_ptr.asFunction<_dart_gk_remotes_list>();
+
+  void gk_remote_list_free(
+    ffi.Pointer<gk_remote_list> list,
+  ) {
+    return _gk_remote_list_free(
+      list,
+    );
+  }
+
+  late final _gk_remote_list_free_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_remote_list_free>>(
+          'gk_remote_list_free');
+  late final _dart_gk_remote_list_free _gk_remote_list_free =
+      _gk_remote_list_free_ptr.asFunction<_dart_gk_remote_list_free>();
+
+  ffi.Pointer<gk_remote> gk_remote_new(
+    ffi.Pointer<ffi.Int8> name,
+    ffi.Pointer<ffi.Int8> url,
+  ) {
+    return _gk_remote_new(
+      name,
+      url,
+    );
+  }
+
+  late final _gk_remote_new_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_remote_new>>('gk_remote_new');
+  late final _dart_gk_remote_new _gk_remote_new =
+      _gk_remote_new_ptr.asFunction<_dart_gk_remote_new>();
+
+  void gk_remote_free(
+    ffi.Pointer<gk_remote> remote,
+  ) {
+    return _gk_remote_free(
+      remote,
+    );
+  }
+
+  late final _gk_remote_free_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_remote_free>>('gk_remote_free');
+  late final _dart_gk_remote_free _gk_remote_free =
+      _gk_remote_free_ptr.asFunction<_dart_gk_remote_free>();
+
+  int gk_remote_create(
+    ffi.Pointer<gk_session> session,
+    ffi.Pointer<ffi.Int8> name,
+    ffi.Pointer<ffi.Int8> url,
+  ) {
+    return _gk_remote_create(
+      session,
+      name,
+      url,
+    );
+  }
+
+  late final _gk_remote_create_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_remote_create>>('gk_remote_create');
+  late final _dart_gk_remote_create _gk_remote_create =
+      _gk_remote_create_ptr.asFunction<_dart_gk_remote_create>();
+
+  int gk_remote_delete(
+    ffi.Pointer<gk_session> session,
+    ffi.Pointer<ffi.Int8> name,
+  ) {
+    return _gk_remote_delete(
+      session,
+      name,
+    );
+  }
+
+  late final _gk_remote_delete_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_remote_delete>>('gk_remote_delete');
+  late final _dart_gk_remote_delete _gk_remote_delete =
+      _gk_remote_delete_ptr.asFunction<_dart_gk_remote_delete>();
 
   void gk_status_summary_reset(
     ffi.Pointer<gk_status_summary> status_summary,
@@ -5903,6 +6007,19 @@ abstract class ConflictResolution {
   static const int OURS = 0;
   static const int THEIRS = 1;
   static const int ANCESTOR = 2;
+}
+
+class gk_remote extends ffi.Struct {
+  external ffi.Pointer<ffi.Int8> name;
+
+  external ffi.Pointer<ffi.Int8> url;
+}
+
+class gk_remote_list extends ffi.Struct {
+  @ffi.Uint64()
+  external int count;
+
+  external ffi.Pointer<ffi.Pointer<gk_remote>> remotes;
 }
 
 class gk_object_id extends ffi.Struct {
@@ -8683,6 +8800,16 @@ typedef _dart_gk_open_local_repository = int Function(
   ffi.Pointer<gk_session> session,
 );
 
+typedef _c_gk_create_local_repository = ffi.Int32 Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> main_branch_name,
+);
+
+typedef _dart_gk_create_local_repository = int Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> main_branch_name,
+);
+
 typedef _c_gk_repository_free = ffi.Void Function(
   ffi.Pointer<gk_repository> repository,
 );
@@ -9257,6 +9384,62 @@ typedef _c_gk_push = ffi.Int32 Function(
 typedef _dart_gk_push = int Function(
   ffi.Pointer<gk_session> session,
   ffi.Pointer<ffi.Int8> remote_name,
+);
+
+typedef _c_gk_remotes_list = ffi.Pointer<gk_remote_list> Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _dart_gk_remotes_list = ffi.Pointer<gk_remote_list> Function(
+  ffi.Pointer<gk_session> session,
+);
+
+typedef _c_gk_remote_list_free = ffi.Void Function(
+  ffi.Pointer<gk_remote_list> list,
+);
+
+typedef _dart_gk_remote_list_free = void Function(
+  ffi.Pointer<gk_remote_list> list,
+);
+
+typedef _c_gk_remote_new = ffi.Pointer<gk_remote> Function(
+  ffi.Pointer<ffi.Int8> name,
+  ffi.Pointer<ffi.Int8> url,
+);
+
+typedef _dart_gk_remote_new = ffi.Pointer<gk_remote> Function(
+  ffi.Pointer<ffi.Int8> name,
+  ffi.Pointer<ffi.Int8> url,
+);
+
+typedef _c_gk_remote_free = ffi.Void Function(
+  ffi.Pointer<gk_remote> remote,
+);
+
+typedef _dart_gk_remote_free = void Function(
+  ffi.Pointer<gk_remote> remote,
+);
+
+typedef _c_gk_remote_create = ffi.Int32 Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> name,
+  ffi.Pointer<ffi.Int8> url,
+);
+
+typedef _dart_gk_remote_create = int Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> name,
+  ffi.Pointer<ffi.Int8> url,
+);
+
+typedef _c_gk_remote_delete = ffi.Int32 Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> name,
+);
+
+typedef _dart_gk_remote_delete = int Function(
+  ffi.Pointer<gk_session> session,
+  ffi.Pointer<ffi.Int8> name,
 );
 
 typedef _c_gk_status_summary_reset = ffi.Void Function(

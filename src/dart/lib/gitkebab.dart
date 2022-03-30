@@ -7,3 +7,4 @@ export 'src/errors.dart';
 export 'src/repository.dart';
 export 'src/credentials.dart';
 export 'src/rsa_key.dart';
+export 'src/remote.dart';

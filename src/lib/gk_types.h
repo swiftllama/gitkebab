@@ -227,8 +227,8 @@ typedef struct gk_remote {
 } gk_remote;
 
 typedef struct gk_remote_list {
-    gk_remote **remotes;
     size_t count;
+    gk_remote **remotes;
 } gk_remote_list;
 
 

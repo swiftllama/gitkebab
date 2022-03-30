@@ -11,6 +11,7 @@ import 'errors.dart';
 import 'repository.dart';
 import 'credentials.dart';
 import 'session_state.dart';
+import 'remote.dart';
 
 Map<String, Session> g_sessions = {};
 
@@ -171,6 +172,12 @@ class Session {
     if (credential != null) credential.cleanupSession(session_ptr);
   }
 
+  void createLocal() {
+    if (GitKebab.lib.gk_create_local_repository(session_ptr, session_ptr.ref.repository.ref.spec.main_branch_name) != 0) {
+      throw lastResultException();
+    }
+  }
+
   void clone({Credential? credential}) {
     _withCredential(credential, () {
       if (GitKebab.lib.gk_clone(session_ptr) != 0) throw lastResultException();
@@ -195,6 +202,42 @@ class Session {
     _withCredential(credential, () {
       if (GitKebab.lib.gk_sync(session_ptr) != 0) throw lastResultException();
     });
+  }
+
+  List<Remote> remotesList() {
+    final remotes_ptr = GitKebab.lib.gk_remotes_list(session_ptr);
+    final remotes = Remote.listFromPointer(remotes_ptr);
+    if (remotes == null) throw lastResultException();
+    return remotes;
+    /*
+    if (remotes_ptr.address == 0) throw lastResultException();
+    if (remotes_ptr.ref.remotes.address == 0) return [];
+    final remotes = <Remote>[];
+    for (var i = 0; i < remotes_ptr.ref.count; i += 1) {
+      final next_remote_ptr = remotes_ptr.ref.remotes.elementAt(i);
+      if (next_remote_ptr.address == 0) continue;
+      /*
+      if (next_remote_ptr.value.address == 0) continue;
+      final name = next_remote_ptr.value.ref.name.toString();
+      final url = next_remote_ptr.value.ref.url.toString();
+      final next_remote = Remote(name:name, url: url);*/
+      final next_remote = Remote.fromPointer(next_remote_ptr.value);
+      if (next_remote == null) continue;
+      remotes.add(next_remote);
+    }
+    return remotes;*/
+  }
+
+  void createRemote(Remote remote) {
+    if (GitKebab.lib.gk_remote_create(session_ptr, remote.name.toFfiPtr(), remote.url.toFfiPtr()) != 0) {
+      throw lastResultException();
+    }
+  }
+
+  void deleteRemoteNamed(String remoteName) {
+    if (GitKebab.lib.gk_remote_delete(session_ptr, remoteName.toFfiPtr()) != 0) {
+      throw lastResultException();
+    }
   }
 
   Future<void> backgroundSync(
