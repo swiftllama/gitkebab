@@ -13,6 +13,7 @@
 
 gk_repository *gk_repository_new();
 void gk_repository_init(gk_repository *repository, const char *source_url, gk_repository_source_url_type source_url_type, const char *local_path, const char *user);
+void gk_repository_update_remote(gk_repository *repository, const char* remote_url);
 int gk_open_local_repository(gk_session *session);
 int gk_create_local_repository(gk_session *session, const char *main_branch_name);
 void gk_repository_free(gk_repository *repository);

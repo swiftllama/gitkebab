@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ffi';
 
 import 'package:test/test.dart';
 import '../gitkebab.dart' as gk;
@@ -57,5 +58,20 @@ void main() {
     expect(remotes.length, equals(1));
     expect(remotes[0].name, equals('origin2'));
     expect(remotes[0].url, equals('ssh://example.com/origin2'));
+
+    session1.updateRemote(gk.Remote(name:'origin2', url:'ssh://origin2.example.com'));
+    remotes = session1.remotesList();
+    expect(remotes.length, equals(1));
+    expect(remotes[0].name, equals('origin2'));
+    expect(remotes[0].url, equals('ssh://origin2.example.com'));
+
+    session1.updateRemote(gk.Remote(name:'origin', url:'ssh://new-origin.example.com'));
+    remotes = session1.remotesList();
+    expect(remotes.length, equals(2));
+    expect(remotes[0].name, equals('origin'));
+    expect(remotes[0].url, equals('ssh://new-origin.example.com'));
+    expect(remotes[1].name, equals('origin2'));
+    expect(remotes[1].url, equals('ssh://origin2.example.com'));
+    expect(session1.repositorySpec.sourceUrl, equals('ssh://new-origin.example.com'));
   });
 }

@@ -68,6 +68,12 @@ void gk_repository_init(gk_repository *repository, const char *source_url, gk_re
     repository->conflict_summary.conflicts = NULL;
 }
 
+void gk_repository_update_remote(gk_repository *repository, const char* remote_url) {
+    if (repository == NULL) return;
+    free((void *)repository->spec.source_url);
+    repository->spec.source_url = remote_url == NULL ? strdup("") : strdup(remote_url);
+}
+
 int gk_open_local_repository(gk_session *session) {
     const char *purpose = "open local repository";
     if (gk_session_context_push(session, purpose, &COMP_REPOSITORY, GK_REPOSITORY_VERIFY_NONE) != GK_SUCCESS) {

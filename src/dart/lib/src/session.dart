@@ -121,9 +121,13 @@ class Session {
           "GitKebab session repository unexpectedly null");
     }
     id = session_ptr.ref.id_ptr.toDartString();
-    repositorySpec = RepositorySpec(session_ptr.ref.repository.ref.spec);
+    _loadRepositorySpec();
 
     g_sessions[id] = this;
+  }
+
+  void _loadRepositorySpec() {
+    repositorySpec = RepositorySpec(session_ptr.ref.repository.ref.spec);
   }
 
   void notifySessionStateChanged(SessionStateUpdateEvent updateEvent){
@@ -231,6 +235,25 @@ class Session {
   void createRemote(Remote remote) {
     if (GitKebab.lib.gk_remote_create(session_ptr, remote.name.toFfiPtr(), remote.url.toFfiPtr()) != 0) {
       throw lastResultException();
+    }
+  }
+
+  void updateRemote(Remote remote) {
+    final remotes = remotesList();
+    final existingRemotes = remotes.where((existingRemote) => existingRemote.name == remote.name);
+    if (existingRemotes.isEmpty) {
+      createRemote(remote);
+    }
+    else if (existingRemotes.first.name == remote.name){
+      deleteRemoteNamed(existingRemotes.first.name);
+      createRemote(remote);
+    }
+    if ((session_ptr.address != 0) && (session_ptr.ref.repository.address != 0)) {
+      final currentSpecRemote = session_ptr.ref.repository.ref.spec.remote_name.toDartString();
+      if (remote.name == currentSpecRemote) {
+        GitKebab.lib.gk_repository_update_remote(session_ptr.ref.repository, remote.url.toFfiPtr());
+        _loadRepositorySpec();
+      }
     }
   }
 

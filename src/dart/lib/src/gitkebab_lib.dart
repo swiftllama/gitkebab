@@ -3521,6 +3521,23 @@ class GitKebabLib {
   late final _dart_gk_repository_init _gk_repository_init =
       _gk_repository_init_ptr.asFunction<_dart_gk_repository_init>();
 
+  void gk_repository_update_remote(
+    ffi.Pointer<gk_repository> repository,
+    ffi.Pointer<ffi.Int8> remote_url,
+  ) {
+    return _gk_repository_update_remote(
+      repository,
+      remote_url,
+    );
+  }
+
+  late final _gk_repository_update_remote_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_repository_update_remote>>(
+          'gk_repository_update_remote');
+  late final _dart_gk_repository_update_remote _gk_repository_update_remote =
+      _gk_repository_update_remote_ptr
+          .asFunction<_dart_gk_repository_update_remote>();
+
   int gk_open_local_repository(
     ffi.Pointer<gk_session> session,
   ) {
@@ -8790,6 +8807,16 @@ typedef _dart_gk_repository_init = void Function(
   int source_url_type,
   ffi.Pointer<ffi.Int8> local_path,
   ffi.Pointer<ffi.Int8> user,
+);
+
+typedef _c_gk_repository_update_remote = ffi.Void Function(
+  ffi.Pointer<gk_repository> repository,
+  ffi.Pointer<ffi.Int8> remote_url,
+);
+
+typedef _dart_gk_repository_update_remote = void Function(
+  ffi.Pointer<gk_repository> repository,
+  ffi.Pointer<ffi.Int8> remote_url,
 );
 
 typedef _c_gk_open_local_repository = ffi.Int32 Function(
