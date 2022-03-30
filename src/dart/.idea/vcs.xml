@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/../.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/test-staging/clone-test-1" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/test-staging/create-local-test-2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/test-staging/simple-repo-A" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/test-staging/simple-repo-B" vcs="Git" />
   </component>

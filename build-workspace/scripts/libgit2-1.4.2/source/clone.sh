@@ -8,7 +8,7 @@ git clone --branch v1.4.2 --depth 1 git@github.com:libgit2/libgit2.git source/li
 
 echo "Applying patches"
 cd source/libgit2-1.4.2
-#patch -p0 < ../../patches/libgit2-1.4.2/fix-userauth-publikey-frommemory-detection.diff
+git apply < ../../patches/libgit2-1.4.2/fix-userauth-publikey-frommemory-detection.diff
 git apply ../../patches/libgit2-1.4.2/fix-macos-eintr-handling.diff
 #git apply ../../patches/libgit2-1.4.2/fix-allow-injecting-libs-to-libgi2_clar-linking.diff
 git apply ../../patches/libgit2-1.4.2/fix-android-avoid-getloadavg.diff
