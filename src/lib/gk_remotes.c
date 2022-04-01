@@ -450,11 +450,17 @@ int gk_remote_create(gk_session *session, const char* name, const char* url) {
     }
 
     git_remote *remote = NULL;
+    log_info(COMP_REMOTE, "Creating remote [%s] with url [%s]", name, url);
     int rc = git_remote_create(&remote, session->repository->lg2_resources->repository, name, url);
     if (rc != 0) {
         return gk_session_lg2_failure(session, purpose, GK_ERR);
     }
 
+    if (git_remote_add_push(session->repository->lg2_resources->repository, name, session->repository->spec.push_refspec) != 0) {
+        git_remote_free(remote);
+        return gk_session_lg2_failure_ex(session, purpose, GK_ERR, "failed to add push refspec [%s] after creating remote [%s]", session->repository->spec.push_refspec, name);
+    }
+    
     git_remote_free(remote);
 
     return gk_session_success(session, purpose);

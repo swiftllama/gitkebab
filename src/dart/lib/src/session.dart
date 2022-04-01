@@ -244,7 +244,7 @@ class Session {
     if (existingRemotes.isEmpty) {
       createRemote(remote);
     }
-    else if (existingRemotes.first.name == remote.name){
+    else if ((existingRemotes.first.name == remote.name) && existingRemotes.first.url != remote.url){
       deleteRemoteNamed(existingRemotes.first.name);
       createRemote(remote);
     }
