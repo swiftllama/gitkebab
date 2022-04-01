@@ -46,9 +46,10 @@ static void gk_repository_spec_free_members(gk_repository_spec *repository_spec)
 }
 
 gk_repository *gk_repository_new() {
-    gk_repository *repository = (gk_repository *)malloc(sizeof(gk_repository));
+    // NOTE: new repository memory must be zerored out
+    gk_repository *repository = (gk_repository *)calloc(1, sizeof(gk_repository));
     repository->state_counter = 0;
-    repository->lg2_resources = (gk_lg2_resources *)malloc(sizeof(gk_lg2_resources));
+    repository->lg2_resources = (gk_lg2_resources *)calloc(1, sizeof(gk_lg2_resources));
     return repository;
 }
 
