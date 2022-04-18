@@ -175,6 +175,12 @@ int gk_session_verify(gk_session *session, int condition, const char *purpose) {
         }
     }
 
+    if (condition & GK_REPOSITORY_VERIFY_REPOSITORY_LOADED) {
+        if (session->repository->lg2_resources->repository == NULL) {
+            return gk_session_failure_ex(session, purpose, GK_ERR_REPOSITORY_NOT_LOADED, "repository is not loaded");
+        }
+    }
+
     if (condition & GK_REPOSITORY_VERIFY_INDEX_LOADED) {
         if (session->repository->lg2_resources->index == NULL) {
             return gk_session_failure_ex(session, purpose, GK_ERR, "must load index first");

@@ -5839,8 +5839,9 @@ abstract class ResultCode {
   static const int ERROR_REPOSITORY_NOT_INITIALIZED = 7;
   static const int ERROR_REPOSITORY_LOCAL_PATH_CONFLICT = 8;
   static const int ERROR_REPOSITORY_NO_LOCAL_CHECKOUT = 9;
-  static const int ERROR_NOT_FOUND = 10;
-  static const int ERROR_MERGE_HAS_CONFLICTS = 11;
+  static const int ERROR_REPOSITORY_NOT_LOADED = 10;
+  static const int ERROR_NOT_FOUND = 11;
+  static const int ERROR_MERGE_HAS_CONFLICTS = 12;
 }
 
 abstract class MergeConflictEntryType {
@@ -5859,7 +5860,8 @@ abstract class RepositoryVerifyCondition {
   static const int VERIFY_INDEX_LOADED = 32;
   static const int VERIFY_MERGE_INDEX_LOADED = 64;
   static const int VERIFY_STATE_LOCK = 128;
-  static const int VERIFY_DEFAULT = 166;
+  static const int VERIFY_REPOSITORY_LOADED = 256;
+  static const int VERIFY_DEFAULT = 422;
 }
 
 abstract class SessionProgressEventType {

@@ -395,7 +395,7 @@ void gk_remote_free(gk_remote *remote) {
 
 gk_remote_list *gk_remotes_list(gk_session *session) {
     const char *purpose = "remotes count";
-    if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+    if (gk_session_context_push(session, purpose, &COMP_REMOTE, GK_REPOSITORY_VERIFY_REPOSITORY_LOADED) != GK_SUCCESS) {
         return NULL;
     }
 
