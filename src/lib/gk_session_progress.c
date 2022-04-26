@@ -185,12 +185,27 @@ void gk_session_progress_update(gk_session *session, gk_session_progress *progre
     }
 }
 
-int gk_session_progress_push_update_reference_callback(const char *refname, const char *status, void *data) {
+int gk_session_progress_push_update_reference_callback(const char *refname, const char *status, void *payload) {
     (void) refname; // unused
-    (void) data; // unused
+    (void) payload; //unused
     if (status != NULL) {
-        log_error(COMP_PROGRESS, "Push error: %s", status);
+        const char *purpose = "push references";
+        if (payload != NULL) {
+            gk_session *session = (gk_session *)payload;
+            if (gk_session_last_result_code(session) == GK_SUCCESS) {
+                if (gk_session_context_push(session, purpose, &COMP_AUTH, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+                    return -1;
+                }
+                gk_session_failure_ex(session, purpose, GK_ERR, status);
+                return -1;
+            }
+            else {
+                log_error(COMP_PROGRESS, "session payload is unexpectedly NULL during transport message callback");
+            }
+        }
+        log_error(COMP_PROGRESS, "error while pushing references: %s", status);
         return -1;
+
     }
     return 0;
 }
@@ -198,20 +213,29 @@ int gk_session_progress_push_update_reference_callback(const char *refname, cons
 int gk_session_transport_message_callback(const char *str, int len, void *payload) {
     (void) payload; // unused
     if (str != NULL) {
-        char message[1024];
-        snprintf(message, len > 1024 ? 1024 : len, "%s", str);
-        log_error(COMP_PROGRESS, "remote: %s", message);
-        const char *purpose = "process remote transport messages";
-        if (payload != NULL) {
-            gk_session *session = (gk_session *)payload;
-            if (gk_session_context_push(session, purpose, &COMP_AUTH, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+        const int prefix_size = 16;
+        if ((len >= prefix_size) && (strncmp(str, "JEMDRIVE-ERROR: ", prefix_size) == 0)){
+            char message[1024];
+            snprintf(message, len - prefix_size > 1024 ? 1024 : len - prefix_size, "%s", str + prefix_size);
+            const char *purpose = "process transport messages";
+            if (payload != NULL) {
+                gk_session *session = (gk_session *)payload;
+                if (gk_session_context_push(session, purpose, &COMP_AUTH, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+                    return -1;
+                }
+                gk_session_failure_ex(session, purpose, GK_ERR, message);
                 return -1;
             }
-            gk_session_failure_ex(session, purpose, GK_ERR, message);
-            return -1;
+            else {
+                log_error(COMP_PROGRESS, "error received from server: %s", message);
+                log_error(COMP_PROGRESS, "session payload is unexpectedly NULL during transport message callback");
+                return -1;
+            }   
         }
         else {
-            log_error(COMP_PROGRESS, "session payload is unexpectedly NULL during transport message callback");
+            char message[1024];
+            snprintf(message, len > 1024 ? 1024 : len, "%s", str);
+            log_info(COMP_PROGRESS, "remote: %s", message);
         }
     }
     return 0;
