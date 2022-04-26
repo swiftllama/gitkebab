@@ -200,7 +200,19 @@ int gk_session_transport_message_callback(const char *str, int len, void *payloa
     if (str != NULL) {
         char message[1024];
         snprintf(message, len > 1024 ? 1024 : len, "%s", str);
-        log_info(COMP_PROGRESS, "remote: %s", message);
-    };
+        log_error(COMP_PROGRESS, "remote: %s", message);
+        const char *purpose = "process remote transport messages";
+        if (payload != NULL) {
+            gk_session *session = (gk_session *)payload;
+            if (gk_session_context_push(session, purpose, &COMP_AUTH, GK_REPOSITORY_VERIFY_INITIALIZED) != GK_SUCCESS) {
+                return -1;
+            }
+            gk_session_failure_ex(session, purpose, GK_ERR, message);
+            return -1;
+        }
+        else {
+            log_error(COMP_PROGRESS, "session payload is unexpectedly NULL during transport message callback");
+        }
+    }
     return 0;
 }

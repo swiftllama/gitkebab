@@ -3394,6 +3394,47 @@ class GitKebabLib {
       _gk_session_progress_push_transfer_callback_ptr
           .asFunction<_dart_gk_session_progress_push_transfer_callback>();
 
+  int gk_session_progress_push_update_reference_callback(
+    ffi.Pointer<ffi.Int8> refname,
+    ffi.Pointer<ffi.Int8> status,
+    ffi.Pointer<ffi.Void> data,
+  ) {
+    return _gk_session_progress_push_update_reference_callback(
+      refname,
+      status,
+      data,
+    );
+  }
+
+  late final _gk_session_progress_push_update_reference_callback_ptr = _lookup<
+          ffi.NativeFunction<
+              _c_gk_session_progress_push_update_reference_callback>>(
+      'gk_session_progress_push_update_reference_callback');
+  late final _dart_gk_session_progress_push_update_reference_callback
+      _gk_session_progress_push_update_reference_callback =
+      _gk_session_progress_push_update_reference_callback_ptr.asFunction<
+          _dart_gk_session_progress_push_update_reference_callback>();
+
+  int gk_session_transport_message_callback(
+    ffi.Pointer<ffi.Int8> str,
+    int len,
+    ffi.Pointer<ffi.Void> payload,
+  ) {
+    return _gk_session_transport_message_callback(
+      str,
+      len,
+      payload,
+    );
+  }
+
+  late final _gk_session_transport_message_callback_ptr =
+      _lookup<ffi.NativeFunction<_c_gk_session_transport_message_callback>>(
+          'gk_session_transport_message_callback');
+  late final _dart_gk_session_transport_message_callback
+      _gk_session_transport_message_callback =
+      _gk_session_transport_message_callback_ptr
+          .asFunction<_dart_gk_session_transport_message_callback>();
+
   ffi.Pointer<gk_session_progress> gk_session_progress_init_fetch(
     int received_bytes,
     int total_objects,
@@ -8722,6 +8763,31 @@ typedef _dart_gk_session_progress_push_transfer_callback = int Function(
   int current,
   int total,
   int bytes,
+  ffi.Pointer<ffi.Void> payload,
+);
+
+typedef _c_gk_session_progress_push_update_reference_callback = ffi.Int32
+    Function(
+  ffi.Pointer<ffi.Int8> refname,
+  ffi.Pointer<ffi.Int8> status,
+  ffi.Pointer<ffi.Void> data,
+);
+
+typedef _dart_gk_session_progress_push_update_reference_callback = int Function(
+  ffi.Pointer<ffi.Int8> refname,
+  ffi.Pointer<ffi.Int8> status,
+  ffi.Pointer<ffi.Void> data,
+);
+
+typedef _c_gk_session_transport_message_callback = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int8> str,
+  ffi.Int32 len,
+  ffi.Pointer<ffi.Void> payload,
+);
+
+typedef _dart_gk_session_transport_message_callback = int Function(
+  ffi.Pointer<ffi.Int8> str,
+  int len,
   ffi.Pointer<ffi.Void> payload,
 );
 

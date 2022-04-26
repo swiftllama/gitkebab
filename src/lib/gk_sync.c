@@ -19,10 +19,8 @@
 static void *gk_background_sync_worker(void* session_ptr) {
     gk_session *session = (gk_session *)session_ptr;
     gk_sync(session);
-    log_warn(COMP_SYNC, "after gk_sync last code is: %d [%s]", gk_session_last_result_code(session), gk_session_last_result_message(session));
     // NOTE: don't trigger a callback for background sync (background syncs rely on polling not callbacks)
     gk_repository_state_unset(session->repository, GK_REPOSITORY_STATE_BACKGROUND_SYNC_IN_PROGRESS);
-    log_warn(COMP_SYNC, "after unsetting code is: %d [%s]", gk_session_last_result_code(session), gk_session_last_result_message(session));
     return NULL;
 }
 

@@ -342,7 +342,9 @@ int gk_session_failure_ex(gk_session *session, const char *purpose, int code, co
     }
     else {
         gk_execution_context_set_result(last_unresolved, result);
-        session->internal_last_result = gk_result_new(result->code, result->message);
+        // NOTE: this is premature optimization, better to let
+        // the last internal result be calculated on an as-need basis
+        //session->internal_last_result = gk_result_new(result->code, result->message);
     }
     
     return GK_FAILURE;
@@ -374,6 +376,8 @@ int gk_session_lg2_failure_ex(gk_session *session, const char *purpose, int code
 }
 
 const char *gk_session_last_result_message(gk_session *session) {
+    //gk_execution_context_print_execution_chain(session->context);
+    //printf("=> last internal result: %p\n", (void *)session->internal_last_result);
     gk_result *result = gk_session_internal_last_result(session);
     return gk_result_message(result);
 }
