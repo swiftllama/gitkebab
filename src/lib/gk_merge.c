@@ -481,11 +481,6 @@ const char *gk_merge_conflict_summary_fetch_head_oid_id(gk_repository *repositor
         log_error(COMP_MERGE, "Cannot return fetch head oid id for NULL repository, returning an empty string");
         return "";
     }
-    log_error(COMP_MERGE, "DBG  returning head oid id [%s]", repository->conflict_summary.fetch_head_oid_id);
-    int length = strlen(repository->conflict_summary.fetch_head_oid_id);
-    for (int i = 0; i < length; i += 1) {
-        log_error(COMP_MERGE, "DBG  head_oid_id[%d]: %d", i, (int)repository->conflict_summary.fetch_head_oid_id[i]);
-    }
     return repository->conflict_summary.fetch_head_oid_id;
 }
 

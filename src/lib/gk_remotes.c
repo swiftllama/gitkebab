@@ -334,8 +334,12 @@ int gk_push(gk_session *session, const char *remote_name) {
 
     git_push_options push_options = GIT_PUSH_OPTIONS_INIT;
     push_options.callbacks.push_transfer_progress = (git_push_transfer_progress_cb)&gk_session_progress_push_transfer_callback;
+    push_options.callbacks.push_update_reference = (git_push_update_reference_cb)&gk_session_progress_push_update_reference_callback;
+    push_options.callbacks.sideband_progress = (git_transport_message_cb)&gk_session_transport_message_callback;
+    
     push_options.callbacks.credentials = gk_session_credential_callback;
     push_options.callbacks.payload = session;
+    
 
     gk_repository_state_set(session->repository, GK_REPOSITORY_STATE_PUSH_IN_PROGRESS);
     if (gk_session_trigger_repository_state_callback(session) != GK_SUCCESS) {

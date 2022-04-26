@@ -176,8 +176,6 @@ int gk_session_progress_push_transfer_callback(unsigned int current, unsigned in
     return 0;
 }
 
-
-
 void gk_session_progress_update(gk_session *session, gk_session_progress *progress) {
     if (gk_session_state_lock(session) == GK_SUCCESS) {
         gk_session_progress_free(session->progress);
@@ -185,4 +183,24 @@ void gk_session_progress_update(gk_session *session, gk_session_progress *progre
         session->repository->state_counter += 1;
         gk_session_state_unlock(session);
     }
+}
+
+int gk_session_progress_push_update_reference_callback(const char *refname, const char *status, void *data) {
+    (void) refname; // unused
+    (void) data; // unused
+    if (status != NULL) {
+        log_error(COMP_PROGRESS, "Push error: %s", status);
+        return -1;
+    }
+    return 0;
+}
+
+int gk_session_transport_message_callback(const char *str, int len, void *payload) {
+    (void) payload; // unused
+    if (str != NULL) {
+        char message[1024];
+        snprintf(message, len > 1024 ? 1024 : len, "%s", str);
+        log_info(COMP_PROGRESS, "remote: %s", message);
+    };
+    return 0;
 }
