@@ -158,6 +158,16 @@ int mv(const char *source_path, const char *dest_path) {
 #endif
 }
 
+int make_executable(const char *path) {
+    char command[2048];
+#if defined(_WIN32) || defined(__WIN32__)
+    printf("MAKING A FILE EXECUTABLE NOT YET IMPLEMENTED ON WINDOWS\n");
+    return -1;
+#else
+    snprintf(command, 2048, "chmod +x %s", path);
+#endif
+    return system(command);
+}
 
 void prepare_error_listing(const char *error_listing_name) {
 #if defined(_WIN32) || defined(__WIN32__)

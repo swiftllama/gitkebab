@@ -321,6 +321,33 @@ static void test_push_one_commit_in_empty_repo(void **state) {
     gk_session_free(session);
 }
 
+static void test_push_with_rejecting_pre_receive_hook(void **state) {
+    (void) state; /* unused */
+
+    gk_test_delete_simplerepo1_dot_git();
+    gk_test_copy_source_repo_simplerepo1_dot_git();
+    // Add hook to always fail
+    copy_file("fixtures/hooks/pre-receive-fail-always", "test-staging/simple-repo1.git/hooks/pre-receive");
+    make_executable("test-staging/simple-repo1.git/hooks/pre-receive");
+    
+    // Clone repo and commit
+    gk_session *session = gk_test_session_from_clone("./test-staging/simple-repo1.git", "./test-staging/simple-repo1");
+    assert_non_null(session);
+    
+    copy_file("fixtures/simple-repo1-modifications/file1-modified", "test-staging/simple-repo1/file1");
+    gk_index_add_path(session, "file1");
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+
+    gk_commit(session, "HEAD", NULL);
+    assert_int_equal(gk_session_last_result_code(session), GK_SUCCESS);
+        
+    // Push should fail
+    gk_push(session, "origin");
+    assert_int_not_equal(gk_session_last_result_code(session), GK_SUCCESS);
+
+    gk_session_free(session);
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_push_no_changes, test_staging_clean_repo_setup),
@@ -330,6 +357,7 @@ int main(void) {
         cmocka_unit_test_setup(test_fetch_one_commit_with_no_push, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_fetch_divergent_commits_no_conflict, test_staging_clean_repo_setup),
         cmocka_unit_test_setup(test_push_one_commit_in_empty_repo, test_staging_clean_repo_setup),
+        cmocka_unit_test_setup(test_push_with_rejecting_pre_receive_hook, test_staging_clean_repo_setup),
     };
 
     if (directory_exists("fixtures") != 0) {

@@ -11,6 +11,7 @@ int copy_file(const char *source_path, const char *dest_path);
 int copy_directory(const char *source_path, const char *dest_path);
 int mv(const char *source_path, const char *dest_path);
 int diff(const char *source_path, const char *dest_path);
+int make_executable(const char *path);
 void prepare_error_listing(const char *error_listing_name);
 void append_to_error_listing(const char *error_listing_name, const char *scenario, const char *returned_error_code, const char *context_stack_trace);
 

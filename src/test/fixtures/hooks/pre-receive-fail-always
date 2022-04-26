@@ -1,0 +1,2 @@
+echo "TEST: test error during pre-receive hook (from pre-receive-fail-always)"
+exit 1
