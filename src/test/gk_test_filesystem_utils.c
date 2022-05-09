@@ -161,6 +161,7 @@ int mv(const char *source_path, const char *dest_path) {
 int make_executable(const char *path) {
     char command[2048];
 #if defined(_WIN32) || defined(__WIN32__)
+    (void)path;
     printf("MAKING A FILE EXECUTABLE NOT YET IMPLEMENTED ON WINDOWS\n");
     return -1;
 #else

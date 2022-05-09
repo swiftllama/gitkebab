@@ -48,7 +48,7 @@ DLLTOOL=x86_64-w64-mingw32-dlltool cmake ${RELATIVE_SOURCE} \
       -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
       -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
       -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
-      -DLIBGIT2_CLAR_EXTRA_LIBS="${OPENSSL_LIB};${CRYPTO_LIB};-lwsock32;-lcrypt32;-lws2_32" \
+      -DLIBGIT2_TESTS_EXTRA_LIBS="${OPENSSL_LIB};${CRYPTO_LIB};-lwsock32;-lcrypt32;-lws2_32" \
       -DENABLE_TRACE=ON \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON 
 

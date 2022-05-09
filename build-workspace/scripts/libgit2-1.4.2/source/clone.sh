@@ -10,7 +10,7 @@ echo "Applying patches"
 cd source/libgit2-1.4.2
 git apply < ../../patches/libgit2-1.4.2/fix-userauth-publikey-frommemory-detection.diff
 git apply ../../patches/libgit2-1.4.2/fix-macos-eintr-handling.diff
-#git apply ../../patches/libgit2-1.4.2/fix-allow-injecting-libs-to-libgi2_clar-linking.diff
+git apply ../../patches/libgit2-1.4.2/fix-allow-injecting-libs-to-libgit2-tests-linking.diff
 git apply ../../patches/libgit2-1.4.2/fix-android-avoid-getloadavg.diff
 git apply ../../patches/libgit2-1.4.2/fix-std-c99.diff
 
