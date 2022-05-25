@@ -1,5 +1,5 @@
 set -e
-echo "--- Copying latest GitKebab HEAD Source ---"
+echo "--- Copying latest GitKebab 1.0.0 Source ---"
 
 set -x
 rm -rf source/gitkebab-1.0.0

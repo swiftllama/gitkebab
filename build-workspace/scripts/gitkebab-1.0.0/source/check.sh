@@ -1,4 +1,4 @@
-echo "--- Checking GitKebab HEAD Source ---"
+echo "--- Checking GitKebab 1.0.0 Source ---"
 
 SENTINEL="./source/gitkebab-1.0.0/src/lib/gitkebab.h"
 
