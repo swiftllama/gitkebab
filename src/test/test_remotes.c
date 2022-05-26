@@ -10,7 +10,7 @@
 
 
 static int test_staging_setup(void **state) {
-    gk_init();
+    gk_init(NULL, LOG_DEBUG);
     //gk_libgit2_set_log_level(LOG_DEBUG);
     return gk_test_environment_setup(state);
 }

@@ -4256,8 +4256,14 @@ class GitKebabLib {
   late final _dart_gk_did_init _gk_did_init =
       _gk_did_init_ptr.asFunction<_dart_gk_did_init>();
 
-  void gk_init() {
-    return _gk_init();
+  void gk_init(
+    ffi.Pointer<ffi.Int8> log_path,
+    int log_level,
+  ) {
+    return _gk_init(
+      log_path,
+      log_level,
+    );
   }
 
   late final _gk_init_ptr = _lookup<ffi.NativeFunction<_c_gk_init>>('gk_init');
@@ -9304,9 +9310,15 @@ typedef _c_gk_did_init = ffi.Int32 Function();
 
 typedef _dart_gk_did_init = int Function();
 
-typedef _c_gk_init = ffi.Void Function();
+typedef _c_gk_init = ffi.Void Function(
+  ffi.Pointer<ffi.Int8> log_path,
+  ffi.Int32 log_level,
+);
 
-typedef _dart_gk_init = void Function();
+typedef _dart_gk_init = void Function(
+  ffi.Pointer<ffi.Int8> log_path,
+  int log_level,
+);
 
 typedef _c_gk_libgit2_set_log_level = ffi.Void Function(
   ffi.Int32 level,

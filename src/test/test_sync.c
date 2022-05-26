@@ -11,7 +11,7 @@ const char *error_listing = "sync";
 static int test_staging_setup(void **state) {
     (void) state;
     
-    gk_init();
+    gk_init(NULL, LOG_DEBUG);
         
     if (directory_exists("test-staging") == 0) {
         rm_rf("test-staging");

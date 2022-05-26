@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:test/test.dart';
 import '../gitkebab.dart';
 
-void initGitkebab() {
+void initGitkebab({String? logPath}) {
   var libraryPath = Directory.current.path + "/gitkebab-linux-debug/lib/libgitkebab.so";
-  GitKebab.load(libraryPath);
+  GitKebab.load(libraryPath, logPath: logPath);
 }
 
 String testFixturesPath() {

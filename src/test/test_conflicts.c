@@ -11,7 +11,7 @@
 const char *error_listing = "merge";
 
 static int test_staging_setup(void **state) {
-    gk_init();
+    gk_init(NULL, LOG_DEBUG);
 
     prepare_error_listing(error_listing);
     //gk_libgit2_set_log_level(LOG_DEBUG);

@@ -13,7 +13,7 @@
 const char *error_listing = "status";
 
 static int test_staging_setup(void **state) {
-    gk_init();
+    gk_init(NULL, LOG_DEBUG);
     return gk_test_environment_setup(state);
 
     prepare_error_listing(error_listing);

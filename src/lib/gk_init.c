@@ -24,7 +24,17 @@ int gk_did_init() {
     return did_init;
 }
 
-void gk_init() {
+void gk_init(const char *log_path, int log_level) {
+    if (log_path != NULL) {
+        FILE *log_handle = fopen(log_path, "a");
+        if (log_handle != NULL) {
+            log_add_fp(log_handle, log_level);
+        }
+        else {
+            log_warn(COMP_INIT, "Error opening path [%s] for writing, logging will go to stdout only", log_path);
+        }
+    }
+    
     log_info(COMP_INIT, "Initializing GitKebab v%s", gitkebab_version);
     did_init = 1;
     

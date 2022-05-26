@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     
     COMP_INIT.level = LOG_TRACE;
     
-    gk_init();
+    gk_init(NULL, LOG_DEBUG);
     gk_session *session = gk_session_new("git@gitea.ptskl.com:volund/experimental-notebook.git", GK_REPOSITORY_SOURCE_URL_SSH, "/tmp/clone1", "git", &session_state_changed, NULL);
 
     gk_session_initialize(session

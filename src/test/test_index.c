@@ -11,7 +11,7 @@
 const char *error_listing = "index";
 
 static int test_staging_setup(void **state) {
-    gk_init();
+    gk_init(NULL, LOG_DEBUG);
     prepare_error_listing(error_listing);
     return gk_test_environment_setup(state);
 }
