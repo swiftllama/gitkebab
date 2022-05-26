@@ -10,7 +10,7 @@ init_and_change_into_tmp_build_folder
 ##    - CFLAGS=-fPIC
 ##
 
-${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} CFLAGS="-fPIC -mmacosx-version-min=10.11" CXXFLAGS="-fPIC -mmacosx-version-min=10.11"
+${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} CFLAGS="-fPIC --target=x86_64-apple-macos11" CXXFLAGS="-fPIC -mmacosx-version-min=10.11"
 make
 make install
 
