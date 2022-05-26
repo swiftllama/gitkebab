@@ -31,7 +31,6 @@ class GitKebab {
       final logFile = File(logPath);;
       if (logFile.existsSync()) {
         final stats = logFile.statSync();
-        print("DBG found existing log file has size [${stats.size}] vs threshold [$logFileThreshold]");
         if (stats.size > logFileThreshold) {
           logFile.rename(rotatedLogPath);
         }
