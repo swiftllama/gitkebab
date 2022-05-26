@@ -10,7 +10,6 @@ cmake -DWITH_STATIC_LIB=true \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}  \
       ${RELATIVE_SOURCE} \
       -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11
-      -DCMAKE_OSX_ARCHITECTURES=x86_64
 
 cmake --build .
 cmake --build . --target install
