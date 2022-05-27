@@ -10,8 +10,7 @@ init_and_change_into_tmp_build_folder
 ##    - CFLAGS=-fPIC
 ##
 
-FLAGS="-fPIC --target=x86_64-apple-macos -arch x86_64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -mmacosx-version-min=10.11"
-${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} CFLAGS="${FLAGS}" CXXFLAGS="${FLAGS}" CC="/Library/Developer/CommandLineTools/usr/bin/cc" LDFLAGS="${FLAGS}"
+${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} CFLAGS="-fPIC --target=x86_64-apple-macos11" CXXFLAGS="-fPIC -mmacosx-version-min=10.11"
 make
 make install
 
