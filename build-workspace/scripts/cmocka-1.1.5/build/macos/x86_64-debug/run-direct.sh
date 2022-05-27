@@ -12,7 +12,7 @@ cmake -DWITH_STATIC_LIB=true \
       -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11 \
       -DCMAKE_OSX_ARCHITECTURES=x86_64
 
-cmake --build .
+cmake --build . -- VERBOSE=1
 cmake --build . --target install
 
 set +x

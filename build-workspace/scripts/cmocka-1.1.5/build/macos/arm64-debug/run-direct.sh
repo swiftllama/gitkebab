@@ -11,7 +11,7 @@ cmake -DWITH_STATIC_LIB=true \
       ${RELATIVE_SOURCE} \
       -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11
 
-cmake --build .
+cmake --build . -- VERBOSE=1
 cmake --build . --target install
 
 set +x

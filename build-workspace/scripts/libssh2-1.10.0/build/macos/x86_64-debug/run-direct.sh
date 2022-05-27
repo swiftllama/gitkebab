@@ -23,7 +23,8 @@ cmake ${RELATIVE_SOURCE} \
       -DOPENSSL_SSL_LIBRARY=${ROOT}/${OPENSSL_DIR}/lib/libssl.a \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER} \
       -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS="-fPIC" \
-      -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11 \
+      -DCMAKE_OSX_ARCHITECTURES=x86_64
 
 cmake --build . -- VERBOSE=1
 cmake --build . --target install
