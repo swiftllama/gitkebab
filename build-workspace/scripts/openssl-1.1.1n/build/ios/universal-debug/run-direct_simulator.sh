@@ -18,7 +18,6 @@ make clean
 make
 make install
 
-mv ${ROOT}/${BUILD_FOLDER}/lib/libssl.a ${ROOT}/${BUILD_FOLDER}/lib/libssl.a.simulator
-mv ${ROOT}/${BUILD_FOLDER}/lib/libcrypto.a ${ROOT}/${BUILD_FOLDER}/lib/libcrypto.a.simulator
+mv ${ROOT}/${BUILD_FOLDER} ${ROOT}/${BUILD_FOLDER}_simulator
 
 print_done
