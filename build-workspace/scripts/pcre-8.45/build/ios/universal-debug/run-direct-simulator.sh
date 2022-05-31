@@ -8,7 +8,7 @@ init_and_change_into_tmp_build_folder
 XCODE_ROOT=/Applications/Xcode.app
 IOS_SDK_VERSION=15.5
 IOS_TARGET_VERSION=10.0
-IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneSimlator.platform/Developer/SDKs/iPhoneSimulator${IOS_SDK_VERSION}.sdk
+IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IOS_SDK_VERSION}.sdk
 ARCHS="i386;x86_64"
 
 cmake -DBUILD_SHARED_LIBS=NO \
