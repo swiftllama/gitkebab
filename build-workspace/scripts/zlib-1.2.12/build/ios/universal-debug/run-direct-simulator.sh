@@ -12,6 +12,7 @@ IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneSimulator.platform/Deve
 
 
 CFLAGS="-O3 -arch i386 -arch x86_64 -isysroot $IOS_SDK -mios-simulator-version-min=${IOS_TARGET_VERSION} -Wno-error-implicit-function-declaration -fembed-bitcode" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}_simulator
+make clean
 make
 make install
 
