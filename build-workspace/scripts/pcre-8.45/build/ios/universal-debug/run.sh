@@ -7,3 +7,4 @@ define_basic_docker_variables
 
 echo "--- Entering docker build environment ---"
 ./${BUILD_SCRIPTS}/run-direct-device.sh
+./${BUILD_SCRIPTS}/run-direct-simulator.sh
