@@ -2,7 +2,7 @@ set -e
 source "scripts/common/bash/common.sh"
 set -x
 
-define_basic_variables "zlib-1.2.12" "ios" "univesal" "debug"
+define_basic_variables "zlib-1.2.12" "ios" "universal" "debug"
 init_and_change_into_tmp_build_folder
 
 XCODE_ROOT=/Applications/Xcode.app
