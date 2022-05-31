@@ -13,7 +13,7 @@ IOS_TARGET_VERSION=10.0
 IOS_SDK=iPhoneOS${IOS_SDK_VERSION}.sdk
 IOS_SDKS_FOLDER=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/
 
-CROSS_COMPILE="${XCRUN_FOLDER}" CFLAGS="-arch armv7 -arch arm64" ${RELATIVE_SOURCE}/Configure ios-cross no-shared no-dso no-hw no-engine --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER} CROSS_TOP="${IOS_SDKS_FOLDER}" CROSS_SDK="${IOS_SDK}" 
+CROSS_COMPILE="${XCRUN_FOLDER}" CFLAGS="-arch armv7 -isysroot ${IOS_SDKS}/${IOS_SDK}" ${RELATIVE_SOURCE}/Configure ios-xcrun no-shared no-dso no-hw no-engine --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER} 
 make clean
 make
 make install
