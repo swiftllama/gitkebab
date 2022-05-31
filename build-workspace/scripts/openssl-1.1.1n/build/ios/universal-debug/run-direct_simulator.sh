@@ -17,6 +17,8 @@ CROSS_COMPILE="${XCRUN_FOLDER}" CFLAGS="-arch i386 -arch x86_64 -isysroot ${IOS_
 make clean
 make
 make install
-mv ${ROOT}/${BUIlD_FOLDER} ${ROOT}/${BUIlD_FOLDER}_simulator
+
+mv ${ROOT}/${BUILD_FOLDER}/lib/libssl.a ${ROOT}/${BUILD_FOLDER}/lib/libssl.a.simulator
+mv ${ROOT}/${BUILD_FOLDER}/lib/libcrypto.a ${ROOT}/${BUILD_FOLDER}/lib/libcrypto.a.simulator
 
 print_done
