@@ -9,7 +9,7 @@ XCODE_ROOT=/Applications/Xcode.app
 IOS_SDK_VERSION=15.5
 IOS_TARGET_VERSION=10.0
 IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IOS_SDK_VERSION}.sdk
-ARCHS=armv7;armv7s;arm64
+ARCHS="armv7;armv7s;arm64"
 
 cmake -DBUILD_SHARED_LIBS=NO \
       -DCMAKE_C_COMPILER_WORKS=ON \
