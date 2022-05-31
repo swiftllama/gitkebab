@@ -17,6 +17,6 @@ CROSS_COMPILE="${XCRUN_FOLDER}" CFLAGS="-arch arm64 -isysroot ${IOS_SDKS_FOLDER}
 make clean
 make
 make install
-mv ${ROOT}/${BUIlD_FOLDER} ${ROOT}/${BUIlD_FOLDER}_device-arm64
+mv ${ROOT}/${BUIlD_FOLDER} ${ROOT}/${BUILD_FOLDER}_device-arm64
 
 print_done

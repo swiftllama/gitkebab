@@ -17,6 +17,6 @@ CROSS_COMPILE="${XCRUN_FOLDER}" CFLAGS="-arch armv7 -arch armv7s -isysroot ${IOS
 make clean
 make
 make install
-mv ${ROOT}/${BUIlD_FOLDER} ${ROOT}/${BUIlD_FOLDER}_device-armv7
+mv ${ROOT}/${BUIlD_FOLDER} ${ROOT}/${BUILD_FOLDER}_device-armv7
 
 print_done
