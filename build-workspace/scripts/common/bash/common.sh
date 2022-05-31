@@ -162,5 +162,7 @@ function check_sentinel_exists() {
 function delete_build_and_tmp_build_folder() {
     { echo""; echo "--- Deleting ${LIBRARY_WITH_VERSION} build for ${TARGET_PLATFORM}/${TARGET_ARCHITECTURE}/${TARGET_CONFIGURATION} ---"; } 2> /dev/null
     rm -rf ${BUILD_FOLDER}
+    rm -rf ${BUILD_FOLDER}_simulator
+    rm -rf ${BUILD_FOLDER}_device
     rm -rf ${TMP_BUILD_FOLDER}
 }
