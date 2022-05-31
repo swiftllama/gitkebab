@@ -98,22 +98,48 @@ function android_objdump_verify_library_architecture() {
 
     if OBJDUMP=$($NDK_TOOLCHAIN/bin/llvm-objdump -f ${LIBRARY})
 then
-    if RESULTING_ARCH="$(echo "$OBJDUMP" | grep -m 1 'architecture:')"
-    then
-        if [ "${RESULTING_ARCH}" = "architecture: ${ARCH}" ]; then
-            echo "Found ${RESULTING_ARCH} in build product"
+        if RESULTING_ARCH="$(echo "$OBJDUMP" | grep -m 1 'architecture:')"
+        then
+            if [ "${RESULTING_ARCH}" = "architecture: ${ARCH}" ]; then
+                echo "Found ${RESULTING_ARCH} in build product"
+            else
+                echo "Build succeeded but artifact has unexpected ${RESULTING_ARCH} (expected [${ARCH}])"
+                exit 2
+            fi
         else
-            echo "Build succeeded but artifact has unexpected ${RESULTING_ARCH} (expected [${ARCH}])"
+            echo "Error greping [$LIBRARY}] for architecture [${ARCH}]"
+            exit 4
+        fi
+    else
+        echo "Error executing objdump on [${LIBRARY}] to verify architecture [${ARCH}]"
+        exit 3
+    fi
+}
+
+function macos_lipo_verify_library_architecture() {
+    local LIBRARY=$1
+    local ARCH=$2
+    echo "Verifying architecture [${ARCH}] for build product [${LIBRARY}].."
+
+    if LIPO_INFO=$(lipo -info ${LIBRARY})
+    then
+        if RESULTING_ARCHS="$(echo "$LIPO_INFO" | cut -d ':' -f 3)"
+        then
+            echo "Found ${RESULTING_ARCH} in build product"
+            if [[ "${RESULTING_ARCHS}" == *"${ARCH}"* ]]
+            then  
+                echo "Verified that [${ARCH}] is in [${RESULTING_ARCHS}]"
+            else
+                echo "Build successful but artifact architectures [${RESULTING_ARCHS}] is missing [${ARCH}]"
+                exit 3
+            fi
+        else
+            echo "Build successful but unable to determine archs from [${LIPO_INFO}]"
             exit 2
         fi
     else
-        echo "Error greping [$LIBRARY}] for architecture [${ARCH}]"
-        exit 4
+        echo "Error executing 'lipo -info' on [${LIBRARY}] to verify architecture [${ARCH}]"
     fi
-else
-    echo "Error executing objdump on [${LIBRARY}] to verify architecture [${ARCH}]"
-    exit 3
-fi
 }
 
 function check_sentinel_exists() {
