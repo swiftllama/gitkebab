@@ -8,7 +8,7 @@ init_and_change_into_tmp_build_folder
 rm -rf ${ROOT}/${BUILD_FOLDER}_device
 
 XCODE_ROOT=/Applications/Xcode.app
-IOS_SDK_VERSION=15.5
+IOS_SDK_VERSION=12.4
 IOS_TARGET_VERSION=10.0
 IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IOS_SDK_VERSION}.sdk
 ARCHS="armv7"
