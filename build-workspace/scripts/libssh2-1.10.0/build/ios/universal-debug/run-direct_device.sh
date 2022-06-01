@@ -13,6 +13,11 @@ IOS_TARGET_VERSION=10.0
 IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IOS_SDK_VERSION}.sdk
 ARCHS="armv7"
 
+OPENSSL_DIR=build/openssl-1.1.1n/${TARGET_FOLDER_TRIPLET}
+ZLIB_DIR=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/
+ZLIB_LIB=${ZLIB_DIR}/libz.a
+
+
 cmake ${RELATIVE_SOURCE} \
       -DCRYPTO_BACKEND=OpenSSL \
       -DENABLE_ZLIB_COMPRESSION=ON \
