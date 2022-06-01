@@ -7,13 +7,13 @@ index e7b54d0..4d334c8 100644
  check_function_exists(qsort_s GIT_QSORT_S)
  
 -check_function_exists(getentropy GIT_RAND_GETENTROPY)
-+// GITKEBAB PATCH START
++# GITKEBAB PATCH START
 +if ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
 +  set(GIT_RAND_GETENTROPY 0)
 +else()
 +  check_function_exists(getentropy GIT_RAND_GETENTROPY)
 +endif()
-+// GITKEBAB_PATCH_END
++# GITKEBAB_PATCH_END
  
  # Find required dependencies
  
