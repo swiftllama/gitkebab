@@ -8,4 +8,4 @@ define_basic_docker_variables
 echo "--- Running build directly on mac ---"
 ./${BUILD_SCRIPTS}/run-direct_device.sh
 ./${BUILD_SCRIPTS}/run-direct_simulator.sh
-#./${BUILD_SCRIPTS}/run-direct_universal.sh
+./${BUILD_SCRIPTS}/run-direct_universal.sh
