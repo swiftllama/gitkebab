@@ -5,6 +5,8 @@ set -x
 define_basic_variables "pcre-8.45" "ios" "universal" "debug"
 init_and_change_into_tmp_build_folder
 
+rm -rf ${ROOT}/${BUILD_FOLDER}_device
+
 XCODE_ROOT=/Applications/Xcode.app
 IOS_SDK_VERSION=15.5
 IOS_TARGET_VERSION=10.0
