@@ -48,6 +48,7 @@ endif()
 
 if (APPLE)
   if ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+    set(ICONV_lib "libiconv.a")
   else()
     find_library(ICONV_lib "libiconv.a" REQUIRED)
     verifyLibraryIsFromBuildSystem(${ICONV_lib} "libiconv.a")
