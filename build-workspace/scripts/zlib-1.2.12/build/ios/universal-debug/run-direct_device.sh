@@ -18,6 +18,6 @@ make clean
 make
 make install
 
-mv ${ROOT}/${BUILD_FOLDER}_device ${ROOT}/${BUILD_FOLDER}
+mv ${ROOT}/${BUILD_FOLDER} ${ROOT}/${BUILD_FOLDER}_device
 
 print_done
