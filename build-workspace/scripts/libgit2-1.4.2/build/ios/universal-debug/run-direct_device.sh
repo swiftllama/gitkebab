@@ -42,6 +42,7 @@ cmake ${RELATIVE_SOURCE} \
       -DLIBSSH2_INCLUDE_DIRS=${ROOT}/${LIBSSH2_DIR}/include/ \
       -DLIBSSH2_LIBRARY_DIRS=${ROOT}/${LIBSSH2_DIR} \
       -DLIBSSH2_LIBRARIES=${ROOT}/${LIBSSH2_DIR}/lib/libssh2.a \
+      -DOPENSSL_ROOT_DIR=${OPENSSL_DIR} \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}/ \
       -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og --save-temps" \
       -DCMAKE_C_FLAGS="-mios-version-min=${IOS_TARGET_VERSION} -fembed-bitcode" \
