@@ -26,10 +26,9 @@ cmake ${RELATIVE_SOURCE} \
       -DOPENSSL_SSL_LIBRARY=${ROOT}/${OPENSSL_DIR}/lib/libssl.a \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER} \
       -DCMAKE_BUILD_TYPE=Debug \
-      -DCMAKE_C_FLAGS="-fPIC" \
+      -DCMAKE_C_FLAGS="-fPIC -mios-version-min=${IOS_TARGET_VERSION} -fembed-bitcode" \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_TESTING=OFF \
-      -DCMAKE_CXX_STANDARD=gnu11 \
       -DCMAKE_OSX_ARCHITECTURES=$ARCHS \
       -DCMAKE_OSX_SYSROOT=$IOS_SDK 
 
