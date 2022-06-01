@@ -5,6 +5,8 @@ set -x
 define_basic_variables "gitkebab-head" "ios" "universal" "debug"
 init_and_change_into_tmp_build_folder
 
+rm -rf ${ROOT}/${BUILD_FOLDER}_simulator
+
 # NOTES:
 #
 #  - Improve gdb debugging with:
@@ -47,5 +49,7 @@ cmake ${RELATIVE_SOURCE} \
 
 cmake --build . -- VERBOSE=1
 cmake --build . --target install
+
+cp -PR ${ROOT}/${BUILD_FOLDER} ${ROOT}/${BUILD_FOLDER}_simulator
 
 print_done
