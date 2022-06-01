@@ -43,7 +43,7 @@ cmake ${RELATIVE_SOURCE} \
       -DCMAKE_SYSTEM_NAME=iOS \
       -DCMAKE_SYSTEM_VERSION=10.0 \
       -DBUILD_TESTS=OFF \
-      -DBUILD_EXAMPELS=OFF
+      -DBUILD_EXAMPLES=OFF
 
 cmake --build . -- VERBOSE=1
 cmake --build . --target install
