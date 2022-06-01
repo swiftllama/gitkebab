@@ -13,6 +13,7 @@ git apply ../../patches/libgit2-1.4.2/fix-macos-eintr-handling.diff
 git apply ../../patches/libgit2-1.4.2/fix-allow-injecting-libs-to-libgit2-tests-linking.diff
 git apply ../../patches/libgit2-1.4.2/fix-android-avoid-getloadavg.diff
 git apply ../../patches/libgit2-1.4.2/fix-std-c99.diff
+git apply ../../patches/libgit2-1.4.2/disable-gitentropy-ios.diff
 
 set +x
 echo "--- DONE ---"
