@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(gitkebab)
 
-if(NOT BUILD_TESTS)
+if(NOT DEFINED BUILD_TESTS)
   set(BUILD_TESTS ON)
 endif()
-if(NOT BUILD_EXAMPLES)
+if(NOT DEFINED BUILD_EXAMPLES)
   set(BUILD_EXAMPLES ON)
 endif()
   
@@ -47,8 +47,11 @@ if (BUILD_TESTS)
 endif()
 
 if (APPLE)
-  find_library(ICONV_lib "libiconv.a" REQUIRED)
-  verifyLibraryIsFromBuildSystem(${ICONV_lib} "libiconv.a")
+  if ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+  else()
+    find_library(ICONV_lib "libiconv.a" REQUIRED)
+    verifyLibraryIsFromBuildSystem(${ICONV_lib} "libiconv.a")
+  endif()
 endif()
 
 find_path(OPENSSL_include_folder NAMES "openssl/opensslconf.h" REQUIRED)

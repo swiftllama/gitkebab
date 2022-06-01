@@ -7,7 +7,10 @@ add_custom_target(libraries)
 
 set(ICONV_COMPAT_SOURCE "")
 if (APPLE)
-   set(ICONV_COMPAT_SOURCE "iconv_compat.c")
+  if ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+  else()
+    set(ICONV_COMPAT_SOURCE "iconv_compat.c")
+  endif()
  endif()
 
 add_library(gitkebab_objects OBJECT
@@ -70,7 +73,10 @@ if ("${CMAKE_SYSTEM_NAME}" MATCHES "Windows")
 endif()
 
 if (APPLE)
-   target_link_libraries(gitkebab "-framework Security -framework CoreFoundation ${ICONV_lib}")
+  if ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
+  else()
+    target_link_libraries(gitkebab "-framework Security -framework CoreFoundation ${ICONV_lib}")
+  endif()
 endif()
 
 #  LIBGIT2_lib OPENSSL_lib CRYPTO_lib LIBSSH2_lib Z_lib PCRE_lib <- need these??
