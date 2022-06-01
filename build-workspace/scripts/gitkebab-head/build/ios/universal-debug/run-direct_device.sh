@@ -35,14 +35,15 @@ cmake ${RELATIVE_SOURCE} \
       -DCMAKE_C_FLAGS="-mios-version-min=${IOS_TARGET_VERSION} -fembed-bitcode" \
       -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og" \
       -DCMAKE_PREFIX_PATH="${CUSTOM_SEARCH_PATH}" \
+      -DCMAKE_FIND_ROOT_PATH="${CUSTOM_SEARCH_PATH}" \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}  \
       -DTMP_BUILD_FOLDER=${TMP_BUILD_FOLDER} \
       -DCMAKE_OSX_ARCHITECTURES=$ARCHS \
       -DCMAKE_OSX_SYSROOT=$IOS_SDK \
       -DCMAKE_SYSTEM_NAME=iOS \
       -DCMAKE_SYSTEM_VERSION=10.0 \
-      -DZLIB_DIR="${ROOT}/${ZLIB_DIR}" \
-      -DLIBZ_DIR="${ROOT}/${ZLIB_DIR}"
+      -DBUILD_TESTS=OFF \
+      -DBUILD_EXAMPELS=OFF
 
 cmake --build . -- VERBOSE=1
 cmake --build . --target install

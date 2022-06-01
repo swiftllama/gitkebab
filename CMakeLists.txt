@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(gitkebab)
 
+if(NOT BUILD_TESTS)
+  set(BUILD_TESTS ON)
+endif()
+if(NOT BUILD_EXAMPLES)
+  set(BUILD_EXAMPLES ON)
+endif()
+  
 function(verifyLibraryIsFromBuildSystem LIBPATH LIBNAME)
   if ("${LIBPATH}" MATCHES "^/usr/")
     message(FATAL_ERROR " dependency [${LIBNAME}] found at system location [${LIBPATH}]. Expected a location relative to the current build-tree. Aborting")
@@ -34,8 +41,10 @@ verifyLibraryIsFromBuildSystem(${LIBSSH2_lib} "libssh2.a")
 find_library(LIBGIT2_lib "libgit2.a" REQUIRED)
 verifyLibraryIsFromBuildSystem(${LIBGIT2_lib} "libgit2.a")
 
-find_library(CMOCKA_lib "libcmocka-static.a" REQUIRED)
-verifyLibraryIsFromBuildSystem(${CMOCKA_lib} "libcmocka.a")
+if (BUILD_TESTS)
+  find_library(CMOCKA_lib "libcmocka-static.a" REQUIRED)
+  verifyLibraryIsFromBuildSystem(${CMOCKA_lib} "libcmocka.a")
+endif()
 
 if (APPLE)
   find_library(ICONV_lib "libiconv.a" REQUIRED)
@@ -44,10 +53,20 @@ endif()
 
 find_path(OPENSSL_include_folder NAMES "openssl/opensslconf.h" REQUIRED)
 find_path(LIBGIT2_include_folder NAMES "git2.h" REQUIRED)
-find_path(CMOCKA_include_folder NAMES "cmocka.h" REQUIRED)
+if (BUILD_TESTS)
+  find_path(CMOCKA_include_folder NAMES "cmocka.h" REQUIRED)
+endif()
 
 # Turn on warnings
 add_compile_options(-Wall -Wextra -pedantic -Werror -Wno-missing-field-initializers)
 add_subdirectory(src/lib)
-add_subdirectory(src/example)
-add_subdirectory(src/test)
+if (BUILD_EXAMPLES)
+  add_subdirectory(src/example)
+endif()
+if (BUILD_TESTS)
+  add_subdirectory(src/test)
+endif()
+
+
+unset(BUILD_TESTS CACHE)
+unset(BUILD_EXAMPLES CACHE)
