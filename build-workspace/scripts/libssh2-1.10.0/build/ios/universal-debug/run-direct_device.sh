@@ -13,8 +13,7 @@ rm -rf ${ROOT}/${BUILD_FOLDER}_device
 ##IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IOS_SDK_VERSION}.sdk
 ##ARCHS="armv7;armv7s;arm64"
 ##
-##OPENSSL_DIR=build/openssl-1.1.1n/${TARGET_FOLDER_TRIPLET}
-##ZLIB_LIB=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/libz.a
+
 ##
 ##cmake ${RELATIVE_SOURCE} \
 ##      -DCRYPTO_BACKEND=OpenSSL \
@@ -40,8 +39,12 @@ IOS_SDK_VERSION=15.5
 IOS_TARGET_VERSION=10.0
 IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IOS_SDK_VERSION}.sdk
 
+OPENSSL_DIR=build/openssl-1.1.1n/${TARGET_FOLDER_TRIPLET}
+ZLIB_DIR=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/
+ZLIB_LIB=${ZLIB_DIR}/libz.a
 
-CFLAGS="-O3 -arch armv7 -arch armv7s -arch arm64 -isysroot $IOS_SDK -mios-version-min=${IOS_TARGET_VERSION} -fembed-bitcode -pipe -no-cpp-precomp" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}_device --with-crypto=openssl --with-libssl-prefix=${LIBRESSLROOT} --host=x86_64-apple-darwin --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz --disable-shared --enable-static \
+${RELATIVE_SOURCE}/autoreconf -if
+CFLAGS="-O3 -arch armv7 -arch armv7s -arch arm64 -isysroot $IOS_SDK -mios-version-min=${IOS_TARGET_VERSION} -fembed-bitcode -pipe -no-cpp-precomp" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}_device --with-crypto=openssl --with-libssl-prefix=${LIBRESSLROOT} --host=x86_64-apple-darwin --disable-debug --disable-dependency-tracking --disable-silent-rules --disable-examples-build --with-libz --with-libz-prefix=-${ZLIB_DIR} --disable-shared --enable-static \
     CC="/usr/bin/clang -isysroot $SDKROOT" \
     CPPFLAGS="-fembed-bitcode -I${LIBRESSLROOT}/include -I$SDKROOT/usr/include/" \
     CPP="/usr/bin/cpp $CPPFLAGS" 
