@@ -20,7 +20,9 @@ static void gk_session_generate_uid(gk_session *session) {
     // NOTE: replace with real UUIDs?
     time_t rawtime;
     time(&rawtime);
-    snprintf(session->id, 16, "%d%jd", _session_id_counter, rawtime);
+    // NOTE: on iOS, time_t is not equivalent to intmax_t - it casts
+    // to long rather than long long. So cast to intmax_t for safety
+    snprintf(session->id, 16, "%d%jd", _session_id_counter, (intmax_t)rawtime);
     _session_id_counter += 1;
     session->id_ptr = session->id;
 }
