@@ -11,7 +11,7 @@ XCODE_ROOT=/Applications/Xcode.app
 IOS_SDK_VERSION=15.5
 IOS_TARGET_VERSION=10.0
 IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IOS_SDK_VERSION}.sdk
-ARCHS="i385;x86_64"
+ARCHS="i386;x86_64"
 
 OPENSSL_DIR=build/openssl-1.1.1n/${TARGET_FOLDER_TRIPLET}
 ZLIB_DIR=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/
