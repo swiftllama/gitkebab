@@ -16,7 +16,7 @@ cmake -DBUILD_SHARED_LIBS=NO \
       -DCMAKE_CXX_COMPILER_WORKS=ON \
       -DWITH_STATIC_LIB=true \
       -DCMAKE_BUILD_TYPE=Debug \
-      -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}_device  \
+      -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}  \
       -DPCRE_BUILD_PCRECPP=NO \
       -DPCRE_BUILD_PCREGREP=NO \
       -DPCRE_BUILD_TESTS=NO \
@@ -27,5 +27,7 @@ cmake -DBUILD_SHARED_LIBS=NO \
 
 cmake --build .
 cmake --build . --target install
+
+mv ${ROOT}/${BUILD_FOLDER} ${ROOT}/${BUILD_FOLDER}_device
 
 print_done

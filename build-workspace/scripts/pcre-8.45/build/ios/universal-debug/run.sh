@@ -6,6 +6,6 @@ define_basic_variables "pcre-8.45" "ios" "universal" "debug"
 define_basic_docker_variables
 
 echo "--- Entering docker build environment ---"
-./${BUILD_SCRIPTS}/run-direct-device.sh
-./${BUILD_SCRIPTS}/run-direct-simulator.sh
-./${BUILD_SCRIPTS}/run-direct-universal.sh
+./${BUILD_SCRIPTS}/run-direct_device.sh
+./${BUILD_SCRIPTS}/run-direct_simulator.sh
+./${BUILD_SCRIPTS}/run-direct_universal.sh
