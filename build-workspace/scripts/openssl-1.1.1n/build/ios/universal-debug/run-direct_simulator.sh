@@ -13,7 +13,7 @@ IOS_TARGET_VERSION=10.0
 IOS_SDK=iPhoneSimulator${IOS_SDK_VERSION}.sdk
 IOS_SDKS_FOLDER=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/
 
-CROSS_COMPILE="${XCRUN_FOLDER}" CFLAGS="-arch i386 -arch x86_64 -isysroot ${IOS_SDKS_FOLDER}/${IOS_SDK} -fembed-bitcode" ${RELATIVE_SOURCE}/Configure iossimulator-xcrun no-shared no-dso no-hw no-engine --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER}
+CROSS_COMPILE="${XCRUN_FOLDER}" CFLAGS="-arch i386 -arch x86_64 -isysroot ${IOS_SDKS_FOLDER}/${IOS_SDK} -fembed-bitcode" LDFLAGS=" -fembed-bitcode" ${RELATIVE_SOURCE}/Configure iossimulator-xcrun no-shared no-dso no-hw no-engine --prefix=${ROOT}/${BUILD_FOLDER} --openssldir=${ROOT}/${BUILD_FOLDER}
 make clean
 make
 make install
