@@ -45,6 +45,7 @@ cmake ${RELATIVE_SOURCE} \
       -DOPENSSL_ROOT_DIR=${ROOT}/${OPENSSL_DIR} \
       -DOPENSSL_INCLUDE_DIR=${ROOT}/${OPENSSL_DIR}/include \
       -DOPENSSL_CRYPTO_LIBRARY=${ROOT}/${OPENSSL_DIR}/lib/libcrypto.a \
+      -DOPENSSL_SSL_LIBRARY=${ROOT}/${OPENSSL_DIR}/lib/libssl.a \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}/ \
       -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og --save-temps" \
       -DCMAKE_C_FLAGS="-mios-version-min=${IOS_TARGET_VERSION} -fembed-bitcode" \
