@@ -5,6 +5,8 @@ set -x
 define_basic_variables "openssl-1.1.1n" "ios" "universal" "debug"
 init_and_change_into_tmp_build_folder
 
+rm -rf ${ROOT}/${BUILD_FOLDER}_device-armv7
+
 XCODE_ROOT=/Applications/Xcode.app
 XCRUN_FOLDER="/usr/bin/"
 
