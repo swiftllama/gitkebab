@@ -5,13 +5,13 @@ set -x
 define_basic_variables "libssh2-1.10.0" "ios" "universal" "debug"
 init_and_change_into_tmp_build_folder
 
-rm -rf ${ROOT}/${BUILD_FOLDER}_device
+rm -rf ${ROOT}/${BUILD_FOLDER}_simulator
 
 XCODE_ROOT=/Applications/Xcode.app
 IOS_SDK_VERSION=15.5
 IOS_TARGET_VERSION=10.0
-IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IOS_SDK_VERSION}.sdk
-ARCHS="armv7;armv7s;arm64"
+IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator${IOS_SDK_VERSION}.sdk
+ARCHS="i385;x86_64"
 
 OPENSSL_DIR=build/openssl-1.1.1n/${TARGET_FOLDER_TRIPLET}
 ZLIB_DIR=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/
@@ -37,6 +37,6 @@ cmake ${RELATIVE_SOURCE} \
 cmake --build . -- VERBOSE=1
 cmake --build . --target install
 
-mv ${ROOT}/${BUILD_FOLDER} ${ROOT}/${BUILD_FOLDER}_device
+mv ${ROOT}/${BUILD_FOLDER} ${ROOT}/${BUILD_FOLDER}_simulator
 
 print_done
