@@ -78,7 +78,6 @@ if (APPLE)
     FRAMEWORK TRUE
     FRAMEWORK_VERSION A
     MACOSX_FRAMEWORK_IDENTIFIER net.swiftllama.gitkebab
-    MACOSX_FRAMEWORK_INFO_PLIST Info.plist
     # "current version" in semantic format in Mach-O binary file
     VERSION 1.0.0
     # "compatibility version" in semantic format in Mach-O binary file
