@@ -10,7 +10,7 @@ init_and_change_into_tmp_build_folder
 ##    - CFLAGS=-fPIC
 ##
 
-CFLAGS="-fPIC --target=x86_64-apple-macos11" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}
+CFLAGS="-fPIC -arch x86_64 -arch arm64 --target=x86_64-apple-macos11" ${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER}
 make
 make install
 
