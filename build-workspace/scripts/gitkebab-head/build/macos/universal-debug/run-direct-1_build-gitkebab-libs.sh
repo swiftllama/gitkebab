@@ -31,7 +31,7 @@ cmake ${RELATIVE_SOURCE} \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}  \
       -DTMP_BUILD_FOLDER=${TMP_BUILD_FOLDER} \
       -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11 \
-      -DCMAKE_OSX_ARCHITECTURES=x86_64
+      -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
 
 cmake --build . -- VERBOSE=1
 cmake --build . --target install
