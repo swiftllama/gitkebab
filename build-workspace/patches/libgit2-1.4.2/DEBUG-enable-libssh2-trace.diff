@@ -1,0 +1,31 @@
+diff --git a/src/transports/ssh.c b/src/transports/ssh.c
+index 68b3cbe..6f65645 100644
+--- a/src/transports/ssh.c
++++ b/src/transports/ssh.c
+@@ -475,6 +475,16 @@ static int request_creds(git_credential **out, ssh_subtransport *t, const char *
+ 	return 0;
+ }
+ 
++void custom_trace_handler(LIBSSH2_SESSION *session,
++                          void* context,
++                          const char *data,
++                          size_t length) {
++    (void)session;
++    (void)context;
++    (void)length;
++    printf("[LIBSSH2 TRACE] %s\n", data);
++}
++
+ static int _git_ssh_session_create(
+ 	LIBSSH2_SESSION** session,
+ 	git_stream *io)
+@@ -504,6 +514,9 @@ static int _git_ssh_session_create(
+ 	libssh2_session_set_blocking(s, 1);
+ 
+ 	*session = s;
++        libssh2_trace(s, LIBSSH2_TRACE_AUTH | LIBSSH2_TRACE_ERROR | LIBSSH2_TRACE_PUBLICKEY | LIBSSH2_TRACE_CONN);
++        libssh2_trace_sethandler(s, NULL, custom_trace_handler);
++        printf("DBG set libssh2 trace handler...");
+ 
+ 	return 0;
+ }

@@ -1,0 +1,20 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e7b54d0..397666c 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ add_library(git2internal OBJECT)
+-set_target_properties(git2internal PROPERTIES C_STANDARD 90)
++set_target_properties(git2internal PROPERTIES C_STANDARD 99)
+ set_target_properties(git2internal PROPERTIES C_EXTENSIONS OFF)
+ 
+ 
+@@ -259,7 +259,7 @@ endif()
+ add_library(git2 ${WIN_RC} ${LIBGIT2_OBJECTS})
+ target_link_libraries(git2 ${LIBGIT2_SYSTEM_LIBS})
+ 
+-set_target_properties(git2 PROPERTIES C_STANDARD 90)
++set_target_properties(git2 PROPERTIES C_STANDARD 99)
+ set_target_properties(git2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+ set_target_properties(git2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+ set_target_properties(git2 PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})

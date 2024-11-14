@@ -1,0 +1,19 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e7b54d0..4d334c8 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -55,7 +55,13 @@ check_prototype_definition(qsort_r
+ 
+ check_function_exists(qsort_s GIT_QSORT_S)
+ 
+-check_function_exists(getentropy GIT_RAND_GETENTROPY)
++# GITKEBAB PATCH START
++if ("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
++  set(GIT_RAND_GETENTROPY 0)
++else()
++  check_function_exists(getentropy GIT_RAND_GETENTROPY)
++endif()
++# GITKEBAB_PATCH_END
+ 
+ # Find required dependencies
+ 

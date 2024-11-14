@@ -1,0 +1,13 @@
+[core]
+	bare = false
+	repositoryformatversion = 0
+	filemode = true
+	logallrefupdates = true
+[remote "origin"]
+	url = /home/amos/Projects/gitkebab/test-staging/simple-repo1.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[remote "origin"]
+	push = refs/heads/main:refs/heads/main

@@ -1,0 +1,20 @@
+diff --git a/src/libssh2_priv.h b/src/libssh2_priv.h
+index da488b7..e3e2d99 100644
+--- a/src/libssh2_priv.h
++++ b/src/libssh2_priv.h
+@@ -54,6 +54,15 @@
+ #include <ws2tcpip.h>
+ #endif
+ 
++// GITKEBAB PATCH
++#ifdef __APPLE__
++#include "TargetConditionals.h"
++#if TARGET_OS_IPHONE
++#include <errno.h>
++#endif
++#endif
++// END GITKEBAB PATCH
++
+ #include <stdio.h>
+ #include <time.h>
+ 

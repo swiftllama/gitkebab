@@ -1,0 +1,29 @@
+diff --git a/src/rand.c b/src/rand.c
+index 0a20813..5e35ab8 100644
+--- a/src/rand.c
++++ b/src/rand.c
+@@ -100,9 +100,13 @@ GIT_INLINE(int) getseed(uint64_t *seed)
+ 	}
+ # endif
+ 
++#ifdef __ANDROID__
++        git_error_set(GIT_ERROR_OS, "could not read /dev/urandom on android");
++	return -1;   
++#else
+ 	/* Fall-through: generate a seed from the time and system state */
+ 	if (gettimeofday(&tv, NULL) < 0) {
+-		git_error_set(GIT_ERROR_OS, "could get time for random seed");
++		git_error_set(GIT_ERROR_OS, "could not get time for random seed");
+ 		return -1;
+ 	}
+ 
+@@ -128,7 +132,8 @@ GIT_INLINE(int) getseed(uint64_t *seed)
+ 	/* Mix in the addresses of some variables */
+ 	*seed ^= ((uint64_t)((size_t)((void *)seed)) << 32);
+ 	*seed ^= ((uint64_t)((size_t)((void *)&errno)));
+-
++#endif
++        
+ 	return 0;
+ }
+ #endif

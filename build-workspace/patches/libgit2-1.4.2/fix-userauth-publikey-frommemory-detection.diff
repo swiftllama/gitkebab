@@ -1,0 +1,22 @@
+diff --git a/cmake/SelectSSH.cmake b/cmake/SelectSSH.cmake
+index 23dfc97..b14e623 100644
+--- a/cmake/SelectSSH.cmake
++++ b/cmake/SelectSSH.cmake
+@@ -20,10 +20,15 @@ if(LIBSSH2_FOUND)
+ 	list(APPEND LIBGIT2_SYSTEM_LIBS ${LIBSSH2_LIBRARIES})
+ 	list(APPEND LIBGIT2_PC_LIBS ${LIBSSH2_LDFLAGS})
+ 
+-	check_library_exists("${LIBSSH2_LIBRARIES}" libssh2_userauth_publickey_frommemory "${LIBSSH2_LIBRARY_DIRS}" HAVE_LIBSSH2_MEMORY_CREDENTIALS)
++        # GITKEBAB PATCH 
++	#check_library_exists("${LIBSSH2_LIBRARIES}" libssh2_userauth_publickey_frommemory "${LIBSSH2_LIBRARY_DIRS}" HAVE_LIBSSH2_MEMORY_CREDENTIALS)
++        set(HAVE_LIBSSH2_MEMORY_CREDENTIALS TRUE)
+ 	if(HAVE_LIBSSH2_MEMORY_CREDENTIALS)
+-		set(GIT_SSH_MEMORY_CREDENTIALS 1)
++	  set(GIT_SSH_MEMORY_CREDENTIALS 1)
++        else()
++          MESSAGE(FATAL_ERROR "HAVE_LIBSSH2_MEMORY_CREDENTIALS is false, choosing not to build libssh2 without memory credentials")
+ 	endif()
++        # END GITKEBAB PATCH
+ else()
+ 	message(STATUS "LIBSSH2 not found. Set CMAKE_PREFIX_PATH if it is installed outside of the default search path.")
+ endif()

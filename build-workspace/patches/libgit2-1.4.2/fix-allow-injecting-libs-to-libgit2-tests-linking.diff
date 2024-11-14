@@ -1,0 +1,26 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8c19d2e..a246f7c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,6 +8,8 @@ project(libgit2 VERSION "1.4.0" LANGUAGES C)
+ # Add find modules to the path
+ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+ 
++set(LIBGIT2_TESTS_EXTRA_LIBS ${LIBGIT2_TESTS_EXTRA_LIBS} "") # GITKEBAB PATCH: inject libs into test linkage
++
+ #
+ # Build options
+ #
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index f293c15..d118e2f 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -42,7 +42,7 @@ set_target_properties(libgit2_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJEC
+ 
+ target_include_directories(libgit2_tests PRIVATE ${TEST_INCLUDES} ${LIBGIT2_INCLUDES} ${LIBGIT2_DEPENDENCY_INCLUDES})
+ target_include_directories(libgit2_tests SYSTEM PRIVATE ${LIBGIT2_SYSTEM_INCLUDES})
+-target_link_libraries(libgit2_tests ${LIBGIT2_SYSTEM_LIBS})
++target_link_libraries(libgit2_tests ${LIBGIT2_SYSTEM_LIBS} ${LIBGIT2_LIBS} ${LIBGIT2_TESTS_EXTRA_LIBS}) # GITKEBAB PATCH inject libs into tests linkage
+ 
+ ide_split_sources(libgit2_tests)
+ 
