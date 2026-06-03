@@ -1,0 +1,9 @@
+set -e
+source "scripts/common/bash/common.sh"
+set -x
+
+define_basic_variables "openssl-3.5.6" "linux" "x86_64" "debug"
+define_build_folders
+if ! check_sentinel_exists "${BUILD_FOLDER}/lib64/libssl.a"; then
+    exit 1;
+fi

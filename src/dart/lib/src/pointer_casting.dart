@@ -2,8 +2,8 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart' as ffip;
 
 extension FfiUtf8Casting on String {
-  Pointer<Int8> toFfiPtr() {
-    return this.toNativeUtf8().cast<Int8>();
+  Pointer<Char> toFfiPtr() {
+    return this.toNativeUtf8().cast<Char>();
   }
 
   Pointer<Void> toVoidFfiPtr() {
@@ -13,7 +13,7 @@ extension FfiUtf8Casting on String {
 
 extension PointerExtensions<T extends NativeType> on Pointer<T> {
   String toDartString() {
-    if (T == Int8) {
+    if (T == Int8 || T == Char) {
       return this.cast<ffip.Utf8>().toDartString();
     }
 

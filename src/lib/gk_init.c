@@ -1,6 +1,7 @@
 
 #include "gk_init.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "git2.h"
 #include "string.h"
 
@@ -67,4 +68,33 @@ void gk_libgit2_set_log_level(int level) {
     int safe_level = GIT_TRACE_TRACE - level;
     safe_level = safe_level >= 0? safe_level : 0;
     git_trace_set(safe_level, libgit2_log_cb);
+}
+
+// Overrides the home directory libgit2 uses for file lookups (most
+// importantly `<HOME>/.ssh/known_hosts`, which the SSH transport
+// reads during connection setup). The app calls this once after
+// gk_init with a writable directory it owns and guarantees a
+// `.ssh/known_hosts` file lives there.
+//
+// Implementation: GIT_OPT_SET_HOMEDIR mutates libgit2's cached
+// homedir state directly, which is the only thing that works once
+// git_libgit2_init has already populated the sysdir cache. We also
+// setenv("HOME", ...) so that any code path that re-reads it (or any
+// other library in the process) sees the same value. Returns 0 on
+// success, -1 on failure.
+int gk_set_home(const char *path) {
+    if (path == NULL || path[0] == '\0') {
+        log_warn(COMP_INIT, "gk_set_home called with empty path; ignoring");
+        return -1;
+    }
+    int rc = git_libgit2_opts(GIT_OPT_SET_HOMEDIR, path);
+    if (rc != 0) {
+        log_warn(COMP_INIT, "git_libgit2_opts(GIT_OPT_SET_HOMEDIR, %s) failed: rc=%d", path, rc);
+        return -1;
+    }
+    if (setenv("HOME", path, 1) != 0) {
+        log_warn(COMP_INIT, "setenv(HOME, %s) failed (libgit2 still updated)", path);
+    }
+    log_info(COMP_INIT, "libgit2 home dir overridden to %s", path);
+    return 0;
 }

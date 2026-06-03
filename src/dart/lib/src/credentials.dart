@@ -19,10 +19,10 @@ class InMemoryKeyCredential extends Credential {
 
   @override
   void prepareSession(Pointer<gitkebab_lib.gk_session> session_ptr) {
-    final username = user.isEmpty ? Pointer<Int8>.fromAddress(0) : user.toFfiPtr();
-    final keyBytes = key.isEmpty ? Pointer<Int8>.fromAddress(0) : key.toFfiPtr();
-    final publicKeyBytes = Pointer<Int8>.fromAddress(0);
-    final passphraseBytes = passphrase.isEmpty ? Pointer<Int8>.fromAddress(0) : passphrase.toFfiPtr();
+    final username = user.isEmpty ? Pointer<Char>.fromAddress(0) : user.toFfiPtr();
+    final keyBytes = key.isEmpty ? Pointer<Char>.fromAddress(0) : key.toFfiPtr();
+    final publicKeyBytes = Pointer<Char>.fromAddress(0);
+    final passphraseBytes = passphrase.isEmpty ? Pointer<Char>.fromAddress(0) : passphrase.toFfiPtr();
     GitKebab.lib.gk_session_credential_ssh_key_memory_init(session_ptr, username, keyBytes, publicKeyBytes, passphraseBytes);
   }
 }

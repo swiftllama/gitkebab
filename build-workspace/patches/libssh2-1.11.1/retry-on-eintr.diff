@@ -1,0 +1,22 @@
+diff --git a/src/session.h b/src/session.h
+index d4fc575..260a5e5 100644
+--- a/src/session.h
++++ b/src/session.h
+@@ -62,7 +62,7 @@
+             if((rc != LIBSSH2_ERROR_EAGAIN) || !sess->api_block_mode) \
+                 break; \
+             rc = _libssh2_wait_socket(sess, entry_time);  \
+-        } while(!rc);   \
++        } while((rc == 0) || ((rc == LIBSSH2_ERROR_TIMEOUT) && (errno == EINTR))); \
+     } while(0)
+ 
+ /*
+@@ -82,7 +82,7 @@
+                (libssh2_session_last_errno(sess) != LIBSSH2_ERROR_EAGAIN)) \
+                 break; \
+             rc = _libssh2_wait_socket(sess, entry_time); \
+-        } while(!rc); \
++        } while((rc == 0) || ((rc == LIBSSH2_ERROR_TIMEOUT) && (errno == EINTR))); \
+     } while(0)
+ 
+ 

@@ -14,6 +14,113 @@
 #include "gk_session.h"
 #include "gk_filesystem.h"
 
+// Standard base64 encoder, 32 input bytes -> 44 chars + null. No
+// padding stripping; matches what OpenSSH ssh-keygen -lf prints
+// after the "SHA256:" prefix (which we omit here for storage).
+static void gk_b64_encode_sha256(const unsigned char in[32], char out[64]) {
+    static const char alphabet[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    int i, j;
+    for (i = 0, j = 0; i < 30; i += 3) {
+        out[j++] = alphabet[(in[i] >> 2) & 0x3f];
+        out[j++] = alphabet[((in[i] & 0x03) << 4) | ((in[i + 1] >> 4) & 0x0f)];
+        out[j++] = alphabet[((in[i + 1] & 0x0f) << 2) | ((in[i + 2] >> 6) & 0x03)];
+        out[j++] = alphabet[in[i + 2] & 0x3f];
+    }
+    // Last two bytes (30, 31), one partial group, no padding chars.
+    out[j++] = alphabet[(in[30] >> 2) & 0x3f];
+    out[j++] = alphabet[((in[30] & 0x03) << 4) | ((in[31] >> 4) & 0x0f)];
+    out[j++] = alphabet[(in[31] & 0x0f) << 2];
+    out[j] = '\0';
+}
+
+// Returns 1 if `needle` appears as a comma-separated token in `haystack`.
+static int gk_csv_contains(const char *haystack, const char *needle) {
+    if (haystack == NULL || needle == NULL) return 0;
+    size_t nlen = strlen(needle);
+    const char *p = haystack;
+    while (*p != '\0') {
+        while (*p == ' ' || *p == ',') p++;
+        const char *start = p;
+        while (*p != '\0' && *p != ',') p++;
+        size_t toklen = (size_t)(p - start);
+        // Trim trailing spaces from token.
+        while (toklen > 0 && start[toklen - 1] == ' ') toklen--;
+        if (toklen == nlen && memcmp(start, needle, nlen) == 0) return 1;
+    }
+    return 0;
+}
+
+// libgit2 certificate-check callback. Computes SHA-256 base64 of the
+// negotiated host key, stores it on the session, and accepts iff:
+//   - no expected list is set (TOFU first-contact), or
+//   - the captured fingerprint matches one in the expected CSV.
+// On mismatch returns GIT_ECERTIFICATE (-17) so libgit2 surfaces a
+// distinct error code the app can translate into a "host key changed"
+// prompt.
+// Maps libgit2's raw-host-key type enum to the OpenSSH wire-format
+// type string (the one that goes in known_hosts and on the public-key
+// line). Returns "" for unknown types so the app can decide whether
+// to skip persisting.
+static const char *gk_hostkey_type_string(git_cert_ssh_raw_type_t t) {
+    switch (t) {
+        case GIT_CERT_SSH_RAW_TYPE_RSA:           return "ssh-rsa";
+        case GIT_CERT_SSH_RAW_TYPE_DSS:           return "ssh-dss";
+        case GIT_CERT_SSH_RAW_TYPE_KEY_ECDSA_256: return "ecdsa-sha2-nistp256";
+        case GIT_CERT_SSH_RAW_TYPE_KEY_ECDSA_384: return "ecdsa-sha2-nistp384";
+        case GIT_CERT_SSH_RAW_TYPE_KEY_ECDSA_521: return "ecdsa-sha2-nistp521";
+        case GIT_CERT_SSH_RAW_TYPE_KEY_ED25519:   return "ssh-ed25519";
+        default:                                  return "";
+    }
+}
+
+static int gk_session_certificate_check_callback(git_cert *cert, int valid, const char *host, void *payload) {
+    (void)valid;
+    gk_session *session = (gk_session *)payload;
+    if (cert == NULL || session == NULL) return -1;
+    if (cert->cert_type != GIT_CERT_HOSTKEY_LIBSSH2) {
+        // We only know how to verify SSH host keys; pass through.
+        return 0;
+    }
+    git_cert_hostkey *hk = (git_cert_hostkey *)cert;
+    if ((hk->type & GIT_CERT_SSH_SHA256) == 0) {
+        // libssh2 didn't surface a SHA-256 — accept and don't capture.
+        log_warn(COMP_REMOTE, "No SHA-256 host-key hash for [%s]; cannot pin", host == NULL ? "?" : host);
+        return 0;
+    }
+    gk_b64_encode_sha256(hk->hash_sha256, session->captured_hostkey_sha256);
+
+    // Capture raw key bytes + wire-format type string so the app can
+    // append the host to its known_hosts file on first contact and
+    // make libssh2's own pre-handshake check enforce on the next
+    // connection.
+    const char *type_str = gk_hostkey_type_string(hk->raw_type);
+    if (type_str[0] != '\0' &&
+        (hk->type & GIT_CERT_SSH_RAW) != 0 &&
+        hk->hostkey != NULL &&
+        hk->hostkey_len > 0 &&
+        hk->hostkey_len <= sizeof(session->captured_hostkey_key)) {
+        size_t type_len = strlen(type_str);
+        if (type_len < sizeof(session->captured_hostkey_type)) {
+            memcpy(session->captured_hostkey_type, type_str, type_len + 1);
+            memcpy(session->captured_hostkey_key, hk->hostkey, hk->hostkey_len);
+            session->captured_hostkey_key_len = hk->hostkey_len;
+        }
+    }
+
+    const char *expected = session->expected_hostkey_sha256s;
+    if (expected == NULL || expected[0] == '\0') {
+        log_info(COMP_REMOTE, "Host-key TOFU accept for [%s]: %s", host == NULL ? "?" : host, session->captured_hostkey_sha256);
+        return 0;
+    }
+    if (gk_csv_contains(expected, session->captured_hostkey_sha256)) {
+        log_info(COMP_REMOTE, "Host-key match for [%s]", host == NULL ? "?" : host);
+        return 0;
+    }
+    log_error(COMP_REMOTE, "Host-key mismatch for [%s]: captured=%s expected=%s", host == NULL ? "?" : host, session->captured_hostkey_sha256, expected);
+    return -1;
+}
+
 static int gk_session_credential_callback(git_credential **out,
                                    const char *url,
                                    const char *username_from_url,
@@ -133,6 +240,7 @@ int gk_clone(gk_session *session) {
     //clone_opts.fetch_opts.callbacks.sideband_progress = sideband_progress;
     clone_opts.fetch_opts.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
     clone_opts.fetch_opts.callbacks.credentials = &gk_session_credential_callback;
+    clone_opts.fetch_opts.callbacks.certificate_check = &gk_session_certificate_check_callback;
     clone_opts.fetch_opts.callbacks.payload = session;
 
 
@@ -238,6 +346,7 @@ int gk_fetch(gk_session *session, const char *remote_name) {
     git_fetch_options fetch_options = GIT_FETCH_OPTIONS_INIT;
     fetch_options.callbacks.transfer_progress = (git_indexer_progress_cb)&gk_session_fetch_progress_callback;
     fetch_options.callbacks.credentials = &gk_session_credential_callback;
+    fetch_options.callbacks.certificate_check = &gk_session_certificate_check_callback;
     fetch_options.callbacks.payload = session;
 
     const git_strarray *refspecs = NULL;
@@ -338,6 +447,7 @@ int gk_push(gk_session *session, const char *remote_name) {
     push_options.callbacks.sideband_progress = (git_transport_message_cb)&gk_session_transport_message_callback;
     
     push_options.callbacks.credentials = gk_session_credential_callback;
+    push_options.callbacks.certificate_check = &gk_session_certificate_check_callback;
     push_options.callbacks.payload = session;
     
 

@@ -49,7 +49,7 @@ const char *gk_merge_conflict_entry_type_string(gk_merge_conflict_entry_type ent
     
 int gk_conflicts_allocate(gk_repository *repository, size_t num_conflicts) {
     repository->conflict_summary.num_conflicts = num_conflicts;
-    repository->conflict_summary.conflicts = (gk_merge_conflict_entry **)calloc(sizeof(gk_merge_conflict_entry *), num_conflicts);
+    repository->conflict_summary.conflicts = (gk_merge_conflict_entry **)calloc(num_conflicts, sizeof(gk_merge_conflict_entry *));
     return 0;
 }
 

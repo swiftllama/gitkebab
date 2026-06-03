@@ -82,7 +82,47 @@ void gk_session_free(gk_session *session) {
     gk_session_destroy_state_lock(session);
     gk_execution_context_free(session->context);
     session->context = NULL;
+    if (session->expected_hostkey_sha256s != NULL) {
+        free(session->expected_hostkey_sha256s);
+        session->expected_hostkey_sha256s = NULL;
+    }
     free(session);
+}
+
+void gk_session_set_expected_hostkey_sha256(gk_session *session, const char *sha256s_csv) {
+    if (session == NULL) return;
+    if (session->expected_hostkey_sha256s != NULL) {
+        free(session->expected_hostkey_sha256s);
+        session->expected_hostkey_sha256s = NULL;
+    }
+    if (sha256s_csv != NULL && sha256s_csv[0] != '\0') {
+        size_t len = strlen(sha256s_csv);
+        session->expected_hostkey_sha256s = (char *)malloc(len + 1);
+        memcpy(session->expected_hostkey_sha256s, sha256s_csv, len + 1);
+    }
+    session->captured_hostkey_sha256[0] = '\0';
+    session->captured_hostkey_type[0] = '\0';
+    session->captured_hostkey_key_len = 0;
+}
+
+const char *gk_session_captured_hostkey_sha256(gk_session *session) {
+    if (session == NULL) return "";
+    return session->captured_hostkey_sha256;
+}
+
+const char *gk_session_captured_hostkey_type(gk_session *session) {
+    if (session == NULL) return "";
+    return session->captured_hostkey_type;
+}
+
+const unsigned char *gk_session_captured_hostkey_key_bytes(gk_session *session) {
+    if (session == NULL) return NULL;
+    return session->captured_hostkey_key;
+}
+
+size_t gk_session_captured_hostkey_key_len(gk_session *session) {
+    if (session == NULL) return 0;
+    return session->captured_hostkey_key_len;
 }
 
 int gk_session_initialize(gk_session *session) {

@@ -1,0 +1,16 @@
+# Build plan for this workspace, consumed by bashbuild.
+# Each entry lists the components it consumes; bashbuild topo-sorts into phases.
+# Components present in scripts/ but absent here are not part of the build plan
+# (e.g. alternate versions, or libiconv which is macOS/iOS-only).
+name: gitkebab
+build:
+  cmocka-1.1.5:   []
+  zlib-1.2.12:    []
+  pcre-8.45:      []
+  openssl-1.1.1w: []
+  openssl-3.5.6:  []
+  libssh2-1.11.1: [zlib-1.2.12, openssl-1.1.1w]
+  libssh2-nextgen-1.11.1: [zlib-1.2.12, openssl-3.5.6]
+  libgit2-1.8.4:  [zlib-1.2.12, pcre-8.45, openssl-1.1.1w, libssh2-1.11.1]
+  libgit2-1.9.4:  [zlib-1.2.12, pcre-8.45, openssl-3.5.6, libssh2-nextgen-1.11.1]
+  gitkebab-head:  [cmocka-1.1.5, zlib-1.2.12, pcre-8.45, openssl-1.1.1w, libssh2-1.11.1, libgit2-1.8.4]

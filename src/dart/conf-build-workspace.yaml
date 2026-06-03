@@ -1,11 +1,12 @@
 name: 'GitKebabLib'
 description: 'gitkebab dart bindings'
 output: 'gitkebab_lib.dart'
-compiler-opts: '-I/usr/lib/llvm-6.0/lib/clang/6.0.0/include/'
+compiler-opts: '-I/usr/lib/llvm-6.0/lib/clang/6.0.0/include/ -I/usr/lib/llvm-19/lib/clang/19/include/'
 headers:
   entry-points:
     - '../../../../../../source/gitkebab-head/src/lib/gitkebab.h'
 llvm-path:
+  - '/usr/lib/llvm-19' # lubuntu 24.04 thinkpad llvm path
   - '/usr/lib/llvm-10' # xubuntu thinkpad llvm path
   - '/usr/lib/llvm-7'   # docker llvm path
 enums:

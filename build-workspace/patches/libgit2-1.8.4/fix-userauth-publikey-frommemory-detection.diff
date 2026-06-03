@@ -1,0 +1,23 @@
+diff --git a/cmake/SelectSSH.cmake b/cmake/SelectSSH.cmake
+index 079857f..99927eb 100644
+--- a/cmake/SelectSSH.cmake
++++ b/cmake/SelectSSH.cmake
+@@ -22,10 +22,17 @@ elseif(USE_SSH STREQUAL ON OR USE_SSH STREQUAL "libssh2")
+ 	list(APPEND LIBGIT2_SYSTEM_LIBS ${LIBSSH2_LIBRARIES})
+ 	list(APPEND LIBGIT2_PC_LIBS ${LIBSSH2_LDFLAGS})
+ 
+-	check_library_exists("${LIBSSH2_LIBRARIES}" libssh2_userauth_publickey_frommemory "${LIBSSH2_LIBRARY_DIRS}" HAVE_LIBSSH2_MEMORY_CREDENTIALS)
++	# GITKEBAB PATCH: libssh2 is always built with publickey_frommemory in our
++	# vendored 1.11.1 build; check_library_exists fails to link the static
++	# archive at configure time, so force-enable instead of detecting.
++	# check_library_exists("${LIBSSH2_LIBRARIES}" libssh2_userauth_publickey_frommemory "${LIBSSH2_LIBRARY_DIRS}" HAVE_LIBSSH2_MEMORY_CREDENTIALS)
++	set(HAVE_LIBSSH2_MEMORY_CREDENTIALS TRUE)
+ 	if(HAVE_LIBSSH2_MEMORY_CREDENTIALS)
+ 		set(GIT_SSH_LIBSSH2_MEMORY_CREDENTIALS 1)
++	else()
++		message(FATAL_ERROR "HAVE_LIBSSH2_MEMORY_CREDENTIALS is false, refusing to build without libssh2 memory credentials")
+ 	endif()
++	# END GITKEBAB PATCH
+ 
+ 	if(WIN32 AND EMBED_SSH_PATH)
+ 		file(GLOB SSH_SRC "${EMBED_SSH_PATH}/src/*.c")

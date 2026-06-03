@@ -25,7 +25,11 @@ enum GK_RESULT_CODE {
     GK_ERR_REPOSITORY_NOT_LOADED,
     GK_ERR_NOT_FOUND,
 
-    GK_ERR_MERGE_HAS_CONFLICTS
+    GK_ERR_MERGE_HAS_CONFLICTS,
+
+    // Remote host key verification
+    GK_ERR_HOSTKEY_UNKNOWN,    // First contact with no TOFU expectation set
+    GK_ERR_HOSTKEY_MISMATCH    // Expected fingerprint doesn't match what the server presented
 };
 
 typedef enum gk_merge_conflict_entry_type {
@@ -207,6 +211,24 @@ typedef struct {
     void *state_lock; // this is pthread_mutex_t, stored as void for dart compatibility
     gk_session_callbacks callbacks;
     gk_result *internal_last_result;
+    // Trust-on-first-use host-key pinning. The app sets
+    // expected_hostkey_sha256s before each sync with a comma-separated
+    // list of base64-encoded raw SHA-256 hashes (44 chars each, no
+    // padding stripped — base64 standard). The callback writes the
+    // hash of the negotiated host key into captured_hostkey_sha256 so
+    // the app can persist it after a successful sync.
+    char *expected_hostkey_sha256s; // NULL = TOFU accept-any
+    char captured_hostkey_sha256[64];
+    // Raw host key bytes from the negotiated SSH host key, plus its
+    // wire-format type string ("ssh-rsa", "ssh-ed25519",
+    // "ecdsa-sha2-nistp256", …). The app reads these after a sync so
+    // it can also append the host to its known_hosts file, giving
+    // libssh2's own known-hosts check something to enforce on the
+    // next connection. 2048 bytes is plenty — a 4096-bit RSA wire
+    // key fits comfortably under 600 bytes.
+    char captured_hostkey_type[64];
+    unsigned char captured_hostkey_key[2048];
+    size_t captured_hostkey_key_len;
 } gk_session;
 
 

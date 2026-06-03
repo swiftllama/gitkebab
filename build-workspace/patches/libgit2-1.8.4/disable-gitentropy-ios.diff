@@ -1,0 +1,20 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index ed3f4a5..4c37075 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -84,7 +84,14 @@ check_prototype_definition_safe(qsort_s
+ 
+ # random / entropy data
+ 
+-check_symbol_exists(getentropy unistd.h GIT_RAND_GETENTROPY)
++# GITKEBAB PATCH: iOS unistd.h declares getentropy but linking can fail at
++# runtime depending on deployment target — force-disable on iOS.
++if("${CMAKE_SYSTEM_NAME}" MATCHES "iOS")
++	set(GIT_RAND_GETENTROPY 0)
++else()
++	check_symbol_exists(getentropy unistd.h GIT_RAND_GETENTROPY)
++endif()
++# END GITKEBAB PATCH
+ check_symbol_exists(getloadavg stdlib.h GIT_RAND_GETLOADAVG)
+ 
+ # poll

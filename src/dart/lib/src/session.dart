@@ -19,7 +19,7 @@ enum SessionCallbackMode {
   synchronous, polling
 }
 
-Session sessionFromSessionIdPtr(Pointer<Int8> session_id_ptr, String callbackName) {
+Session sessionFromSessionIdPtr(Pointer<Char> session_id_ptr, String callbackName) {
   if (session_id_ptr.address == 0) {
     throw "received $callbackName callback with NULL session_id";
   }
@@ -31,7 +31,7 @@ Session sessionFromSessionIdPtr(Pointer<Int8> session_id_ptr, String callbackNam
   return session;
 }
 
-void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr, Pointer<gitkebab_lib.gk_session_progress> progressPtr) {
+void session_state_callback(Pointer<Char> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr, Pointer<gitkebab_lib.gk_session_progress> progressPtr) {
   String sessionId = "(unknown-id)";
   try {
     final session = sessionFromSessionIdPtr(session_id_ptr, "state changed");
@@ -52,7 +52,7 @@ void session_state_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.g
   }
 }
 
-void session_merge_conflicts_query_callback(Pointer<Int8> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
+void session_merge_conflicts_query_callback(Pointer<Char> session_id_ptr, Pointer<gitkebab_lib.gk_repository> repositoryPtr) {
   String sessionId = "(unknown-id)";
   try {
     Session session = sessionFromSessionIdPtr(session_id_ptr, "merge conflicts query");
@@ -157,6 +157,46 @@ class Session {
 
   GitKebabException? lastError() {
     return lastResultCode() == gitkebab_lib.ResultCode.SUCCESS ? null : lastResultException();
+  }
+
+  ////
+  // Host-key pinning (TOFU). Pass null/empty to accept any host key
+  // and capture it for storage; pass a comma-separated list of
+  // base64-encoded raw SHA-256 hashes to require the negotiated host
+  // key match one of them.
+  void setExpectedHostkeySha256(String? sha256sCsv) {
+    final ptr = (sha256sCsv == null || sha256sCsv.isEmpty)
+        ? Pointer<Char>.fromAddress(0)
+        : sha256sCsv.toFfiPtr();
+    GitKebab.lib.gk_session_set_expected_hostkey_sha256(session_ptr, ptr);
+    if (ptr.address != 0) ffip.calloc.free(ptr);
+  }
+
+  String capturedHostkeySha256() {
+    final ptr = GitKebab.lib.gk_session_captured_hostkey_sha256(session_ptr);
+    if (ptr.address == 0) return '';
+    return ptr.cast<ffip.Utf8>().toDartString();
+  }
+
+  /// OpenSSH wire-format type of the most recently captured host key
+  /// ("ssh-rsa", "ssh-ed25519", "ecdsa-sha2-nistp256", …), or '' if
+  /// none was captured during the last network op.
+  String capturedHostkeyType() {
+    final ptr = GitKebab.lib.gk_session_captured_hostkey_type(session_ptr);
+    if (ptr.address == 0) return '';
+    return ptr.cast<ffip.Utf8>().toDartString();
+  }
+
+  /// Raw bytes of the most recently captured host key, as the SSH
+  /// wire-format key blob (the same payload that goes after the
+  /// algorithm name in known_hosts). Empty list when nothing was
+  /// captured.
+  List<int> capturedHostkeyKeyBytes() {
+    final len = GitKebab.lib.gk_session_captured_hostkey_key_len(session_ptr);
+    if (len == 0) return const [];
+    final ptr = GitKebab.lib.gk_session_captured_hostkey_key_bytes(session_ptr);
+    if (ptr.address == 0) return const [];
+    return ptr.cast<Uint8>().asTypedList(len).toList(growable: false);
   }
 
   ////
@@ -398,7 +438,7 @@ class Session {
   ffip.calloc.free(contents_ptr);
   ffip.calloc.free(length_ptr);*/
 
-    Pointer<Int8> contents_ptr = GitKebab.lib.gk_blob_new_char_contents(
+    final contents_ptr = GitKebab.lib.gk_blob_new_char_contents(
         session_ptr, blobId.toFfiPtr());
     if (contents_ptr.address == 0) throw lastResultException();
     String contents = contents_ptr.toDartString();
@@ -456,7 +496,7 @@ class Session {
   }
   
   int compareBlobs(String blob1Id, String blob2Id) {
-    Pointer<Int32> similarityPtr = ffip.calloc<Int32>();
+    Pointer<Int> similarityPtr = ffip.calloc<Int>();
     int rc = GitKebab.lib.gk_compare_blobs(
         session_ptr, similarityPtr, blob1Id.toFfiPtr(), blob2Id.toFfiPtr());
     int similarity = similarityPtr.address == 0 ? 0 : similarityPtr.value;
@@ -468,7 +508,7 @@ class Session {
   }
 
   String mergedBufferWithConflictMarkers(MergeConflict conflict) {
-    Pointer<Int8> bufferPtr = GitKebab.lib
+    final bufferPtr = GitKebab.lib
         .gk_conflict_merged_buffer_with_conflict_markers(
         session_ptr, conflict.ancestorBlobId.toFfiPtr(),
         conflict.oursBlobId.toFfiPtr(), conflict.theirsBlobId.toFfiPtr(),
