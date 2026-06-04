@@ -4,6 +4,12 @@
 #include <errno.h>
 #include <stdint.h>
 
+// gk_keys uses the low-level RSA/PEM API (RSA_generate_key_ex,
+// PEM_write_bio_RSA*), deprecated since OpenSSL 3.0 but still functional and
+// producing byte-identical PKCS#1 keys. Suppress the deprecation warnings so
+// the -Werror build passes against OpenSSL 3.x.
+#define OPENSSL_SUPPRESS_DEPRECATED
+
 #include "openssl/pem.h"
 #include "openssl/x509.h"
 #include "openssl/err.h"

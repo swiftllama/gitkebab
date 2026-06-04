@@ -12,7 +12,7 @@ init_and_change_into_tmp_build_folder
 
 define_android_variables
 
-OPENSSL_DIR=build/openssl-1.1.1w/${TARGET_FOLDER_TRIPLET}
+OPENSSL_DIR=build/openssl-3.5.6/${TARGET_FOLDER_TRIPLET}
 ZLIB_LIB=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/libz.a
 
 cmake ${RELATIVE_SOURCE} \

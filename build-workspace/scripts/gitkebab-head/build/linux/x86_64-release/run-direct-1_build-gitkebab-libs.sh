@@ -13,19 +13,25 @@ init_and_change_into_tmp_build_folder
 
 ZLIB_DIR=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}
 PCRE_DIR=build/pcre-8.45/${TARGET_FOLDER_TRIPLET}
-OPENSSL_DIR=build/openssl-1.1.1w/${TARGET_FOLDER_TRIPLET}
+OPENSSL_DIR=build/openssl-3.5.6/${TARGET_FOLDER_TRIPLET}
 LIBSSH2_DIR=build/libssh2-1.11.1/${TARGET_FOLDER_TRIPLET}
 #ICONV_DIR=build/libiconv-1.16/${TARGET_FOLDER_TRIPLET}
-LIBGIT2_DIR=build/libgit2-1.8.4/${TARGET_FOLDER_TRIPLET}
+LIBGIT2_DIR=build/libgit2-1.9.4/${TARGET_FOLDER_TRIPLET}
 CMOCKA_DIR=build/cmocka-1.1.5/${TARGET_FOLDER_TRIPLET}
 
 CUSTOM_SEARCH_PATH="${ROOT}/${ZLIB_DIR};${ROOT}/${PCRE_DIR};${ROOT}/${OPENSSL_DIR};${ROOT}/${LIBSSH2_DIR};${ROOT}/${LIBGIT2_DIR};${ROOT}/${CMOCKA_DIR}"
+
+# OpenSSL 3.x's linux-x86_64 target installs static libs to lib64/ (multilib
+# postfix), which bare find_library() in the root CMakeLists doesn't search,
+# so it would fall through to system /usr libssl.a. Add openssl's lib64 to
+# CMAKE_LIBRARY_PATH (searched before system) so our build-tree libs win.
 
 # Build c libraries and tests
 echo "\n\n=== Building C libraries (root Cmake) ==="
 cmake ${RELATIVE_SOURCE} \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_PREFIX_PATH="${CUSTOM_SEARCH_PATH}" \
+      -DCMAKE_LIBRARY_PATH="${ROOT}/${OPENSSL_DIR}/lib64" \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}  \
       -DTMP_BUILD_FOLDER=${TMP_BUILD_FOLDER}
 

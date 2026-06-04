@@ -11,7 +11,7 @@ init_and_change_into_tmp_build_folder
 ##
 
 OPENSSL_DIR=build/openssl-1.1.1n/${TARGET_FOLDER_TRIPLET}
-ZLIB_LIB=build/zlib-1.2.12!/${TARGET_FOLDER_TRIPLET}/lib/libz.a
+ZLIB_LIB=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/libz.a
 
 cmake ${RELATIVE_SOURCE} \
       -DCRYPTO_BACKEND=OpenSSL \

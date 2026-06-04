@@ -23,21 +23,26 @@ define_android_variables
 
 OPENSSL_DIR=build/openssl-3.5.6/${TARGET_FOLDER_TRIPLET}
 ZLIB_LIB=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/libz.a
-LIBSSH2_DIR=build/libssh2-nextgen-1.11.1/${TARGET_FOLDER_TRIPLET}
+LIBSSH2_DIR=build/libssh2-1.11.1/${TARGET_FOLDER_TRIPLET}
 PCRE_DIR=build/pcre-8.45/${TARGET_FOLDER_TRIPLET}
 ICONV_DIR=build/libiconv-1.16/${TARGET_FOLDER_TRIPLET}
 
-CUSTOM_SEARCH_PATH="${ROOT}/${PCRE_DIR};${ROOT}/${ICONV_DIR};${ROOT}/${OPENSSL_DIR};"
+CUSTOM_SEARCH_PATH="${ROOT}/${PCRE_DIR};${ROOT}/${ICONV_DIR};${ROOT}/${OPENSSL_DIR};${ROOT}/${LIBSSH2_DIR};"
+
+# Cross-compiled libssh2.pc / openssl.pc / zlib.pc / pcre.pc live under the
+# per-arch build dirs; feed them to pkg-config so libgit2's SelectSSH.cmake
+# discovers libssh2 when we pass -DUSE_SSH=libssh2. MODE_LIBRARY=BOTH lets
+# find_pkglibraries resolve the libssh2 archive outside the NDK sysroot
+# (the default ONLY would reject it).
+export PKG_CONFIG_PATH="${ROOT}/${LIBSSH2_DIR}/lib/pkgconfig:${ROOT}/${OPENSSL_DIR}/lib/pkgconfig:${ROOT}/build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/pkgconfig:${ROOT}/${PCRE_DIR}/lib/pkgconfig"
 
 cmake ${RELATIVE_SOURCE} \
       -DCMAKE_PREFIX_PATH="${CUSTOM_SEARCH_PATH}" \
       -DCMAKE_BUILD_TYPE=Debug \
       -DBUILD_SHARED_LIBS=NO \
-      -DUSE_SSH=0 \
-      -DLIBSSH2_FOUND=1 \
-      -DLIBSSH2_INCLUDE_DIRS=${ROOT}/${LIBSSH2_DIR}/include/ \
-      -DLIBSSH2_LIBRARY_DIRS=${ROOT}/${LIBSSH2_DIR} \
-      -DLIBSSH2_LIBRARIES=${ROOT}/${LIBSSH2_DIR}/lib/libssh2.a \
+      -DBUILD_TESTS=OFF \
+      -DUSE_SSH=libssh2 \
+      -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=BOTH \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}/ \
       -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og --save-temps" \
       -DENABLE_TRACE=ON \

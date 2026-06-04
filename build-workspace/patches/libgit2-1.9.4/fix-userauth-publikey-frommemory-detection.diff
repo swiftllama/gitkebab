@@ -8,7 +8,7 @@ index a925579..55d5f25 100644
  
 -	check_library_exists("${LIBSSH2_LIBRARIES}" libssh2_userauth_publickey_frommemory "${LIBSSH2_LIBRARY_DIRS}" HAVE_LIBSSH2_MEMORY_CREDENTIALS)
 +	# GITKEBAB PATCH: libssh2 is always built with publickey_frommemory in our
-+	# vendored libssh2-nextgen-1.11.1 build; check_library_exists fails to link the
++	# vendored libssh2-1.11.1 build; check_library_exists fails to link the
 +	# static archive at configure time, so force-enable instead of detecting.
 +	# check_library_exists("${LIBSSH2_LIBRARIES}" libssh2_userauth_publickey_frommemory "${LIBSSH2_LIBRARY_DIRS}" HAVE_LIBSSH2_MEMORY_CREDENTIALS)
 +	set(HAVE_LIBSSH2_MEMORY_CREDENTIALS TRUE)

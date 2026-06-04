@@ -20,7 +20,7 @@ init_and_change_into_tmp_build_folder
 
 OPENSSL_DIR=build/openssl-1.1.1w/${TARGET_FOLDER_TRIPLET}
 ZLIB_LIB=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/libz.a
-LIBSSH2_DIR=build/libssh2-1.11.1/${TARGET_FOLDER_TRIPLET}
+LIBSSH2_DIR=build/libssh2-1.11.1-legacy-openssl/${TARGET_FOLDER_TRIPLET}
 PCRE_DIR=build/pcre-8.45/${TARGET_FOLDER_TRIPLET}
 #ICONV_DIR=build/libiconv-1.16/${TARGET_FOLDER_TRIPLET}
 

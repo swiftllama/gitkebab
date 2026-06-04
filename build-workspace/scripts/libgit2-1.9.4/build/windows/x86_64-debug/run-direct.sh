@@ -20,7 +20,7 @@ init_and_change_into_tmp_build_folder
 
 OPENSSL_DIR=build/openssl-3.5.6/${TARGET_FOLDER_TRIPLET}
 ZLIB_LIB=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/libz.a
-LIBSSH2_DIR=build/libssh2-nextgen-1.11.1/${TARGET_FOLDER_TRIPLET}
+LIBSSH2_DIR=build/libssh2-1.11.1/${TARGET_FOLDER_TRIPLET}
 PCRE_DIR=build/pcre-8.45/${TARGET_FOLDER_TRIPLET}
 ICONV_DIR=build/libiconv-1.16/${TARGET_FOLDER_TRIPLET}
 
@@ -34,11 +34,9 @@ DLLTOOL=x86_64-w64-mingw32-dlltool cmake ${RELATIVE_SOURCE} \
       -DDLLTOOL=x86_64-w64-mingw32-dlltool \
       -DCMAKE_BUILD_TYPE=Debug \
       -DBUILD_SHARED_LIBS=NO \
-      -DUSE_SSH=0 \
-      -DLIBSSH2_FOUND=1 \
-      -DLIBSSH2_INCLUDE_DIRS=${ROOT}/${LIBSSH2_DIR}/include/ \
-      -DLIBSSH2_LIBRARY_DIRS=${ROOT}/${LIBSSH2_DIR} \
-      -DLIBSSH2_LIBRARIES=${ROOT}/${LIBSSH2_DIR}/lib/libssh2.a \
+      -DUSE_SSH=libssh2 \
+      -DLIBSSH2_INCLUDE_DIR=${ROOT}/${LIBSSH2_DIR}/include \
+      -DLIBSSH2_LIBRARY=${ROOT}/${LIBSSH2_DIR}/lib/libssh2.a \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}/ \
       -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og --save-temps" \
       -DCMAKE_SYSTEM_NAME=Windows \

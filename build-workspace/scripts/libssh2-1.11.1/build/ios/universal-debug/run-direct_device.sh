@@ -13,7 +13,7 @@ IOS_TARGET_VERSION=10.0
 IOS_SDK=${XCODE_ROOT}/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS${IOS_SDK_VERSION}.sdk
 ARCHS="armv7;armv7s;arm64"
 
-OPENSSL_DIR=build/openssl-1.1.1w/${TARGET_FOLDER_TRIPLET}
+OPENSSL_DIR=build/openssl-3.5.6/${TARGET_FOLDER_TRIPLET}
 ZLIB_DIR=build/zlib-1.2.12/${TARGET_FOLDER_TRIPLET}/lib/
 ZLIB_LIB=${ZLIB_DIR}/libz.a
 
