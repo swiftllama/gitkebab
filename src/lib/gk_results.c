@@ -32,7 +32,7 @@ gk_result *gk_result_vargs(int code, const char *message, va_list args) {
     return gk_result_new(code, formatted_message);
 }
 
-gk_result *gk_result_success() {
+gk_result *gk_result_success(void) {
     return gk_result_new(GK_SUCCESS, NULL);
 }
 

@@ -34,7 +34,7 @@ cmake ${RELATIVE_SOURCE} \
       -DLIBSSH2_INCLUDE_DIR=${ROOT}/${LIBSSH2_DIR}/include \
       -DLIBSSH2_LIBRARY=${ROOT}/${LIBSSH2_DIR}/lib/libssh2.a \
       -DCMAKE_INSTALL_PREFIX=${ROOT}/${BUILD_FOLDER}/ \
-      -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og --save-temps" \
+      -DCMAKE_C_FLAGS_DEBUG="-ggdb -Og" \
       -DENABLE_TRACE=ON \
       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DCMAKE_EXE_LINKER_FLAGS="${ROOT}/${OPENSSL_DIR}/lib/libssl.a ${ROOT}/${OPENSSL_DIR}/lib/libcrypto.a"  \

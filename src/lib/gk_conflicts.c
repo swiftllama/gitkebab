@@ -11,7 +11,7 @@
 #include "gk_session.h"
 
 
-gk_merge_conflict_entry *gk_merge_conflict_entry_new() {
+gk_merge_conflict_entry *gk_merge_conflict_entry_new(void) {
     gk_merge_conflict_entry *entry = malloc(sizeof(gk_merge_conflict_entry));
     if (entry == NULL) {
         log_error(COMP_CONFLICTS, "Error allocating merge conflict entry");
@@ -65,7 +65,7 @@ void gk_conflicts_free(gk_repository *repository) {
     repository->conflict_summary.num_conflicts = 0;
 }
 
-gk_conflict_diff_summary *gk_conflict_diff_summary_new() {
+gk_conflict_diff_summary *gk_conflict_diff_summary_new(void) {
     gk_conflict_diff_summary *summary = malloc(sizeof(gk_conflict_diff_summary));
     summary->ancestor_to_ours_diff = NULL;
     summary->ancestor_to_theirs_diff = NULL;
@@ -81,7 +81,7 @@ void gk_conflict_diff_summary_free(gk_conflict_diff_summary *summary) {
 }
 
 
-gk_void_linked_node *gk_void_linked_node_new() {
+gk_void_linked_node *gk_void_linked_node_new(void) {
     gk_void_linked_node *new_node = malloc(sizeof(gk_void_linked_node));
     new_node->data = NULL;
     new_node->next = NULL;

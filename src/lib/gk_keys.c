@@ -30,23 +30,23 @@ static void freeSslErrors(BIO *errors_bio);
 static void loadSslErrors(BIO **errors_bio, char **errors);
 
 
-char *gk_keys_generated_private_key() {
+char *gk_keys_generated_private_key(void) {
     return g_private_key;
 }
 
-char *gk_keys_generated_public_key() {
+char *gk_keys_generated_public_key(void) {
     return g_public_key;
 }
 
-char *gk_keys_errors() {
+char *gk_keys_errors(void) {
     return g_errors;
 }
 
-int gk_keys_has_errors() {
+int gk_keys_has_errors(void) {
     return g_errors != NULL;
 }
 
-int gk_keys_key_generation_in_progress() {
+int gk_keys_key_generation_in_progress(void) {
     return g_key_generation_in_progress;
 }
 
@@ -91,7 +91,7 @@ static void freeSslErrors(BIO *errors_bio) {
     if (errors_bio != NULL) BIO_free(errors_bio);
 }
 
-void printSslErrors() {
+void printSslErrors(void) {
     BIO *bio = NULL;
     char *buf = NULL;
     loadSslErrors(&bio, &buf);
@@ -108,7 +108,7 @@ int gk_keys_rsa_key_generate(int key_size_bits) {
     return gk_keys_rsa_key_generate_ex(key_size_bits, &g_private_key_bio, &g_private_key, &g_public_key_bio, &g_public_key, &g_errors_bio, &g_errors);
 }
 
-void gk_keys_rsa_key_free() {
+void gk_keys_rsa_key_free(void) {
     gk_keys_rsa_key_free_ex(g_private_key_bio, g_public_key_bio, g_errors_bio);
     g_private_key_bio = NULL;
     g_public_key_bio = NULL;

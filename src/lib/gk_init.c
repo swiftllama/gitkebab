@@ -21,7 +21,7 @@ void libgit2_log_cb(git_trace_level_t level, const char *msg) {
     log_at_level(GIT_TRACE_TRACE-level, COMP_LIBGIT2, msg); 
 }
 
-int gk_did_init() {
+int gk_did_init(void) {
     return did_init;
 }
 

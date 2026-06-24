@@ -13,7 +13,7 @@ int g_repository_state_record_disabled[GK_REPOSITORY_STATE_MAX_EXP];
 gk_repository_state g_old_state = 0;
 gk_repository_state g_current_state = 0;
 
-void gk_test_reset_state_change_record() {
+void gk_test_reset_state_change_record(void) {
     for (int i = 0;  i < GK_REPOSITORY_STATE_MAX_EXP; i += 1) {
         g_repository_state_record_enabled[i] = 0;
         g_repository_state_record_disabled[i] = 0;
@@ -68,73 +68,73 @@ int gk_test_state_count_disabled(gk_repository_state state) {
     return 0;
 }
 
-void gk_test_copy_source_repo_simplerepo1_dot_git() {
+void gk_test_copy_source_repo_simplerepo1_dot_git(void) {
     if (directory_exists("./test-staging/simple-repo1.git") == 0) {
         rm_rf("./test-staging/simple-repo1.git");
     }
     copy_directory("./fixtures/simple-repo1.git", "./test-staging/simple-repo1.git");
 }
 
-void gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak() {
+void gk_test_copy_simplerepo1_from_simplerepo1_dot_gitbak(void) {
     gk_test_delete_simplerepo1();
     copy_directory("./fixtures/simple-repo1.gitbak", "./test-staging/simple-repo1");
     mv("./test-staging/simple-repo1/.gitbak", "./test-staging/simple-repo1/.git");
 }
 
-void gk_test_copy_empty_repository_from_empty_repository_dot_gitbak() {
+void gk_test_copy_empty_repository_from_empty_repository_dot_gitbak(void) {
     gk_test_delete_simplerepo1();
     copy_directory("./fixtures/empty-repository.gitbak", "./test-staging/empty-repository.git");
 }
 
-void gk_test_copy_simplerepo1_from_simplerepo1B_mergeconflicts_dot_gitbak() {
+void gk_test_copy_simplerepo1_from_simplerepo1B_mergeconflicts_dot_gitbak(void) {
     gk_test_delete_simplerepo1B_mergeconflicts();
     copy_directory("./fixtures/simple-repo1-B_merge-conflicts.gitbak", "./test-staging/simple-repo1-B_merge-conflicts");
     mv("./test-staging/simple-repo1-B_merge-conflicts/.gitbak", "./test-staging/simple-repo1-B_merge-conflicts/.git");
 }
 
-void gk_test_delete_simplerepo1() {
+void gk_test_delete_simplerepo1(void) {
     if (directory_exists("./test-staging/simple-repo1") == 0) {
         rm_rf("./test-staging/simple-repo1");
     }
 }
 
-void gk_test_delete_simplerepo1A() {
+void gk_test_delete_simplerepo1A(void) {
     if (directory_exists("./test-staging/simple-repo1-A") == 0) {
         rm_rf("./test-staging/simple-repo1-A");
     }
 }
 
-void gk_test_delete_simplerepo1B() {
+void gk_test_delete_simplerepo1B(void) {
     if (directory_exists("./test-staging/simple-repo1-B") == 0) {
         rm_rf("./test-staging/simple-repo1-B");
     }
 }
 
-void gk_test_delete_simplerepo1B_mergeconflicts() {
+void gk_test_delete_simplerepo1B_mergeconflicts(void) {
     if (directory_exists("./test-staging/simple-repo1-B_merge-conflicts") == 0) {
         rm_rf("./test-staging/simple-repo1-B_merge-conflicts");
     }
 }
 
-void gk_test_delete_simplerepo1_dot_git() {
+void gk_test_delete_simplerepo1_dot_git(void) {
     if (directory_exists("./test-staging/simple-repo1.git") == 0) {
         rm_rf("./test-staging/simple-repo1.git");
     }
 }
 
-void gk_test_delete_empty_repository_dot_git() {
+void gk_test_delete_empty_repository_dot_git(void) {
     if (directory_exists("./test-staging/empty-repository.git") == 0) {
         rm_rf("./test-staging/empty-repository.git");
     }
 }
 
-void gk_test_delete_empty_repo_test_1() {
+void gk_test_delete_empty_repo_test_1(void) {
     if (directory_exists("./test-staging/empty-repo-test-1") == 0) {
         rm_rf("./test-staging/empty-repo-test-1");
     }
 }
 
-void gk_test_delete_empty_repo_test_2() {
+void gk_test_delete_empty_repo_test_2(void) {
     if (directory_exists("./test-staging/empty-repo-test-2") == 0) {
         rm_rf("./test-staging/empty-repo-test-2");
     }

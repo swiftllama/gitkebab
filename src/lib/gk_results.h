@@ -9,7 +9,7 @@
 gk_result *gk_result_new(int code, const char *message);
 gk_result *gk_result_v(int code, const char *message, ...);
 gk_result *gk_result_vargs(int code, const char *message, va_list args);
-gk_result *gk_result_success();
+gk_result *gk_result_success(void);
 void gk_result_free(gk_result *result);
 
 int gk_result_code(gk_result *result);

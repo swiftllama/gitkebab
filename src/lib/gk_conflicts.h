@@ -4,17 +4,17 @@
 
 #include "gk_types.h"
 
-gk_merge_conflict_entry *gk_merge_conflict_entry_new();
+gk_merge_conflict_entry *gk_merge_conflict_entry_new(void);
 void gk_merge_conflict_entry_free(gk_merge_conflict_entry *entry);
 const char *gk_merge_conflict_entry_type_string(gk_merge_conflict_entry_type entry_type);
 
 int gk_conflicts_allocate(gk_repository *repository, size_t num_conflicts);
 void gk_conflicts_free(gk_repository *repository);
 
-gk_conflict_diff_summary *gk_conflict_diff_summary_new();
+gk_conflict_diff_summary *gk_conflict_diff_summary_new(void);
 void gk_conflict_diff_summary_free(gk_conflict_diff_summary *summary);
 
-gk_void_linked_node *gk_void_linked_node_new();
+gk_void_linked_node *gk_void_linked_node_new(void);
 void gk_free_void_node_chain(gk_void_linked_node *chain, int free_data);
 
 int gk_conflict_resolve_accept_existing(gk_session *session, const char *path, gk_conflict_resolution accept);

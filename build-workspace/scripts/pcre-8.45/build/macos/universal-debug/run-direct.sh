@@ -8,10 +8,15 @@ init_and_change_into_tmp_build_folder
 ## NOTES
 ##  - allow linking resulting static library against shared library later on
 ##    - CFLAGS=-fPIC
+##  - --disable-cpp: libpcrecpp is unused by gitkebab and its dylib link step
+##    breaks under libtool's universal-binary path (mixes x86_64/arm64 slices).
+##  - --disable-shared: only libpcre.a is consumed downstream; skipping dylibs
+##    avoids the same libtool universal-binary failure mode.
 ##
 
-FLAGS="-fPIC --target=x86_64-apple-macos -arch x86_64 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -mmacosx-version-min=10.11"
-${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} CFLAGS="${FLAGS}" CXXFLAGS="${FLAGS}" CC="/Library/Developer/CommandLineTools/usr/bin/cc" LDFLAGS="${FLAGS}"
+SDK_PATH="$(xcrun --show-sdk-path)"
+FLAGS="-fPIC --target=x86_64-apple-macos -arch x86_64 -arch arm64 -isysroot ${SDK_PATH} -mmacosx-version-min=10.11"
+${RELATIVE_SOURCE}/configure --prefix=${ROOT}/${BUILD_FOLDER} --disable-cpp --disable-shared --enable-static CFLAGS="${FLAGS}" CXXFLAGS="${FLAGS}" CC="$(xcrun --find cc)" LDFLAGS="${FLAGS}"
 make
 make install
 

@@ -45,7 +45,7 @@ static void gk_repository_spec_free_members(gk_repository_spec *repository_spec)
     repository_spec->user = NULL;
 }
 
-gk_repository *gk_repository_new() {
+gk_repository *gk_repository_new(void) {
     // NOTE: new repository memory must be zerored out
     gk_repository *repository = (gk_repository *)calloc(1, sizeof(gk_repository));
     repository->state_counter = 0;
